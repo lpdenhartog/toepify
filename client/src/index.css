@@ -37,7 +37,7 @@ body {
 
 /* Layout */
 .app-container {
-  max-width: 480px;
+  max-width: 640px;
   margin: 0 auto;
   padding: 1.5rem 1rem;
 }
@@ -292,4 +292,320 @@ fieldset legend {
   flex: 1;
   font-size: 0.85rem;
   text-align: center;
+}
+
+/* Loading text */
+.loading-text {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+
+/* ======== Scoreboard ======== */
+
+.scoreboard {
+  width: 100%;
+}
+
+.scoreboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.scoreboard-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.pot-display {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.winner-banner {
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--accent);
+  background: rgba(232, 168, 23, 0.1);
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+/* Score table */
+.score-table-wrapper {
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+
+.score-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  table-layout: fixed;
+}
+
+.score-table th,
+.score-table td {
+  padding: 0.5rem 0.4rem;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+
+.score-table thead th {
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  position: sticky;
+  top: 0;
+}
+
+.round-col {
+  min-width: 3.5rem;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.round-label {
+  font-weight: 600;
+}
+
+.player-col {
+  min-width: 5rem;
+}
+
+.player-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.player-header-left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.player-header-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.player-header-amounts {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.1rem;
+}
+
+.player-balance {
+  font-size: 0.65rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.player-stake {
+  font-size: 0.6rem;
+  font-weight: 400;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.status-pelt {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: rgba(232, 168, 23, 0.15);
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+}
+
+.status-out {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--danger);
+  background: rgba(231, 76, 60, 0.15);
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+}
+
+.score-cell {
+  font-variant-numeric: tabular-nums;
+}
+
+.score-pelt {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.score-out {
+  color: var(--danger);
+  font-weight: 700;
+}
+
+/* Buy-in section */
+.buyin-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.btn-buyin {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.8rem;
+  padding: 0.6rem 0.5rem;
+}
+
+/* Penalty input section */
+.penalty-section {
+  margin-bottom: 1rem;
+}
+
+.penalty-grid {
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.penalty-column {
+  flex: 1;
+  text-align: center;
+  min-width: 0;
+}
+
+.penalty-player-name {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 0.35rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.penalty-input {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+}
+
+.penalty-btn {
+  width: 44px;
+  height: 44px;
+  font-size: 1.3rem;
+  font-weight: 700;
+  border-radius: 50%;
+  background: var(--surface-alt);
+  color: var(--text);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.penalty-btn:hover {
+  background: var(--border);
+}
+
+.penalty-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.penalty-value {
+  font-size: 1.2rem;
+  font-weight: 700;
+  min-width: 1.5rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.penalty-disabled {
+  opacity: 0.3;
+}
+
+.scoreboard-action {
+  margin-bottom: 0.5rem;
+}
+
+.finish-game-btn {
+  background: var(--danger);
+}
+
+.finish-game-btn:hover {
+  background: #c0392b;
+}
+
+/* Tournament balances */
+.balances-section {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.balances-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin: 0 0 0.5rem 0;
+}
+
+.balances-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.balance-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 4rem;
+}
+
+.balance-name {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 0.15rem;
+}
+
+.balance-value {
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.balance-positive {
+  color: #2ecc71;
+}
+
+.balance-negative {
+  color: var(--danger);
 }

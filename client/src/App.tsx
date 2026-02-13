@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AdminPage from "./pages/AdminPage";
+import TournamentPage from "./pages/TournamentPage";
 import headerIcon from "./assets/header-icon.svg";
 
 export default function App() {
@@ -13,6 +14,7 @@ export default function App() {
         </header>
         <Routes>
           <Route path="/admin" element={<AdminPage />} />
+          <Route path="/t/:tournamentId" element={<TournamentPage />} />
           <Route path="*" element={<p>Not found</p>} />
         </Routes>
       </div>
