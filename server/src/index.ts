@@ -18,6 +18,13 @@ app.use(express.json());
 
 app.use("/api/admin", adminRoutes);
 
+// Serve frontend static files in production
+const clientDist = path.resolve(__dirname, "../../client/dist");
+app.use(express.static(clientDist));
+app.get("*", (_req, res) => {
+  res.sendFile(path.join(clientDist, "index.html"));
+});
+
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
 });
