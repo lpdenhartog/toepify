@@ -2,7 +2,10 @@ import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// Try both: relative to source file and relative to cwd (for workspace setups)
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
+dotenv.config({ path: path.resolve(process.cwd(), "../.env") });
+dotenv.config(); // also try cwd/.env as fallback
 import express from "express";
 import cors from "cors";
 import adminRoutes from "./routes/admin.js";

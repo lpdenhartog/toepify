@@ -1,7 +1,7 @@
 import { Router, Response } from "express";
 import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
-import pool from "../db/connection.js";
+import getPool from "../db/connection.js";
 import { requireAdmin, AuthRequest } from "../middleware/auth.js";
 
 const router = Router();
@@ -37,7 +37,7 @@ router.post("/tournaments", requireAdmin, async (req: AuthRequest, res: Response
     return;
   }
 
-  const client = await pool.connect();
+  const client = await getPool().connect();
   try {
     await client.query("BEGIN");
 

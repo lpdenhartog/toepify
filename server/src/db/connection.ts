@@ -1,7 +1,12 @@
 import pg from "pg";
 
-const pool = new pg.Pool({
-  connectionString: process.env.DATABASE_URL,
-});
+let pool: pg.Pool;
 
-export default pool;
+export default function getPool(): pg.Pool {
+  if (!pool) {
+    pool = new pg.Pool({
+      connectionString: process.env.DATABASE_URL,
+    });
+  }
+  return pool;
+}
