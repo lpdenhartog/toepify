@@ -180,6 +180,7 @@ router.post("/games/:gameId/buy-in", async (req: Request, res: Response) => {
     );
     const buyInScore = Number(maxScoreRes.rows[0].max_score);
     const oldScore = Number(gpRes.rows[0].total_score);
+    const adjustment = buyInScore - oldScore;
 
     // Reactivate at the highest active player's score, increment buy_ins
     await client.query(
@@ -207,7 +208,7 @@ router.post("/games/:gameId/buy-in", async (req: Request, res: Response) => {
       [gameId]
     );
     for (const gp of allPlayersRes.rows) {
-      const penalty = gp.player_id === playerId ? buyInScore - oldScore : 0;
+      const penalty = gp.player_id === playerId ? adjustment : 0;
       await client.query(
         "INSERT INTO round_scores (round_id, player_id, penalty_points) VALUES ($1, $2, $3)",
         [roundId, gp.player_id, penalty]
