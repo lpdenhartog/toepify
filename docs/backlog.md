@@ -6,3 +6,4 @@
 - Add page favicon of that four playing cards
 - Pages look is okay now, but the green color should be replaced 
 - All pages should have the Toepify header
+- Add to docs and change admin page: all user interface should be in dutch
