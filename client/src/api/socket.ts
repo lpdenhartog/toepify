@@ -30,7 +30,7 @@ export function onNewGameStarted(callback: (data: { gameId: string; tournamentId
   connectSocket().on("new_game_started", callback);
 }
 
-export function leaveGame(gameId: string) {
+export function leaveGame(_gameId: string) {
   const s = connectSocket();
   s.off("game_state");
   s.off("round_penalty_updated");
