@@ -23,12 +23,19 @@
 
 ### Client -> Server
 - `join_game` { gameId }
-- `set_player_name` { gameId, deviceId, name }
-- `score_update` { gameId, playerId, delta, deviceId, clientTs }
+- `round_penalty_update` { gameId, playerId, penalty, deviceId } — update a player's pending round penalty (before finishing round)
+- `finish_round` { gameId, deviceId } — commit all pending round penalties
+- `buy_in` { gameId, playerId, deviceId } — player buys back into the game
+- `finish_game` { gameId, deviceId } — end the game, compute winner and balances
+- `start_new_game` { tournamentId, deviceId } — create a new game in the tournament
 
 ### Server -> Client
-- `game_state` { gameId, players: [...], scores: {...}, version, updatedAt }
-- `score_updated` { gameId, playerId, value, version, updatedAt }
+- `game_state` { gameId, players: [...], rounds: [...], gamePlayers: [...], pot, version }
+- `round_penalty_updated` { gameId, playerId, penalty, version } — pending round penalty changed
+- `round_finished` { gameId, roundNumber, scores: [...], eliminations: [...], version }
+- `player_bought_in` { gameId, playerId, newPot, version }
+- `game_finished` { gameId, winnerId, balanceUpdates: [...], version }
+- `new_game_started` { gameId, tournamentId }
 - `error` { code, message }
 
 ## Consistency

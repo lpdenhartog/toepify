@@ -46,20 +46,51 @@ Acceptance criteria:
 
 Acceptance criteria:
 - Scoreboard shows one column per player with their name.
-- Each column displays the player's **current balance** (running total across completed games).
-- The scoreboard shows the **current game stake** (amount at stake in the active game, e.g. €2.50).
+- Each column shows round-by-round cumulative scores (each round on a new line).
+- Players on 14 points display a **Pelt warning icon**.
+- Players on ≥ 15 points are shown as **out** (with buy-in icon if eligible).
+- The scoreboard shows the **current game pot** (base stakes + buy-ins).
+- **Tournament balance** per player is visible (updated only after game finishes).
 - When any participant updates a score, all connected clients update within ~1 second.
 - Reconnecting refreshes to the authoritative score state.
 
-### P3 — Edit scores (write mode in MVP = always enabled)
-**As a player**, I want to adjust scores during the game, **so that** we can track the game live.
+### P3 — Enter round penalties
+**As a player**, I want to enter penalty points per player for the current round, **so that** we can record each round's results.
 
 Acceptance criteria:
-- Player can increment/decrement scores for any player (MVP).
-- Each change is persisted immediately.
-- Conflicts are resolved by server authority (server broadcasts final state).
+- Each player column has **+/−** buttons (at the bottom) to adjust that player's round penalty.
+- Round winner gets 0 penalty points.
+- Changes are reflected in realtime for all clients.
 
-### P4 — Resume later
+### P4 — Finish round
+**As a player**, I want to finish the current round, **so that** round penalties are committed to the game.
+
+Acceptance criteria:
+- A **"Finish Round"** button/icon commits the round.
+- Round penalties are added to each player's cumulative game score.
+- New cumulative scores appear on a new line below the previous round.
+- Players reaching ≥ 15 points are eliminated.
+- Players eliminated this round are offered a **buy-in** option (only in the round they are eliminated).
+
+### P5 — Buy back in
+**As a player**, I want to buy back into the game after being eliminated, **so that** I can continue playing.
+
+Acceptance criteria:
+- Buy-in icon appears next to an eliminated player immediately after the round they are knocked out.
+- Buy-in costs one additional `stake_per_game` (as configured in the tournament).
+- Buying in increases the current game pot and updates the stake display.
+- After buying in, the player continues at 14 points (on Pelt).
+- Buy-in is only available immediately after elimination — not in later rounds.
+
+### P6 — Finish game
+**As a player**, I want to finish the game when only one player remains, **so that** the winner is recorded and balances are updated.
+
+Acceptance criteria:
+- When only one active player remains, the game can be finished.
+- A **"Start New Game"** button appears after a game is finished.
+- Tournament balances are updated: winner takes the full pot, losers' balances decrease by their stakes + buy-ins.
+
+### P7 — Resume later
 **As a player**, I want to reopen the link later and see the latest state, **so that** we can continue.
 
 Acceptance criteria:

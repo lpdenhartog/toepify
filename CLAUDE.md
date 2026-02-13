@@ -16,16 +16,25 @@ Toepify is a realtime scorekeeping app for the Dutch card game "Toepen". It trac
 
 ## Architecture
 
-### Data Model (4 tables)
-- **tournaments** — `id` is a UUIDv4 secret token (capability-based access, no auth needed to join); has `stake_per_game` (default €2.50)
-- **games** — belongs to tournament, has `is_active` flag
+### Data Model (6 tables)
+- **tournaments** — `id` is a UUIDv4 secret token (capability-based access); has `stake_per_game` (default €2.50)
+- **games** — belongs to tournament, status `active`/`finished`, tracks winner
 - **players** — belongs to tournament (not game), defined by admin at creation (min 2, max 6)
-- **scores** — one row per player per game; balance is computed (each game costs stake to enter, winner takes pot)
+- **game_players** — per-player state within a game: active/out, buy-in count, cumulative score
+- **rounds** — sequential rounds within a game
+- **round_scores** — penalty points per player per round
+
+Balances and pot are computed, not stored.
+
+### Game Mechanics
+- Players accumulate penalty points across rounds. At 14 = "Pelt" (warning). At ≥ 15 = out.
+- Eliminated players can buy back in (costs extra stake, increases pot) only in the round they're knocked out.
+- Last player standing wins the pot. Tournament balances update only when a game finishes.
 
 ### Realtime Flow
 1. Client fetches game state via HTTP
 2. Client connects via WebSocket, joins Socket.IO room `game:{gameId}`
-3. Score updates: client emits `score_update` → server validates & persists atomically → broadcasts `score_updated` to room
+3. Round flow: clients set pending penalties → `finish_round` commits → server broadcasts new state
 4. Server maintains a `version` integer for consistency
 
 ### Security Model (MVP)
@@ -44,4 +53,4 @@ All design docs live in `docs/`. Start with:
 
 ## MVP Scope (Phase 1)
 
-Admin PIN login → create tournament → auto-create initial game → players join via `/t/{tournamentId}` → enter display name → live scoreboard with realtime updates → persistent Postgres state.
+Admin PIN login → create tournament (name, stake, player names) → auto-create initial game → players join via `/t/{tournamentId}` → play rounds (enter penalties, finish round, handle eliminations/buy-ins) → finish game → start new game → tournament balances track winnings across games.
