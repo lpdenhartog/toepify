@@ -5,8 +5,8 @@
   --border: #2d3f50;
   --text: #e8edf2;
   --text-muted: #8899aa;
-  --accent: #2ecc71;
-  --accent-hover: #27ae60;
+  --accent: #e8a817;
+  --accent-hover: #d4961a;
   --danger: #e74c3c;
   --input-bg: #0d1520;
 
@@ -54,9 +54,14 @@ body {
   font-size: 1.75rem;
   font-weight: 700;
   letter-spacing: 0.05em;
-  text-transform: uppercase;
+  text-transform: lowercase;
   margin: 0;
   color: var(--accent);
+}
+
+.app-header .header-icon {
+  height: 56px;
+  margin-bottom: 0.5rem;
 }
 
 .app-header .subtitle {

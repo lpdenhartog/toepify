@@ -8,6 +8,7 @@
 - **Clear game state:** Pelt warnings and elimination status must be immediately visible.
 - **UI language:** All user interface elements must be in Dutch language.
 
+
 ## Key screens (MVP)
 - Tournament join / loading screen
 - Scoreboard (main screen) — columns per player, round history rows, +/− buttons, finish round button, game pot, tournament balances
@@ -28,3 +29,4 @@
 - High contrast by default
 - Support landscape and portrait, but scoreboard is intented in landscape
 - Avoid tiny text and dense layouts
+- toepify should always be stylised in lowercase: toepify
