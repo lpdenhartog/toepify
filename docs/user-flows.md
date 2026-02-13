@@ -3,10 +3,12 @@
 ## Admin flow: create tournament
 1. Open `/admin`
 2. Enter PIN
-3. Click “Create Tournament”
+3. Click "Create Tournament"
 4. Enter tournament name
-5. System creates tournament and shows join link
-6. Admin shares join link with players
+5. Set stake per game (default €2.50)
+6. Enter player names (min 2, max 6)
+7. System creates tournament and shows join link
+8. Admin shares join link with players
 
 ## Admin flow: start a new game (if enabled)
 1. On admin tournament screen, click “Start New Game”
@@ -15,10 +17,8 @@
 
 ## Player flow: join tournament
 1. Open join link `/t/{tournamentId}`
-2. If first time on this device:
-   - Prompt for display name
-3. App loads latest game
-4. App connects to WebSocket and subscribes to updates
+2. App loads latest game and scoreboard (player names, balances, current game stake)
+3. App connects to WebSocket and subscribes to updates
 
 ## Player flow: update score
 1. Tap + / - buttons on scoreboard

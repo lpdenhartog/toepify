@@ -17,10 +17,10 @@ Toepify is a realtime scorekeeping app for the Dutch card game "Toepen". It trac
 ## Architecture
 
 ### Data Model (4 tables)
-- **tournaments** — `id` is a UUIDv4 secret token (capability-based access, no auth needed to join)
+- **tournaments** — `id` is a UUIDv4 secret token (capability-based access, no auth needed to join); has `stake_per_game` (default €2.50)
 - **games** — belongs to tournament, has `is_active` flag
-- **players** — belongs to game, identity via localStorage device ID
-- **scores** — one row per player, `value` integer
+- **players** — belongs to tournament (not game), defined by admin at creation (min 2, max 6)
+- **scores** — one row per player per game; balance is computed (each game costs stake to enter, winner takes pot)
 
 ### Realtime Flow
 1. Client fetches game state via HTTP

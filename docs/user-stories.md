@@ -17,6 +17,8 @@ Acceptance criteria:
 
 Acceptance criteria:
 - Admin can enter a tournament name (required).
+- Admin can set the stake per game (default €2.50).
+- Admin enters player names (minimum 2, maximum 6).
 - System generates an unguessable `tournamentId` (secret).
 - System shows a shareable join link containing the `tournamentId`.
 - Tournament is persisted in the database.
@@ -39,22 +41,17 @@ Acceptance criteria:
 - If the tournament does not exist, show a friendly error.
 - If a current game exists, show the latest game.
 
-### P2 — Enter my name for the game
-**As a player**, I want to enter a display name, **so that** my name appears on the scoreboard.
-
-Acceptance criteria:
-- If no player name exists in local storage for this tournament, prompt once.
-- Name is stored locally on that device (localStorage).
-- Name appears on the scoreboard for that player slot.
-
-### P3 — View scores (realtime)
+### P2 — View scores (realtime)
 **As a player**, I want to see the current scores update automatically, **so that** everyone stays in sync.
 
 Acceptance criteria:
+- Scoreboard shows one column per player with their name.
+- Each column displays the player's **current balance** (running total across completed games).
+- The scoreboard shows the **current game stake** (amount at stake in the active game, e.g. €2.50).
 - When any participant updates a score, all connected clients update within ~1 second.
 - Reconnecting refreshes to the authoritative score state.
 
-### P4 — Edit scores (write mode in MVP = always enabled)
+### P3 — Edit scores (write mode in MVP = always enabled)
 **As a player**, I want to adjust scores during the game, **so that** we can track the game live.
 
 Acceptance criteria:
@@ -62,7 +59,7 @@ Acceptance criteria:
 - Each change is persisted immediately.
 - Conflicts are resolved by server authority (server broadcasts final state).
 
-### P5 — Resume later
+### P4 — Resume later
 **As a player**, I want to reopen the link later and see the latest state, **so that** we can continue.
 
 Acceptance criteria:
