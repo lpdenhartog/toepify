@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Rules
+
+- **Never push to main without explicitly asking the user for confirmation first.**
+
 ## Project Overview
 
 Toepify is a realtime scorekeeping app for the Dutch card game "Toepen". It tracks scores across tournaments and games with live updates for all connected players. Currently in the **design/documentation phase** — no source code exists yet.
