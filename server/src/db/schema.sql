@@ -30,3 +30,19 @@ CREATE TABLE IF NOT EXISTS game_players (
   total_score INT NOT NULL DEFAULT 0,
   PRIMARY KEY (game_id, player_id)
 );
+
+CREATE TABLE IF NOT EXISTS rounds (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  game_id UUID NOT NULL REFERENCES games(id),
+  round_number INT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_rounds_game ON rounds(game_id, round_number);
+
+CREATE TABLE IF NOT EXISTS round_scores (
+  round_id UUID NOT NULL REFERENCES rounds(id),
+  player_id UUID NOT NULL REFERENCES players(id),
+  penalty_points INT NOT NULL DEFAULT 0,
+  PRIMARY KEY (round_id, player_id)
+);
