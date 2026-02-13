@@ -6,6 +6,7 @@
 - **One-screen gameplay:** scoreboard should be usable without navigating away.
 - **Optimistic UI with server authority:** reflect taps immediately, then reconcile to server state if needed.
 - **Clear game state:** Pelt warnings and elimination status must be immediately visible.
+- **UI language:** All user interface elements must be in Dutch language.
 
 ## Key screens (MVP)
 - Tournament join / loading screen
@@ -21,8 +22,9 @@
 - **Game pot** displayed prominently (updates on buy-ins)
 - **Tournament balance** per player visible (greyed out / secondary during active game, updates after game finishes)
 - **"Start New Game"** button appears when a game is finished
+- **"Landscape mode"** Scoreboard is intented to be used in landscape mode, mainly because it is intented to be mirrored to a television.
 
 ## Accessibility + readability
 - High contrast by default
-- Support landscape and portrait
+- Support landscape and portrait, but scoreboard is intented in landscape
 - Avoid tiny text and dense layouts
