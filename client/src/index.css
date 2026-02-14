@@ -271,11 +271,18 @@ fieldset legend {
   font-size: 0.85rem;
 }
 
-/* Share link */
-.share-section {
+/* QR code */
+.qr-section {
+  display: flex;
+  justify-content: center;
   margin-top: 1rem;
   padding-top: 1rem;
   border-top: 1px solid var(--border);
+}
+
+/* Share link */
+.share-section {
+  margin-top: 1rem;
 }
 
 .share-section label {
