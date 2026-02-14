@@ -289,7 +289,7 @@ router.post("/tournaments/:tournamentId/games", async (req: Request, res: Respon
 
     // Get all tournament players
     const playersRes = await client.query(
-      "SELECT id FROM players WHERE tournament_id = $1 ORDER BY created_at",
+      "SELECT id FROM players WHERE tournament_id = $1 ORDER BY created_at, name, id",
       [tournamentId]
     );
 

@@ -57,7 +57,7 @@ export async function getFullGameState(
      FROM game_players gp
      JOIN players p ON p.id = gp.player_id
      WHERE gp.game_id = $1
-     ORDER BY p.created_at`,
+     ORDER BY p.created_at, p.name, p.id`,
     [gameId]
   );
   const players: GamePlayer[] = playersRes.rows;
@@ -124,7 +124,7 @@ export async function computeTournamentBalances(
 ): Promise<Array<{ player_id: string; player_name: string; balance: number }>> {
   // Get all players in tournament
   const playersRes = await pool.query(
-    `SELECT id, name FROM players WHERE tournament_id = $1 ORDER BY created_at`,
+    `SELECT id, name FROM players WHERE tournament_id = $1 ORDER BY created_at, name, id`,
     [tournamentId]
   );
 

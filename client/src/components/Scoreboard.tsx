@@ -1,4 +1,44 @@
+import { useMemo } from "react";
 import type { GameState } from "../api/game";
+
+function getUniqueAbbreviations(names: string[]): Map<string, string> {
+  const result = new Map<string, string>();
+  const lengths = new Map<string, number>();
+
+  for (const name of names) {
+    lengths.set(name, 1);
+  }
+
+  let changed = true;
+  while (changed) {
+    changed = false;
+    const abbrevToNames = new Map<string, string[]>();
+
+    for (const name of names) {
+      const len = lengths.get(name)!;
+      const abbrev = name.slice(0, len).toUpperCase();
+      if (!abbrevToNames.has(abbrev)) abbrevToNames.set(abbrev, []);
+      abbrevToNames.get(abbrev)!.push(name);
+    }
+
+    for (const [, group] of abbrevToNames) {
+      if (group.length > 1) {
+        for (const name of group) {
+          const cur = lengths.get(name)!;
+          if (cur < name.length) {
+            lengths.set(name, cur + 1);
+            changed = true;
+          }
+        }
+      }
+    }
+  }
+
+  for (const name of names) {
+    result.set(name, name.slice(0, lengths.get(name)!).toUpperCase());
+  }
+  return result;
+}
 
 interface ScoreboardProps {
   gameState: GameState;
@@ -20,6 +60,10 @@ export default function Scoreboard({
   onNewGame,
 }: ScoreboardProps) {
   const { tournament, game, players, rounds, pot, balances } = gameState;
+  const abbreviations = useMemo(
+    () => getUniqueAbbreviations(players.map((p) => p.player_name)),
+    [players]
+  );
   const isActive = game.status === "active";
   const activePlayers = players.filter((p) => p.is_active);
   const winner = game.winner_player_id
@@ -75,63 +119,46 @@ export default function Scoreboard({
         <table className="score-table">
           <thead>
             <tr>
-              {players.map((p) => {
-                const balance = balances.find((b) => b.player_id === p.player_id);
-                const stake = tournament.stake_per_game * (1 + p.buy_ins);
-                return (
+              {players.map((p) => (
                   <th key={p.player_id} className="player-col">
                     <div className="player-header">
-                      <div className="player-header-left">
-                        <div className="player-header-name">{p.player_name}</div>
-                        {p.is_active && p.total_score === 14 && (
-                          <span className="status-pelt">Pelt!</span>
-                        )}
-                        {!p.is_active && (
-                          <span className="status-out">Uit</span>
-                        )}
-                      </div>
-                      <div className="player-header-amounts">
-                        <span className={
-                          balance && balance.balance > 0
-                            ? "player-balance balance-positive"
-                            : balance && balance.balance < 0
-                            ? "player-balance balance-negative"
-                            : "player-balance"
-                        }>
-                          {balance ? formatEuro(balance.balance) : "€0,00"}
-                        </span>
-                        <span className="player-stake">
-                          €{stake.toFixed(2).replace(".", ",")}
-                        </span>
-                      </div>
+                      <div className="player-header-name" title={p.player_name}>{abbreviations.get(p.player_name)}</div>
+                      {p.is_active && p.total_score === 14 && (
+                        <span className="status-pelt">Pelt!</span>
+                      )}
+                      {!p.is_active && (
+                        <span className="status-out">Uit</span>
+                      )}
                     </div>
                   </th>
-                );
-              })}
+              ))}
             </tr>
           </thead>
           <tbody>
-            {cumulativeScores.map((scores, i) => (
-              <tr key={i}>
-                {players.map((p) => {
-                  const val = scores[p.player_id] || 0;
-                  return (
-                    <td
-                      key={p.player_id}
-                      className={
-                        val >= 15
-                          ? "score-cell score-out"
-                          : val === 14
-                          ? "score-cell score-pelt"
-                          : "score-cell"
-                      }
-                    >
-                      {val}
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
+            {cumulativeScores.map((scores, i) => {
+              const isCurrent = i === cumulativeScores.length - 1;
+              return (
+                <tr key={i} className={isCurrent ? "score-row-current" : "score-row-history"}>
+                  {players.map((p) => {
+                    const val = scores[p.player_id] || 0;
+                    return (
+                      <td
+                        key={p.player_id}
+                        className={
+                          val >= 15
+                            ? "score-cell score-out"
+                            : val === 14
+                            ? "score-cell score-pelt"
+                            : "score-cell"
+                        }
+                      >
+                        {val}
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
             {/* Empty state */}
             {rounds.length === 0 && (
               <tr>
@@ -160,7 +187,7 @@ export default function Scoreboard({
                   className="btn-primary btn-buyin"
                   onClick={() => onBuyIn(p.player_id)}
                 >
-                  {p.player_name} inkopen op {maxActiveScore} (€{tournament.stake_per_game.toFixed(2).replace(".", ",")})
+                  {abbreviations.get(p.player_name)} inkopen op {maxActiveScore} (€{tournament.stake_per_game.toFixed(2).replace(".", ",")})
                 </button>
               );
             })}
@@ -173,25 +200,26 @@ export default function Scoreboard({
           <div className="penalty-grid">
             {players.map((p) => (
               <div key={p.player_id} className="penalty-column">
-                <div className="penalty-player-name">{p.player_name}</div>
                 {p.is_active ? (
                   <div className="penalty-input">
-                    <button
-                      className="penalty-btn"
-                      onClick={() => onPenaltyChange(p.player_id, -1)}
-                      disabled={!pendingPenalties[p.player_id]}
-                    >
-                      -
-                    </button>
+                    <div className="penalty-buttons">
+                      <button
+                        className="penalty-btn"
+                        onClick={() => onPenaltyChange(p.player_id, -1)}
+                        disabled={!pendingPenalties[p.player_id]}
+                      >
+                        -
+                      </button>
+                      <button
+                        className="penalty-btn"
+                        onClick={() => onPenaltyChange(p.player_id, 1)}
+                      >
+                        +
+                      </button>
+                    </div>
                     <span className="penalty-value">
                       {pendingPenalties[p.player_id] || 0}
                     </span>
-                    <button
-                      className="penalty-btn"
-                      onClick={() => onPenaltyChange(p.player_id, 1)}
-                    >
-                      +
-                    </button>
                   </div>
                 ) : (
                   <div className="penalty-input penalty-disabled">
@@ -223,6 +251,40 @@ export default function Scoreboard({
           Nieuw spel
         </button>
       )}
+
+      {/* Player summary table */}
+      <div className="player-summary-wrapper">
+        <table className="player-summary-table">
+          <thead>
+            <tr>
+              <th>Speler</th>
+              <th>Balans</th>
+              <th>Inzet</th>
+            </tr>
+          </thead>
+          <tbody>
+            {players.map((p) => {
+              const balance = balances.find((b) => b.player_id === p.player_id);
+              const stake = tournament.stake_per_game * (1 + p.buy_ins);
+              return (
+                <tr key={p.player_id}>
+                  <td>{p.player_name}</td>
+                  <td className={
+                    balance && balance.balance > 0
+                      ? "balance-positive"
+                      : balance && balance.balance < 0
+                      ? "balance-negative"
+                      : ""
+                  }>
+                    {balance ? formatEuro(balance.balance) : "€0,00"}
+                  </td>
+                  <td>€{stake.toFixed(2).replace(".", ",")}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
 
     </div>
   );
