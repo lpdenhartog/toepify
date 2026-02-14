@@ -10,7 +10,6 @@ export default function App() {
         <header className="app-header">
           <img src={headerIcon} alt="Four 10s" className="header-icon" />
           <h1>toepify</h1>
-          <div className="subtitle">Score Tracker</div>
         </header>
         <Routes>
           <Route path="/admin" element={<AdminPage />} />

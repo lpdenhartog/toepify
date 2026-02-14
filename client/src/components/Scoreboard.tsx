@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useEffect, useRef } from "react";
 import type { GameState } from "../api/game";
 
 function getUniqueAbbreviations(names: string[]): Map<string, string> {
@@ -99,6 +99,21 @@ export default function Scoreboard({
     cumulativeScores.push({ ...runningTotals });
   }
 
+  // Split cumulative scores into history (scrollable) and current (always visible)
+  const historyScores = cumulativeScores.slice(0, -1);
+  const currentScores: Record<string, number> =
+    cumulativeScores.length > 0
+      ? cumulativeScores[cumulativeScores.length - 1]
+      : Object.fromEntries(players.map((p) => [p.player_id, 0]));
+
+  // Auto-scroll history to bottom so most recent rounds are visible
+  const scrollRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [historyScores.length]);
+
   const formatEuro = (amount: number) => {
     const formatted = Math.abs(amount).toFixed(2).replace(".", ",");
     if (amount >= 0) return `+€${formatted}`;
@@ -107,14 +122,6 @@ export default function Scoreboard({
 
   return (
     <div className="scoreboard">
-      {/* Header */}
-      <div className="scoreboard-header">
-        <div className="scoreboard-title">{tournament.name}</div>
-        <div className="pot-display">
-          Pot: €{pot.toFixed(2).replace(".", ",")}
-        </div>
-      </div>
-
       {/* Winner banner */}
       {winner && (
         <div className="winner-banner">
@@ -124,7 +131,8 @@ export default function Scoreboard({
 
       {/* Score table */}
       <div className="score-table-wrapper">
-        <table className="score-table">
+        {/* Player header */}
+        <table className="score-table score-table-fixed">
           <thead>
             <tr>
               {players.map((p) => (
@@ -142,39 +150,61 @@ export default function Scoreboard({
               ))}
             </tr>
           </thead>
-          <tbody>
-            {cumulativeScores.map((scores, i) => {
-              const isCurrent = i === cumulativeScores.length - 1;
-              return (
-                <tr key={i} className={isCurrent ? "score-row-current" : "score-row-history"}>
-                  {players.map((p) => {
-                    const val = scores[p.player_id] || 0;
-                    return (
-                      <td
-                        key={p.player_id}
-                        className={
-                          val >= 15
-                            ? "score-cell score-out"
-                            : val === 14
-                            ? "score-cell score-pelt"
-                            : "score-cell"
-                        }
-                      >
-                        {val}
-                      </td>
-                    );
-                  })}
-                </tr>
-              );
-            })}
-            {/* Empty state */}
-            {rounds.length === 0 && (
-              <tr>
-                {players.map((p) => (
-                  <td key={p.player_id} className="score-cell">0</td>
+        </table>
+
+        {/* Scrollable history rows */}
+        {historyScores.length > 0 && (
+          <div className="score-table-scroll" ref={scrollRef}>
+            <table className="score-table score-table-fixed">
+              <tbody>
+                {historyScores.map((scores, i) => (
+                  <tr key={i} className="score-row-history">
+                    {players.map((p) => {
+                      const val = scores[p.player_id] || 0;
+                      return (
+                        <td
+                          key={p.player_id}
+                          className={
+                            val >= 15
+                              ? "score-cell score-out"
+                              : val === 14
+                              ? "score-cell score-pelt"
+                              : "score-cell"
+                          }
+                        >
+                          {val}
+                        </td>
+                      );
+                    })}
+                  </tr>
                 ))}
-              </tr>
-            )}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Current score row — always visible */}
+        <table className="score-table score-table-fixed">
+          <tbody>
+            <tr className="score-row-current">
+              {players.map((p) => {
+                const val = currentScores[p.player_id] || 0;
+                return (
+                  <td
+                    key={p.player_id}
+                    className={
+                      val >= 15
+                        ? "score-cell score-out"
+                        : val === 14
+                        ? "score-cell score-pelt"
+                        : "score-cell"
+                    }
+                  >
+                    {val}
+                  </td>
+                );
+              })}
+            </tr>
           </tbody>
         </table>
       </div>
@@ -263,36 +293,52 @@ export default function Scoreboard({
         </button>
       )}
 
+      {/* Tournament info */}
+      <div className="scoreboard-header">
+        <div className="scoreboard-title">{tournament.name}</div>
+        <div className="pot-display">
+          Pot: €{pot.toFixed(2).replace(".", ",")}
+        </div>
+      </div>
+
       {/* Player summary table */}
       <div className="player-summary-wrapper">
         <table className="player-summary-table">
           <thead>
             <tr>
+              <th className="pos-col">#</th>
               <th>Speler</th>
               <th>Balans</th>
               <th>Inzet</th>
             </tr>
           </thead>
           <tbody>
-            {players.map((p) => {
-              const balance = balances.find((b) => b.player_id === p.player_id);
-              const stake = tournament.stake_per_game * (1 + p.buy_ins);
-              return (
-                <tr key={p.player_id}>
-                  <td>{p.player_name}</td>
-                  <td className={
-                    balance && balance.balance > 0
-                      ? "balance-positive"
-                      : balance && balance.balance < 0
-                      ? "balance-negative"
-                      : ""
-                  }>
-                    {balance ? formatEuro(balance.balance) : "€0,00"}
-                  </td>
-                  <td>€{stake.toFixed(2).replace(".", ",")}</td>
-                </tr>
-              );
-            })}
+            {[...players]
+              .sort((a, b) => {
+                const balA = balances.find((bl) => bl.player_id === a.player_id)?.balance ?? 0;
+                const balB = balances.find((bl) => bl.player_id === b.player_id)?.balance ?? 0;
+                return balB - balA;
+              })
+              .map((p, index) => {
+                const balance = balances.find((b) => b.player_id === p.player_id);
+                const stake = tournament.stake_per_game * (1 + p.buy_ins);
+                return (
+                  <tr key={p.player_id}>
+                    <td className="pos-col">{index + 1}</td>
+                    <td>{p.player_name}</td>
+                    <td className={
+                      balance && balance.balance > 0
+                        ? "balance-positive"
+                        : balance && balance.balance < 0
+                        ? "balance-negative"
+                        : ""
+                    }>
+                      {balance ? formatEuro(balance.balance) : "€0,00"}
+                    </td>
+                    <td>€{stake.toFixed(2).replace(".", ",")}</td>
+                  </tr>
+                );
+              })}
           </tbody>
         </table>
       </div>
