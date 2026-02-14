@@ -350,7 +350,6 @@ fieldset legend {
 /* Score table */
 .score-table-wrapper {
   overflow-x: auto;
-  margin-bottom: 1rem;
 }
 
 .score-table {
@@ -365,6 +364,12 @@ fieldset legend {
   padding: 0.5rem 0.4rem;
   text-align: center;
   border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+}
+
+.score-table th:last-child,
+.score-table td:last-child {
+  border-right: none;
 }
 
 .score-table thead th {
@@ -435,6 +440,16 @@ fieldset legend {
   font-variant-numeric: tabular-nums;
 }
 
+.score-row-current .score-cell {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.score-row-history .score-cell {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
 .score-pelt {
   color: var(--accent);
   font-weight: 700;
@@ -467,7 +482,6 @@ fieldset legend {
 
 .penalty-grid {
   display: flex;
-  gap: 0.25rem;
   margin-bottom: 0.75rem;
 }
 
@@ -475,24 +489,22 @@ fieldset legend {
   flex: 1;
   text-align: center;
   min-width: 0;
+  border-right: 1px solid var(--border);
 }
 
-.penalty-player-name {
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  margin-bottom: 0.35rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.penalty-column:last-child {
+  border-right: none;
 }
 
 .penalty-input {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  gap: 0.3rem;
+}
+
+.penalty-buttons {
+  display: flex;
   gap: 0.3rem;
 }
 
@@ -521,11 +533,12 @@ fieldset legend {
 }
 
 .penalty-value {
-  font-size: 1.2rem;
-  font-weight: 700;
+  font-size: 0.85rem;
+  font-weight: 500;
   min-width: 1.5rem;
   text-align: center;
   font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
 }
 
 .penalty-disabled {

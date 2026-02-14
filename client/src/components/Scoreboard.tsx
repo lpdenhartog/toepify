@@ -135,27 +135,30 @@ export default function Scoreboard({
             </tr>
           </thead>
           <tbody>
-            {cumulativeScores.map((scores, i) => (
-              <tr key={i}>
-                {players.map((p) => {
-                  const val = scores[p.player_id] || 0;
-                  return (
-                    <td
-                      key={p.player_id}
-                      className={
-                        val >= 15
-                          ? "score-cell score-out"
-                          : val === 14
-                          ? "score-cell score-pelt"
-                          : "score-cell"
-                      }
-                    >
-                      {val}
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
+            {cumulativeScores.map((scores, i) => {
+              const isCurrent = i === cumulativeScores.length - 1;
+              return (
+                <tr key={i} className={isCurrent ? "score-row-current" : "score-row-history"}>
+                  {players.map((p) => {
+                    const val = scores[p.player_id] || 0;
+                    return (
+                      <td
+                        key={p.player_id}
+                        className={
+                          val >= 15
+                            ? "score-cell score-out"
+                            : val === 14
+                            ? "score-cell score-pelt"
+                            : "score-cell"
+                        }
+                      >
+                        {val}
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
             {/* Empty state */}
             {rounds.length === 0 && (
               <tr>
@@ -197,25 +200,26 @@ export default function Scoreboard({
           <div className="penalty-grid">
             {players.map((p) => (
               <div key={p.player_id} className="penalty-column">
-                <div className="penalty-player-name" title={p.player_name}>{abbreviations.get(p.player_name)}</div>
                 {p.is_active ? (
                   <div className="penalty-input">
-                    <button
-                      className="penalty-btn"
-                      onClick={() => onPenaltyChange(p.player_id, -1)}
-                      disabled={!pendingPenalties[p.player_id]}
-                    >
-                      -
-                    </button>
+                    <div className="penalty-buttons">
+                      <button
+                        className="penalty-btn"
+                        onClick={() => onPenaltyChange(p.player_id, -1)}
+                        disabled={!pendingPenalties[p.player_id]}
+                      >
+                        -
+                      </button>
+                      <button
+                        className="penalty-btn"
+                        onClick={() => onPenaltyChange(p.player_id, 1)}
+                      >
+                        +
+                      </button>
+                    </div>
                     <span className="penalty-value">
                       {pendingPenalties[p.player_id] || 0}
                     </span>
-                    <button
-                      className="penalty-btn"
-                      onClick={() => onPenaltyChange(p.player_id, 1)}
-                    >
-                      +
-                    </button>
                   </div>
                 ) : (
                   <div className="penalty-input penalty-disabled">
