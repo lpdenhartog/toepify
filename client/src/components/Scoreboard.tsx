@@ -70,6 +70,10 @@ export default function Scoreboard({
   );
   const isActive = game.status === "active";
   const activePlayers = players.filter((p) => p.is_active);
+  const zeroCount = activePlayers.filter(
+    (p) => !pendingPenalties[p.player_id]
+  ).length;
+  const penaltiesValid = zeroCount === 1;
   const winner = game.winner_player_id
     ? players.find((p) => p.player_id === game.winner_player_id)
     : null;
@@ -233,12 +237,13 @@ export default function Scoreboard({
             <button
               className="btn-primary scoreboard-action"
               onClick={onFinishRound}
-              disabled={finishingRound}
+              disabled={finishingRound || !penaltiesValid}
               aria-label="Ronde afsluiten"
             >
               ✓
             </button>
           </div>
+
 
           {activePlayers.length === 1 && (
             <button
