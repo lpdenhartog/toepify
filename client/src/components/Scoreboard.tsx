@@ -45,6 +45,7 @@ interface ScoreboardProps {
   pendingPenalties: Record<string, number>;
   onPenaltyChange: (playerId: string, delta: number) => void;
   onFinishRound: () => void;
+  finishingRound: boolean;
   onBuyIn: (playerId: string) => void;
   onFinishGame: () => void;
   onNewGame: () => void;
@@ -55,6 +56,7 @@ export default function Scoreboard({
   pendingPenalties,
   onPenaltyChange,
   onFinishRound,
+  finishingRound,
   onBuyIn,
   onFinishGame,
   onNewGame,
@@ -230,7 +232,7 @@ export default function Scoreboard({
             ))}
           </div>
 
-          <button className="btn-primary scoreboard-action" onClick={onFinishRound}>
+          <button className="btn-primary scoreboard-action" onClick={onFinishRound} disabled={finishingRound}>
             Ronde afsluiten
           </button>
 

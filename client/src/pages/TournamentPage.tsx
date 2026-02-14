@@ -25,6 +25,7 @@ export default function TournamentPage() {
   const [pendingPenalties, setPendingPenalties] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [finishingRound, setFinishingRound] = useState(false);
 
   // Load initial state and set up socket
   useEffect(() => {
@@ -107,6 +108,7 @@ export default function TournamentPage() {
         points: pendingPenalties[p.player_id] || 0,
       }));
 
+    setFinishingRound(true);
     try {
       const newState = await finishRound(gameState.game.id, penalties);
       setGameState(newState);
@@ -118,6 +120,8 @@ export default function TournamentPage() {
       setPendingPenalties(initial);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Fout bij afsluiten ronde");
+    } finally {
+      setFinishingRound(false);
     }
   }, [gameState, pendingPenalties]);
 
@@ -170,6 +174,7 @@ export default function TournamentPage() {
       pendingPenalties={pendingPenalties}
       onPenaltyChange={handlePenaltyChange}
       onFinishRound={handleFinishRound}
+      finishingRound={finishingRound}
       onBuyIn={handleBuyIn}
       onFinishGame={handleFinishGame}
       onNewGame={handleNewGame}
