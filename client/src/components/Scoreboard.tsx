@@ -70,11 +70,11 @@ export default function Scoreboard({
     ? players.find((p) => p.player_id === game.winner_player_id)
     : null;
 
-  // Buy-in allowed if: game active, player is out, and at least 2 players still active
+  // Buy-in allowed if: game active, server says can_buy_in, and at least 2 players still active
   const canBuyIn = (playerId: string) => {
     if (!isActive) return false;
     const player = players.find((p) => p.player_id === playerId);
-    if (!player || player.is_active) return false;
+    if (!player || !player.can_buy_in) return false;
     return activePlayers.length >= 2;
   };
 

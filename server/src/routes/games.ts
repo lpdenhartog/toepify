@@ -86,11 +86,26 @@ router.post("/games/:gameId/finish-round", async (req: Request, res: Response) =
       );
     }
 
-    // Check eliminations: players at >= 15 who are still active
+    // Reset can_buy_in for all players at the start of the round
     await client.query(
-      "UPDATE game_players SET is_active = false WHERE game_id = $1 AND total_score >= 15 AND is_active = true",
+      "UPDATE game_players SET can_buy_in = false WHERE game_id = $1",
       [gameId]
     );
+
+    // Check eliminations: players at >= 15 who are still active
+    const eliminatedRes = await client.query(
+      "UPDATE game_players SET is_active = false WHERE game_id = $1 AND total_score >= 15 AND is_active = true RETURNING player_id",
+      [gameId]
+    );
+
+    // Allow just-eliminated players to buy in
+    if (eliminatedRes.rows.length > 0) {
+      const eliminatedIds = eliminatedRes.rows.map((r: { player_id: string }) => r.player_id);
+      await client.query(
+        `UPDATE game_players SET can_buy_in = true WHERE game_id = $1 AND player_id = ANY($2)`,
+        [gameId, eliminatedIds]
+      );
+    }
 
     // Check if game should auto-finish (0 active players left — everyone eliminated at once)
     const activeRes = await client.query(
@@ -146,9 +161,9 @@ router.post("/games/:gameId/buy-in", async (req: Request, res: Response) => {
       return;
     }
 
-    // Verify player is eliminated
+    // Verify player is eliminated and can buy in
     const gpRes = await client.query(
-      "SELECT is_active, total_score FROM game_players WHERE game_id = $1 AND player_id = $2",
+      "SELECT is_active, total_score, can_buy_in FROM game_players WHERE game_id = $1 AND player_id = $2",
       [gameId, playerId]
     );
     if (gpRes.rows.length === 0) {
@@ -158,6 +173,11 @@ router.post("/games/:gameId/buy-in", async (req: Request, res: Response) => {
     }
     if (gpRes.rows[0].is_active) {
       res.status(400).json({ error: "Speler is nog actief" });
+      await client.query("ROLLBACK");
+      return;
+    }
+    if (!gpRes.rows[0].can_buy_in) {
+      res.status(400).json({ error: "Inkopen is niet meer mogelijk" });
       await client.query("ROLLBACK");
       return;
     }
@@ -182,9 +202,9 @@ router.post("/games/:gameId/buy-in", async (req: Request, res: Response) => {
     const oldScore = Number(gpRes.rows[0].total_score);
     const adjustment = buyInScore - oldScore;
 
-    // Reactivate at the highest active player's score, increment buy_ins
+    // Reactivate at the highest active player's score, increment buy_ins, clear can_buy_in
     await client.query(
-      "UPDATE game_players SET is_active = true, total_score = $1, buy_ins = buy_ins + 1 WHERE game_id = $2 AND player_id = $3",
+      "UPDATE game_players SET is_active = true, total_score = $1, buy_ins = buy_ins + 1, can_buy_in = false WHERE game_id = $2 AND player_id = $3",
       [buyInScore, gameId, playerId]
     );
 

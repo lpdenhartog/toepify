@@ -6,6 +6,7 @@ export interface GamePlayer {
   is_active: boolean;
   buy_ins: number;
   total_score: number;
+  can_buy_in: boolean;
 }
 
 export interface RoundScore {
@@ -53,7 +54,7 @@ export async function getFullGameState(
 
   // Get game players
   const playersRes = await pool.query(
-    `SELECT gp.player_id, p.name as player_name, gp.is_active, gp.buy_ins, gp.total_score
+    `SELECT gp.player_id, p.name as player_name, gp.is_active, gp.buy_ins, gp.total_score, gp.can_buy_in
      FROM game_players gp
      JOIN players p ON p.id = gp.player_id
      WHERE gp.game_id = $1
