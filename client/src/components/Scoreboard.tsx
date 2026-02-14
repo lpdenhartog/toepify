@@ -46,6 +46,7 @@ interface ScoreboardProps {
   onPenaltyChange: (playerId: string, delta: number) => void;
   onFinishRound: () => void;
   finishingRound: boolean;
+  onCancelRound: () => void;
   onBuyIn: (playerId: string) => void;
   onFinishGame: () => void;
   onNewGame: () => void;
@@ -57,6 +58,7 @@ export default function Scoreboard({
   onPenaltyChange,
   onFinishRound,
   finishingRound,
+  onCancelRound,
   onBuyIn,
   onFinishGame,
   onNewGame,
@@ -68,6 +70,10 @@ export default function Scoreboard({
   );
   const isActive = game.status === "active";
   const activePlayers = players.filter((p) => p.is_active);
+  const zeroCount = activePlayers.filter(
+    (p) => !pendingPenalties[p.player_id]
+  ).length;
+  const penaltiesValid = zeroCount === 1;
   const winner = game.winner_player_id
     ? players.find((p) => p.player_id === game.winner_player_id)
     : null;
@@ -204,24 +210,12 @@ export default function Scoreboard({
               <div key={p.player_id} className="penalty-column">
                 {p.is_active ? (
                   <div className="penalty-input">
-                    <div className="penalty-buttons">
-                      <button
-                        className="penalty-btn"
-                        onClick={() => onPenaltyChange(p.player_id, -1)}
-                        disabled={!pendingPenalties[p.player_id]}
-                      >
-                        -
-                      </button>
-                      <button
-                        className="penalty-btn"
-                        onClick={() => onPenaltyChange(p.player_id, 1)}
-                      >
-                        +
-                      </button>
-                    </div>
-                    <span className="penalty-value">
+                    <button
+                      className="penalty-btn"
+                      onClick={() => onPenaltyChange(p.player_id, 1)}
+                    >
                       {pendingPenalties[p.player_id] || 0}
-                    </span>
+                    </button>
                   </div>
                 ) : (
                   <div className="penalty-input penalty-disabled">
@@ -232,9 +226,24 @@ export default function Scoreboard({
             ))}
           </div>
 
-          <button className="btn-primary scoreboard-action" onClick={onFinishRound} disabled={finishingRound}>
-            Ronde afsluiten
-          </button>
+          <div className="round-actions">
+            <button
+              className="round-action-btn cancel-btn"
+              onClick={onCancelRound}
+              aria-label="Annuleer ronde"
+            >
+              ✕
+            </button>
+            <button
+              className="btn-primary scoreboard-action"
+              onClick={onFinishRound}
+              disabled={finishingRound || !penaltiesValid}
+              aria-label="Ronde afsluiten"
+            >
+              ✓
+            </button>
+          </div>
+
 
           {activePlayers.length === 1 && (
             <button

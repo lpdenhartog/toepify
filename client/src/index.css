@@ -441,7 +441,7 @@ fieldset legend {
 }
 
 .score-row-current .score-cell {
-  font-size: 1.1rem;
+  font-size: 1.7rem;
   font-weight: 700;
 }
 
@@ -477,6 +477,7 @@ fieldset legend {
 
 /* Penalty input section */
 .penalty-section {
+  margin-top: 1.25rem;
   margin-bottom: 1rem;
 }
 
@@ -500,12 +501,6 @@ fieldset legend {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.3rem;
-}
-
-.penalty-buttons {
-  display: flex;
-  gap: 0.3rem;
 }
 
 .penalty-btn {
@@ -521,15 +516,11 @@ fieldset legend {
   align-items: center;
   justify-content: center;
   padding: 0;
+  font-variant-numeric: tabular-nums;
 }
 
 .penalty-btn:hover {
   background: var(--border);
-}
-
-.penalty-btn:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
 }
 
 .penalty-value {
@@ -545,8 +536,47 @@ fieldset legend {
   opacity: 0.3;
 }
 
+.round-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  justify-content: center;
+}
+
+.round-action-btn {
+  width: 44px;
+  height: 44px;
+  font-size: 1.3rem;
+  font-weight: 700;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  cursor: pointer;
+}
+
+.cancel-btn {
+  background: var(--danger);
+  color: white;
+}
+
+.cancel-btn:hover {
+  background: #c0392b;
+}
+
 .scoreboard-action {
   margin-bottom: 0.5rem;
+}
+
+.round-actions .scoreboard-action {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  font-size: 1.3rem;
+  padding: 0;
+  margin-bottom: 0;
 }
 
 .finish-game-btn {
