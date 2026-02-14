@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -13,6 +14,7 @@ import { Server } from "socket.io";
 import adminRoutes from "./routes/admin.js";
 import gameRoutes from "./routes/games.js";
 import { setupSocket } from "./socket.js";
+import getPool from "./db/connection.js";
 
 const app = express();
 const httpServer = createServer(app);
@@ -41,6 +43,18 @@ app.get("*", (_req, res) => {
   res.sendFile(path.join(clientDist, "index.html"));
 });
 
-httpServer.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
+async function initDb() {
+  const schemaPath = path.resolve(__dirname, "db/schema.sql");
+  const sql = fs.readFileSync(schemaPath, "utf-8");
+  await getPool().query(sql);
+  console.log("Database schema applied");
+}
+
+initDb().then(() => {
+  httpServer.listen(port, () => {
+    console.log(`Server running on http://localhost:${port}`);
+  });
+}).catch((err) => {
+  console.error("Failed to initialize database:", err);
+  process.exit(1);
 });
