@@ -28,8 +28,11 @@ CREATE TABLE IF NOT EXISTS game_players (
   is_active BOOLEAN NOT NULL DEFAULT true,
   buy_ins INT NOT NULL DEFAULT 0,
   total_score INT NOT NULL DEFAULT 0,
+  can_buy_in BOOLEAN NOT NULL DEFAULT false,
   PRIMARY KEY (game_id, player_id)
 );
+
+ALTER TABLE game_players ADD COLUMN IF NOT EXISTS can_buy_in BOOLEAN NOT NULL DEFAULT false;
 
 CREATE TABLE IF NOT EXISTS rounds (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

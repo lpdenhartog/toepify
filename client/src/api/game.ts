@@ -4,6 +4,7 @@ export interface GamePlayer {
   is_active: boolean;
   buy_ins: number;
   total_score: number;
+  can_buy_in: boolean;
 }
 
 export interface RoundScore {
