@@ -44,9 +44,12 @@ body {
 
 /* Header */
 .app-header {
-  text-align: center;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
   border-bottom: 2px solid var(--accent);
 }
 
@@ -60,16 +63,7 @@ body {
 }
 
 .app-header .header-icon {
-  height: 56px;
-  margin-bottom: 0.5rem;
-}
-
-.app-header .subtitle {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  color: var(--text-muted);
-  margin-top: 0.25rem;
+  height: 36px;
 }
 
 /* Cards */
@@ -352,10 +346,20 @@ fieldset legend {
   overflow-x: auto;
 }
 
+.score-table-scroll {
+  max-height: calc(3 * 2rem);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
 .score-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.9rem;
+  table-layout: fixed;
+}
+
+.score-table-fixed {
   table-layout: fixed;
 }
 
@@ -661,4 +665,10 @@ fieldset legend {
   padding: 0.4rem 0.5rem;
   border-bottom: 1px solid var(--border);
   font-variant-numeric: tabular-nums;
+}
+
+.player-summary-table .pos-col {
+  width: 2rem;
+  text-align: center;
+  color: var(--text-muted);
 }
