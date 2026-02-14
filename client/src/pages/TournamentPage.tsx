@@ -138,6 +138,16 @@ export default function TournamentPage() {
     [gameState]
   );
 
+  const handleCancelRound = useCallback(() => {
+    if (!gameState) return;
+    const reset: Record<string, number> = {};
+    for (const p of gameState.players) {
+      reset[p.player_id] = 0;
+      sendPenaltyUpdate(gameState.game.id, p.player_id, 0);
+    }
+    setPendingPenalties(reset);
+  }, [gameState]);
+
   const handleFinishGame = useCallback(async () => {
     if (!gameState) return;
     try {
@@ -175,6 +185,7 @@ export default function TournamentPage() {
       onPenaltyChange={handlePenaltyChange}
       onFinishRound={handleFinishRound}
       finishingRound={finishingRound}
+      onCancelRound={handleCancelRound}
       onBuyIn={handleBuyIn}
       onFinishGame={handleFinishGame}
       onNewGame={handleNewGame}
