@@ -304,7 +304,7 @@ export default function Scoreboard({
                 }}
                 aria-label="Laatste ronde ongedaan maken"
               >
-                ↩
+                ↩︎
               </button>
             )}
           </div>
@@ -325,7 +325,7 @@ export default function Scoreboard({
             }}
             aria-label="Laatste ronde ongedaan maken"
           >
-            ↩
+            ↩︎
           </button>
         </div>
       )}
