@@ -89,4 +89,87 @@ router.post("/tournaments", requireAdmin, async (req: AuthRequest, res: Response
   }
 });
 
+router.get("/tournaments", requireAdmin, async (_req: AuthRequest, res: Response) => {
+  try {
+    const pool = getPool();
+    const result = await pool.query(
+      `SELECT t.id, t.name, t.stake_per_game, t.created_at,
+              COALESCE(json_agg(json_build_object('name', p.name)) FILTER (WHERE p.id IS NOT NULL), '[]') AS players
+       FROM tournaments t
+       LEFT JOIN players p ON p.tournament_id = t.id
+       GROUP BY t.id
+       ORDER BY t.created_at DESC
+       LIMIT 10`
+    );
+    res.json({
+      tournaments: result.rows.map((r) => ({
+        id: r.id,
+        name: r.name,
+        stakePerGame: r.stake_per_game,
+        createdAt: r.created_at,
+        players: r.players,
+      })),
+    });
+  } catch (err) {
+    console.error("Failed to fetch tournaments:", err);
+    res.status(500).json({ error: "Failed to fetch tournaments" });
+  }
+});
+
+router.delete("/tournaments", requireAdmin, async (req: AuthRequest, res: Response) => {
+  const { tournamentIds } = req.body;
+  if (!Array.isArray(tournamentIds) || tournamentIds.length === 0) {
+    res.status(400).json({ error: "tournamentIds must be a non-empty array" });
+    return;
+  }
+
+  const client = await getPool().connect();
+  try {
+    await client.query("BEGIN");
+
+    // Delete in FK order: round_scores → rounds → game_players → games → players → tournaments
+    await client.query(
+      `DELETE FROM round_scores WHERE round_id IN (
+         SELECT r.id FROM rounds r
+         JOIN games g ON g.id = r.game_id
+         WHERE g.tournament_id = ANY($1)
+       )`,
+      [tournamentIds]
+    );
+    await client.query(
+      `DELETE FROM rounds WHERE game_id IN (
+         SELECT id FROM games WHERE tournament_id = ANY($1)
+       )`,
+      [tournamentIds]
+    );
+    await client.query(
+      `DELETE FROM game_players WHERE game_id IN (
+         SELECT id FROM games WHERE tournament_id = ANY($1)
+       )`,
+      [tournamentIds]
+    );
+    await client.query(
+      `DELETE FROM games WHERE tournament_id = ANY($1)`,
+      [tournamentIds]
+    );
+    await client.query(
+      `DELETE FROM players WHERE tournament_id = ANY($1)`,
+      [tournamentIds]
+    );
+    await client.query(
+      `DELETE FROM tournaments WHERE id = ANY($1)`,
+      [tournamentIds]
+    );
+
+    await client.query("COMMIT");
+    res.json({ deleted: tournamentIds.length });
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error("Failed to delete tournaments:", err);
+    res.status(500).json({ error: "Failed to delete tournaments" });
+  } finally {
+    client.release();
+  }
+});
+
 export default router;
