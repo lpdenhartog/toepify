@@ -92,6 +92,18 @@ export async function finishGame(gameId: string, excludedPlayerIds?: string[]): 
   return res.json();
 }
 
+export async function undoRound(gameId: string): Promise<GameState> {
+  const res = await fetch(`/api/games/${gameId}/undo-round`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error || "Fout bij ongedaan maken ronde");
+  }
+  return res.json();
+}
+
 export async function startNewGame(tournamentId: string): Promise<GameState> {
   const res = await fetch(`/api/tournaments/${tournamentId}/games`, {
     method: "POST",

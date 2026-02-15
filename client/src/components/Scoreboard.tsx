@@ -53,6 +53,8 @@ interface ScoreboardProps {
   onNewGame: () => void;
   excludedPlayers: Set<string>;
   onTogglePlayer: (playerId: string) => void;
+  onUndoRound: () => void;
+  undoingRound: boolean;
 }
 
 export default function Scoreboard({
@@ -67,6 +69,8 @@ export default function Scoreboard({
   onNewGame,
   excludedPlayers,
   onTogglePlayer,
+  onUndoRound,
+  undoingRound,
 }: ScoreboardProps) {
   const { tournament, game, players, rounds, pot, balances } = gameState;
   const abbreviations = useMemo(
@@ -289,8 +293,40 @@ export default function Scoreboard({
             >
               ✓
             </button>
+            {rounds.length > 0 && (
+              <button
+                className="round-action-btn undo-btn"
+                disabled={undoingRound}
+                onClick={() => {
+                  if (window.confirm("Laatste ronde ongedaan maken?")) {
+                    onUndoRound();
+                  }
+                }}
+                aria-label="Laatste ronde ongedaan maken"
+              >
+                ↩
+              </button>
+            )}
           </div>
 
+        </div>
+      )}
+
+      {/* Undo button for finished games (active games show it in round-actions) */}
+      {!isActive && game.status === "finished" && rounds.length > 0 && (
+        <div className="round-actions">
+          <button
+            className="round-action-btn undo-btn"
+            disabled={undoingRound}
+            onClick={() => {
+              if (window.confirm("Laatste ronde ongedaan maken?")) {
+                onUndoRound();
+              }
+            }}
+            aria-label="Laatste ronde ongedaan maken"
+          >
+            ↩
+          </button>
         </div>
       )}
 

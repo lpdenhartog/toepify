@@ -560,6 +560,28 @@ fieldset legend {
   font-weight: 700;
 }
 
+/* Undo button */
+.undo-btn.round-action-btn {
+  width: 24px;
+  height: 24px;
+  font-size: 0.75rem;
+  background: var(--accent);
+  color: var(--bg);
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.undo-btn:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.undo-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 /* Buy-in section */
 .buyin-section {
   display: flex;
@@ -641,6 +663,7 @@ fieldset legend {
   gap: 0.5rem;
   margin-bottom: 0.5rem;
   justify-content: center;
+  position: relative;
 }
 
 .round-action-btn {
