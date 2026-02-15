@@ -314,27 +314,25 @@ export default function Scoreboard({
             </tr>
           </thead>
           <tbody>
-            {[...players]
-              .sort((a, b) => {
-                const balA = balances.find((bl) => bl.player_id === a.player_id)?.balance ?? 0;
-                const balB = balances.find((bl) => bl.player_id === b.player_id)?.balance ?? 0;
-                return balB - balA;
-              })
-              .map((p, index) => {
-                const balance = balances.find((b) => b.player_id === p.player_id);
-                const stake = tournament.stake_per_game * (1 + p.buy_ins);
+            {[...balances]
+              .sort((a, b) => b.balance - a.balance)
+              .map((bal, index) => {
+                const gamePlayer = players.find((p) => p.player_id === bal.player_id);
+                const stake = gamePlayer
+                  ? tournament.stake_per_game * (1 + gamePlayer.buy_ins)
+                  : 0;
                 return (
-                  <tr key={p.player_id}>
+                  <tr key={bal.player_id}>
                     <td className="pos-col">{index + 1}</td>
-                    <td>{p.player_name}</td>
+                    <td>{bal.player_name}</td>
                     <td className={
-                      balance && balance.balance > 0
+                      bal.balance > 0
                         ? "balance-positive"
-                        : balance && balance.balance < 0
+                        : bal.balance < 0
                         ? "balance-negative"
                         : ""
                     }>
-                      {balance ? formatEuro(balance.balance) : "€0,00"}
+                      {formatEuro(bal.balance)}
                     </td>
                     <td>€{stake.toFixed(2).replace(".", ",")}</td>
                   </tr>
