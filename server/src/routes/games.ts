@@ -39,8 +39,9 @@ router.get("/tournaments/:tournamentId/latest", async (req: Request, res: Respon
 // POST /api/games/:gameId/finish-round
 router.post("/games/:gameId/finish-round", async (req: Request, res: Response) => {
   const gameId = req.params.gameId as string;
-  const { penalties } = req.body as {
+  const { penalties, excludedPlayerIds } = req.body as {
     penalties: Array<{ playerId: string; points: number }>;
+    excludedPlayerIds?: string[];
   };
 
   if (!Array.isArray(penalties) || penalties.length === 0) {
@@ -66,6 +67,23 @@ router.post("/games/:gameId/finish-round", async (req: Request, res: Response) =
       [gameId]
     );
     const roundNumber = roundNumRes.rows[0].next;
+
+    // Remove excluded players from the game (idempotent — skips if already removed)
+    if (excludedPlayerIds && excludedPlayerIds.length > 0) {
+      const activeCountRes = await client.query(
+        "SELECT COUNT(*) as cnt FROM game_players WHERE game_id = $1 AND player_id != ALL($2)",
+        [gameId, excludedPlayerIds]
+      );
+      if (Number(activeCountRes.rows[0].cnt) < 2) {
+        res.status(400).json({ error: "Er moeten minimaal 2 spelers overblijven" });
+        await client.query("ROLLBACK");
+        return;
+      }
+      await client.query(
+        "DELETE FROM game_players WHERE game_id = $1 AND player_id = ANY($2)",
+        [gameId, excludedPlayerIds]
+      );
+    }
 
     // Create round
     const roundRes = await client.query(
@@ -255,9 +273,18 @@ router.post("/games/:gameId/buy-in", async (req: Request, res: Response) => {
 // POST /api/games/:gameId/finish
 router.post("/games/:gameId/finish", async (req: Request, res: Response) => {
   const gameId = req.params.gameId as string;
+  const { excludedPlayerIds } = req.body as { excludedPlayerIds?: string[] };
   const pool = getPool();
 
   try {
+    // Remove excluded players from the game before finishing
+    if (excludedPlayerIds && excludedPlayerIds.length > 0) {
+      await pool.query(
+        "DELETE FROM game_players WHERE game_id = $1 AND player_id = ANY($2)",
+        [gameId, excludedPlayerIds]
+      );
+    }
+
     // Find the sole active player
     const activeRes = await pool.query(
       "SELECT player_id FROM game_players WHERE game_id = $1 AND is_active = true",

@@ -51,6 +51,8 @@ interface ScoreboardProps {
   onBuyIn: (playerId: string) => void;
   buyingIn: boolean;
   onNewGame: () => void;
+  excludedPlayers: Set<string>;
+  onTogglePlayer: (playerId: string) => void;
 }
 
 export default function Scoreboard({
@@ -63,6 +65,8 @@ export default function Scoreboard({
   onBuyIn,
   buyingIn,
   onNewGame,
+  excludedPlayers,
+  onTogglePlayer,
 }: ScoreboardProps) {
   const { tournament, game, players, rounds, pot, balances } = gameState;
   const abbreviations = useMemo(
@@ -70,11 +74,12 @@ export default function Scoreboard({
     [players]
   );
   const isActive = game.status === "active";
-  const activePlayers = players.filter((p) => p.is_active);
+  const showPlayerSelection = isActive && rounds.length === 0;
+  const activePlayers = players.filter((p) => p.is_active && !excludedPlayers.has(p.player_id));
   const zeroCount = activePlayers.filter(
     (p) => !pendingPenalties[p.player_id]
   ).length;
-  const penaltiesValid = zeroCount === 1;
+  const penaltiesValid = zeroCount === 1 && activePlayers.length >= 2;
   // Buy-in allowed if: game active, server says can_buy_in, and at least 2 players still active
   const canBuyIn = (playerId: string) => {
     if (!isActive) return false;
@@ -130,19 +135,30 @@ export default function Scoreboard({
         <table className="score-table score-table-fixed">
           <thead>
             <tr>
-              {players.map((p) => (
-                  <th key={p.player_id} className="player-col">
+              {players.map((p) => {
+                const isExcluded = excludedPlayers.has(p.player_id);
+                return (
+                  <th key={p.player_id} className={`player-col${isExcluded ? " player-excluded" : ""}`}>
                     <div className="player-header">
+                      {showPlayerSelection && (
+                        <input
+                          type="checkbox"
+                          className="player-checkbox"
+                          checked={!isExcluded}
+                          onChange={() => onTogglePlayer(p.player_id)}
+                        />
+                      )}
                       <div className="player-header-name" title={p.player_name}>{abbreviations.get(p.player_name)}</div>
-                      {p.is_active && p.total_score === 14 && (
+                      {!showPlayerSelection && p.is_active && p.total_score === 14 && (
                         <span className="status-pelt">Pelt!</span>
                       )}
-                      {!p.is_active && (
+                      {!showPlayerSelection && !p.is_active && (
                         <span className="status-out">Uit</span>
                       )}
                     </div>
                   </th>
-              ))}
+                );
+              })}
             </tr>
           </thead>
         </table>
@@ -184,15 +200,17 @@ export default function Scoreboard({
             <tr className="score-row-current">
               {players.map((p) => {
                 const val = currentScores[p.player_id] || 0;
+                const isExcluded = excludedPlayers.has(p.player_id);
                 return (
                   <td
                     key={p.player_id}
                     className={
-                      val >= 15
+                      (isExcluded ? "player-excluded " : "") +
+                      (val >= 15
                         ? "score-cell score-out"
                         : val === 14
                         ? "score-cell score-pelt"
-                        : "score-cell"
+                        : "score-cell")
                     }
                   >
                     {val}
@@ -232,24 +250,27 @@ export default function Scoreboard({
       {isActive && (
         <div className="penalty-section">
           <div className="penalty-grid">
-            {players.map((p) => (
-              <div key={p.player_id} className="penalty-column">
-                {p.is_active ? (
-                  <div className="penalty-input">
-                    <button
-                      className="penalty-btn"
-                      onClick={() => onPenaltyChange(p.player_id, 1)}
-                    >
-                      {pendingPenalties[p.player_id] || 0}
-                    </button>
-                  </div>
-                ) : (
-                  <div className="penalty-input penalty-disabled">
-                    <span className="penalty-value">-</span>
-                  </div>
-                )}
-              </div>
-            ))}
+            {players.map((p) => {
+              const isExcluded = excludedPlayers.has(p.player_id);
+              return (
+                <div key={p.player_id} className={`penalty-column${isExcluded ? " player-excluded" : ""}`}>
+                  {p.is_active && !isExcluded ? (
+                    <div className="penalty-input">
+                      <button
+                        className="penalty-btn"
+                        onClick={() => onPenaltyChange(p.player_id, 1)}
+                      >
+                        {pendingPenalties[p.player_id] || 0}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="penalty-input penalty-disabled">
+                      <span className="penalty-value">-</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           <div className="round-actions">

@@ -43,12 +43,17 @@ export async function fetchLatestGame(tournamentId: string): Promise<GameState> 
 
 export async function finishRound(
   gameId: string,
-  penalties: Array<{ playerId: string; points: number }>
+  penalties: Array<{ playerId: string; points: number }>,
+  excludedPlayerIds?: string[]
 ): Promise<GameState> {
+  const body: Record<string, unknown> = { penalties };
+  if (excludedPlayerIds && excludedPlayerIds.length > 0) {
+    body.excludedPlayerIds = excludedPlayerIds;
+  }
   const res = await fetch(`/api/games/${gameId}/finish-round`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ penalties }),
+    body: JSON.stringify(body),
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
@@ -70,10 +75,15 @@ export async function buyIn(gameId: string, playerId: string): Promise<GameState
   return res.json();
 }
 
-export async function finishGame(gameId: string): Promise<GameState> {
+export async function finishGame(gameId: string, excludedPlayerIds?: string[]): Promise<GameState> {
+  const body: Record<string, unknown> = {};
+  if (excludedPlayerIds && excludedPlayerIds.length > 0) {
+    body.excludedPlayerIds = excludedPlayerIds;
+  }
   const res = await fetch(`/api/games/${gameId}/finish`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));

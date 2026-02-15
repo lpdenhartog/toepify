@@ -28,6 +28,7 @@ export default function TournamentPage() {
   const [finishingRound, setFinishingRound] = useState(false);
   const [buyingIn, setBuyingIn] = useState(false);
   const buyingInRef = useRef(false);
+  const [excludedPlayers, setExcludedPlayers] = useState<Set<string>>(new Set());
 
   // Load initial state and set up socket
   useEffect(() => {
@@ -71,6 +72,7 @@ export default function TournamentPage() {
             initial[p.player_id] = 0;
           }
           setPendingPenalties(initial);
+          setExcludedPlayers(new Set());
           joinGame(gameId);
         });
       } catch (err: unknown) {
@@ -104,7 +106,7 @@ export default function TournamentPage() {
   const handleFinishRound = useCallback(async () => {
     if (!gameState) return;
     const penalties = gameState.players
-      .filter((p) => p.is_active)
+      .filter((p) => p.is_active && !excludedPlayers.has(p.player_id))
       .map((p) => ({
         playerId: p.player_id,
         points: pendingPenalties[p.player_id] || 0,
@@ -112,7 +114,8 @@ export default function TournamentPage() {
 
     setFinishingRound(true);
     try {
-      const newState = await finishRound(gameState.game.id, penalties);
+      const excludedArr = excludedPlayers.size > 0 ? Array.from(excludedPlayers) : undefined;
+      const newState = await finishRound(gameState.game.id, penalties, excludedArr);
       setGameState(newState);
       // Reset pending penalties
       const initial: Record<string, number> = {};
@@ -121,10 +124,11 @@ export default function TournamentPage() {
       }
       setPendingPenalties(initial);
 
-      // Auto-finish game when only 1 active player remains
-      const activePlayers = newState.players.filter((p) => p.is_active);
+      // Auto-finish game when only 1 active player remains (excluding sat-out players)
+      const activePlayers = newState.players.filter((p) => p.is_active && !excludedPlayers.has(p.player_id));
       if (activePlayers.length === 1 && newState.game.status === "active") {
-        const finishedState = await finishGame(newState.game.id);
+        const excludedIds = excludedPlayers.size > 0 ? Array.from(excludedPlayers) : undefined;
+        const finishedState = await finishGame(newState.game.id, excludedIds);
         setGameState(finishedState);
       }
     } catch (err: unknown) {
@@ -132,7 +136,7 @@ export default function TournamentPage() {
     } finally {
       setFinishingRound(false);
     }
-  }, [gameState, pendingPenalties]);
+  }, [gameState, pendingPenalties, excludedPlayers]);
 
   const handleBuyIn = useCallback(
     async (playerId: string) => {
@@ -151,6 +155,18 @@ export default function TournamentPage() {
     },
     [gameState]
   );
+
+  const handleTogglePlayer = useCallback((playerId: string) => {
+    setExcludedPlayers((prev) => {
+      const next = new Set(prev);
+      if (next.has(playerId)) {
+        next.delete(playerId);
+      } else {
+        next.add(playerId);
+      }
+      return next;
+    });
+  }, []);
 
   const handleCancelRound = useCallback(() => {
     if (!gameState) return;
@@ -172,6 +188,7 @@ export default function TournamentPage() {
         initial[p.player_id] = 0;
       }
       setPendingPenalties(initial);
+      setExcludedPlayers(new Set());
       joinGame(newState.game.id);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Fout bij starten nieuw spel");
@@ -193,6 +210,8 @@ export default function TournamentPage() {
       onBuyIn={handleBuyIn}
       buyingIn={buyingIn}
       onNewGame={handleNewGame}
+      excludedPlayers={excludedPlayers}
+      onTogglePlayer={handleTogglePlayer}
     />
   );
 }
