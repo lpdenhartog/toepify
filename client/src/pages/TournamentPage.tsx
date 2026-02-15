@@ -118,6 +118,13 @@ export default function TournamentPage() {
         initial[p.player_id] = 0;
       }
       setPendingPenalties(initial);
+
+      // Auto-finish game when only 1 active player remains
+      const activePlayers = newState.players.filter((p) => p.is_active);
+      if (activePlayers.length === 1 && newState.game.status === "active") {
+        const finishedState = await finishGame(newState.game.id);
+        setGameState(finishedState);
+      }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Fout bij afsluiten ronde");
     } finally {
@@ -146,16 +153,6 @@ export default function TournamentPage() {
       sendPenaltyUpdate(gameState.game.id, p.player_id, 0);
     }
     setPendingPenalties(reset);
-  }, [gameState]);
-
-  const handleFinishGame = useCallback(async () => {
-    if (!gameState) return;
-    try {
-      const newState = await finishGame(gameState.game.id);
-      setGameState(newState);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Fout bij beëindigen spel");
-    }
   }, [gameState]);
 
   const handleNewGame = useCallback(async () => {
@@ -187,7 +184,6 @@ export default function TournamentPage() {
       finishingRound={finishingRound}
       onCancelRound={handleCancelRound}
       onBuyIn={handleBuyIn}
-      onFinishGame={handleFinishGame}
       onNewGame={handleNewGame}
     />
   );
