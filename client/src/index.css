@@ -672,3 +672,128 @@ fieldset legend {
   text-align: center;
   color: var(--text-muted);
 }
+
+/* ======== Game End Celebration ======== */
+
+.celebration-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(15, 25, 35, 0.95);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  overflow-y: auto;
+}
+
+.celebration-winner {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  animation: scale-in 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+.celebration-subtitle {
+  font-size: 1.2rem;
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+  animation: scale-in 0.6s 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Confetti */
+.confetti-container {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.confetti-piece {
+  position: absolute;
+  top: -10px;
+  border-radius: 2px;
+  animation: confetti-fall linear infinite;
+}
+
+.confetti-circle {
+  border-radius: 50%;
+}
+
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-10px) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+/* Stats */
+.celebration-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  max-width: 400px;
+  animation: scale-in 0.5s 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  text-align: center;
+  min-width: 5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-value {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-top: 0.15rem;
+}
+
+/* Leaderboard inside celebration */
+.celebration-leaderboard {
+  width: 100%;
+  max-width: 400px;
+  margin-bottom: 1.5rem;
+  animation: scale-in 0.5s 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+.celebration-new-game {
+  max-width: 400px;
+  animation: scale-in 0.5s 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}

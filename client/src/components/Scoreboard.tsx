@@ -1,5 +1,6 @@
 import { useMemo, useEffect, useRef } from "react";
 import type { GameState } from "../api/game";
+import GameEndCelebration from "./GameEndCelebration";
 
 function getUniqueAbbreviations(names: string[]): Map<string, string> {
   const result = new Map<string, string>();
@@ -48,7 +49,6 @@ interface ScoreboardProps {
   finishingRound: boolean;
   onCancelRound: () => void;
   onBuyIn: (playerId: string) => void;
-  onFinishGame: () => void;
   onNewGame: () => void;
 }
 
@@ -60,7 +60,6 @@ export default function Scoreboard({
   finishingRound,
   onCancelRound,
   onBuyIn,
-  onFinishGame,
   onNewGame,
 }: ScoreboardProps) {
   const { tournament, game, players, rounds, pot, balances } = gameState;
@@ -74,10 +73,6 @@ export default function Scoreboard({
     (p) => !pendingPenalties[p.player_id]
   ).length;
   const penaltiesValid = zeroCount === 1;
-  const winner = game.winner_player_id
-    ? players.find((p) => p.player_id === game.winner_player_id)
-    : null;
-
   // Buy-in allowed if: game active, server says can_buy_in, and at least 2 players still active
   const canBuyIn = (playerId: string) => {
     if (!isActive) return false;
@@ -122,11 +117,9 @@ export default function Scoreboard({
 
   return (
     <div className="scoreboard">
-      {/* Winner banner */}
-      {winner && (
-        <div className="winner-banner">
-          Winnaar: {winner.player_name}!
-        </div>
+      {/* Celebration overlay */}
+      {game.status === "finished" && (
+        <GameEndCelebration gameState={gameState} onNewGame={onNewGame} />
       )}
 
       {/* Score table */}
@@ -274,23 +267,7 @@ export default function Scoreboard({
             </button>
           </div>
 
-
-          {activePlayers.length === 1 && (
-            <button
-              className="btn-primary scoreboard-action finish-game-btn"
-              onClick={onFinishGame}
-            >
-              Spel beëindigen
-            </button>
-          )}
         </div>
-      )}
-
-      {/* New game button */}
-      {game.status === "finished" && (
-        <button className="btn-primary scoreboard-action" onClick={onNewGame}>
-          Nieuw spel
-        </button>
       )}
 
       {/* Tournament info */}
