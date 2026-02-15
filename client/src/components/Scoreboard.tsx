@@ -49,6 +49,7 @@ interface ScoreboardProps {
   finishingRound: boolean;
   onCancelRound: () => void;
   onBuyIn: (playerId: string) => void;
+  buyingIn: boolean;
   onNewGame: () => void;
 }
 
@@ -60,6 +61,7 @@ export default function Scoreboard({
   finishingRound,
   onCancelRound,
   onBuyIn,
+  buyingIn,
   onNewGame,
 }: ScoreboardProps) {
   const { tournament, game, players, rounds, pot, balances } = gameState;
@@ -216,9 +218,10 @@ export default function Scoreboard({
                 <button
                   key={p.player_id}
                   className="btn-primary btn-buyin"
+                  disabled={buyingIn}
                   onClick={() => onBuyIn(p.player_id)}
                 >
-                  {abbreviations.get(p.player_name)} inkopen op {maxActiveScore} (€{tournament.stake_per_game.toFixed(2).replace(".", ",")})
+                  {p.player_name} inkopen op {maxActiveScore} (€{tournament.stake_per_game.toFixed(2).replace(".", ",")})
                 </button>
               );
             })}

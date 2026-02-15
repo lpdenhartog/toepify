@@ -26,6 +26,7 @@ export default function TournamentPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [finishingRound, setFinishingRound] = useState(false);
+  const [buyingIn, setBuyingIn] = useState(false);
 
   // Load initial state and set up socket
   useEffect(() => {
@@ -134,15 +135,18 @@ export default function TournamentPage() {
 
   const handleBuyIn = useCallback(
     async (playerId: string) => {
-      if (!gameState) return;
+      if (!gameState || buyingIn) return;
+      setBuyingIn(true);
       try {
         const newState = await buyIn(gameState.game.id, playerId);
         setGameState(newState);
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : "Fout bij inkopen");
+      } finally {
+        setBuyingIn(false);
       }
     },
-    [gameState]
+    [gameState, buyingIn]
   );
 
   const handleCancelRound = useCallback(() => {
@@ -184,6 +188,7 @@ export default function TournamentPage() {
       finishingRound={finishingRound}
       onCancelRound={handleCancelRound}
       onBuyIn={handleBuyIn}
+      buyingIn={buyingIn}
       onNewGame={handleNewGame}
     />
   );
