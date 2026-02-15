@@ -34,16 +34,9 @@ export default function GameEndCelebration({
     return { name: maxPlayerName, points: maxPoints };
   }, [rounds, players]);
 
-  const sortedPlayers = useMemo(
-    () =>
-      [...players].sort((a, b) => {
-        const balA =
-          balances.find((bl) => bl.player_id === a.player_id)?.balance ?? 0;
-        const balB =
-          balances.find((bl) => bl.player_id === b.player_id)?.balance ?? 0;
-        return balB - balA;
-      }),
-    [players, balances]
+  const sortedBalances = useMemo(
+    () => [...balances].sort((a, b) => b.balance - a.balance),
+    [balances]
   );
 
   const formatEuro = (amount: number) => {
@@ -131,25 +124,27 @@ export default function GameEndCelebration({
             </tr>
           </thead>
           <tbody>
-            {sortedPlayers.map((p, index) => {
-              const balance = balances.find(
-                (b) => b.player_id === p.player_id
+            {sortedBalances.map((bal, index) => {
+              const gamePlayer = players.find(
+                (p) => p.player_id === bal.player_id
               );
-              const stake = tournament.stake_per_game * (1 + p.buy_ins);
+              const stake = gamePlayer
+                ? tournament.stake_per_game * (1 + gamePlayer.buy_ins)
+                : 0;
               return (
-                <tr key={p.player_id}>
+                <tr key={bal.player_id}>
                   <td className="pos-col">{index + 1}</td>
-                  <td>{p.player_name}</td>
+                  <td>{bal.player_name}</td>
                   <td
                     className={
-                      balance && balance.balance > 0
+                      bal.balance > 0
                         ? "balance-positive"
-                        : balance && balance.balance < 0
+                        : bal.balance < 0
                         ? "balance-negative"
                         : ""
                     }
                   >
-                    {balance ? formatEuro(balance.balance) : "\u20AC0,00"}
+                    {formatEuro(bal.balance)}
                   </td>
                   <td>
                     {"\u20AC"}
