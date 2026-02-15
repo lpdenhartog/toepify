@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams } from "react-router-dom";
 import {
   fetchLatestGame,
@@ -27,6 +27,7 @@ export default function TournamentPage() {
   const [error, setError] = useState("");
   const [finishingRound, setFinishingRound] = useState(false);
   const [buyingIn, setBuyingIn] = useState(false);
+  const buyingInRef = useRef(false);
 
   // Load initial state and set up socket
   useEffect(() => {
@@ -135,7 +136,8 @@ export default function TournamentPage() {
 
   const handleBuyIn = useCallback(
     async (playerId: string) => {
-      if (!gameState || buyingIn) return;
+      if (!gameState || buyingInRef.current) return;
+      buyingInRef.current = true;
       setBuyingIn(true);
       try {
         const newState = await buyIn(gameState.game.id, playerId);
@@ -143,10 +145,11 @@ export default function TournamentPage() {
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : "Fout bij inkopen");
       } finally {
+        buyingInRef.current = false;
         setBuyingIn(false);
       }
     },
-    [gameState, buyingIn]
+    [gameState]
   );
 
   const handleCancelRound = useCallback(() => {
