@@ -363,6 +363,50 @@ fieldset legend {
   cursor: not-allowed;
 }
 
+/* Header link */
+.header-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Landing page */
+.landing-input-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.landing-input-group input {
+  flex: 1;
+}
+
+.landing-go-btn.btn-primary {
+  width: auto;
+  flex-shrink: 0;
+}
+
+.recent-tournament-row {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  align-items: center;
+}
+
+.recent-tournament-row:hover {
+  background: var(--surface-alt);
+}
+
+.tournament-link-icon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.recent-tournament-row:hover .tournament-link-icon {
+  color: var(--accent);
+}
+
 /* ======== Scoreboard ======== */
 
 .scoreboard {

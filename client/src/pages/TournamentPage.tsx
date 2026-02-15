@@ -19,6 +19,7 @@ import {
   disconnectSocket,
 } from "../api/socket";
 import Scoreboard from "../components/Scoreboard";
+import { saveRecentTournament } from "./LandingPage";
 
 export default function TournamentPage() {
   const { tournamentId } = useParams<{ tournamentId: string }>();
@@ -44,6 +45,13 @@ export default function TournamentPage() {
         if (cancelled) return;
         setGameState(state);
         setLoading(false);
+
+        // Save to recent tournaments
+        saveRecentTournament(
+          state.tournament.id,
+          state.tournament.name,
+          state.players.map((p) => p.player_name)
+        );
 
         // Initialize pending penalties to 0 for all active players
         const initial: Record<string, number> = {};
