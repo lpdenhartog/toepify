@@ -1,4 +1,5 @@
-import { useMemo, useEffect, useRef } from "react";
+import { useMemo, useEffect, useRef, useState } from "react";
+import { QRCodeSVG } from "qrcode.react";
 import type { GameState } from "../api/game";
 import GameEndCelebration from "./GameEndCelebration";
 
@@ -119,6 +120,9 @@ export default function Scoreboard({
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [historyScores.length]);
+
+  const [showQR, setShowQR] = useState(false);
+  const shareUrl = window.location.href;
 
   const formatEuro = (amount: number) => {
     const formatted = Math.abs(amount).toFixed(2).replace(".", ",");
@@ -330,6 +334,29 @@ export default function Scoreboard({
         </div>
       )}
 
+      {/* QR overlay */}
+      {showQR && (
+        <div className="qr-overlay" onClick={() => setShowQR(false)}>
+          <button
+            className="qr-overlay-close"
+            onClick={() => setShowQR(false)}
+            aria-label="Sluiten"
+          >
+            ✕
+          </button>
+          <div className="qr-overlay-content" onClick={(e) => e.stopPropagation()}>
+            <QRCodeSVG
+              value={shareUrl}
+              size={280}
+              bgColor="transparent"
+              fgColor="#ffffff"
+              level="M"
+            />
+            <p className="qr-overlay-label">{tournament.name}</p>
+          </div>
+        </div>
+      )}
+
       {/* Tournament info */}
       <div className="scoreboard-header">
         <div className="scoreboard-title">{tournament.name}</div>
@@ -376,6 +403,15 @@ export default function Scoreboard({
               })}
           </tbody>
         </table>
+      </div>
+
+      <div className="btn-share-wrapper">
+        <button
+          className="btn-primary btn-buyin btn-share"
+          onClick={() => setShowQR(true)}
+        >
+          Deel link
+        </button>
       </div>
 
     </div>

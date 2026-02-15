@@ -10,7 +10,7 @@ Add audio and visual feedback to key game moments to match the lively bar/cafe a
 - Sound when someone knocks (toeps).
 - Sound when the game is won (last player standing).
 
-### Celebratory screen after each game
+### Celebratory screen after each game (done)
 - When a game finishes, show a full-screen celebration for the winner.
 - Display the winner's name prominently with animations (confetti, trophy, or similar).
 - Show a summary: pot amount won, final scores, number of buy-ins.
@@ -19,7 +19,7 @@ Add audio and visual feedback to key game moments to match the lively bar/cafe a
 
 ---
 
-## 2. Player rankings and leaderboards
+## 2. Player rankings and leaderboards (done)
 
 Persistent rankings for players across games and tournaments.
 
@@ -36,10 +36,10 @@ Persistent rankings for players across games and tournaments.
 
 ---
 
-## 3. Optimize for narrow screens
+## 3. Optimize for narrow screens (done)
 
 The app should be optimized for one-handed phone use during a card game. Players glance at their phone briefly — the UI must be scannable and operable without precision tapping.
 
-### Layout changes
+### Layout changes (done)
 - Minimize horizontal scrolling — all players should fit on screen without swiping where possible.
 - Use large tap targets suitable for quick, one-handed interaction (e.g. the point-count button per backlog).

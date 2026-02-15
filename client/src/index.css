@@ -428,10 +428,67 @@ fieldset legend {
   color: var(--text);
 }
 
+.btn-share-wrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.btn-primary.btn-share {
+  flex: none;
+  width: auto;
+}
+
 .pot-display {
   font-size: 1.1rem;
   font-weight: 700;
   color: var(--accent);
+}
+
+/* QR overlay */
+.qr-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(10, 18, 26, 0.97);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fade-in 0.15s ease-out;
+}
+
+.qr-overlay-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+  color: #fff;
+  font-size: 1.25rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qr-overlay-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.qr-overlay-label {
+  color: var(--text-muted);
+  font-size: 1rem;
+  text-align: center;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .winner-banner {
@@ -806,6 +863,7 @@ fieldset legend {
 /* Player summary table */
 .player-summary-wrapper {
   margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
 .player-summary-table {
