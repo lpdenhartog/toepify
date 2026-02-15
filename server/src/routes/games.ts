@@ -234,7 +234,7 @@ router.post("/games/:gameId/buy-in", async (req: Request, res: Response) => {
     const roundNumber = roundNumRes.rows[0].next;
 
     const roundRes = await client.query(
-      "INSERT INTO rounds (game_id, round_number) VALUES ($1, $2) RETURNING id",
+      "INSERT INTO rounds (game_id, round_number, round_type) VALUES ($1, $2, 'buy_in') RETURNING id",
       [gameId, roundNumber]
     );
     const roundId = roundRes.rows[0].id;
@@ -369,6 +369,104 @@ router.post("/tournaments/:tournamentId/games", async (req: Request, res: Respon
   } catch (err) {
     await client.query("ROLLBACK");
     console.error("Failed to start new game:", err);
+    res.status(500).json({ error: "Serverfout" });
+  } finally {
+    client.release();
+  }
+});
+
+// POST /api/games/:gameId/undo-round
+router.post("/games/:gameId/undo-round", async (req: Request, res: Response) => {
+  const gameId = req.params.gameId as string;
+  const client = await getPool().connect();
+
+  try {
+    await client.query("BEGIN");
+
+    // Verify game exists and is active or finished
+    const gameRes = await client.query("SELECT status FROM games WHERE id = $1", [gameId]);
+    if (gameRes.rows.length === 0) {
+      res.status(404).json({ error: "Spel niet gevonden" });
+      await client.query("ROLLBACK");
+      return;
+    }
+    const gameStatus = gameRes.rows[0].status;
+    if (gameStatus !== "active" && gameStatus !== "finished") {
+      res.status(400).json({ error: "Kan ronde niet ongedaan maken" });
+      await client.query("ROLLBACK");
+      return;
+    }
+
+    // Find the last round
+    const lastRoundRes = await client.query(
+      "SELECT id, round_number, round_type FROM rounds WHERE game_id = $1 ORDER BY round_number DESC LIMIT 1",
+      [gameId]
+    );
+    if (lastRoundRes.rows.length === 0) {
+      res.status(404).json({ error: "Geen rondes om ongedaan te maken" });
+      await client.query("ROLLBACK");
+      return;
+    }
+    const lastRound = lastRoundRes.rows[0];
+
+    // If it's a buy-in round, decrement buy_ins for the player who bought in
+    if (lastRound.round_type === "buy_in") {
+      // The bought-in player has a non-zero penalty in this round
+      const buyInPlayerRes = await client.query(
+        "SELECT player_id FROM round_scores WHERE round_id = $1 AND penalty_points != 0",
+        [lastRound.id]
+      );
+      if (buyInPlayerRes.rows.length > 0) {
+        const buyInPlayerId = buyInPlayerRes.rows[0].player_id;
+        await client.query(
+          "UPDATE game_players SET buy_ins = GREATEST(buy_ins - 1, 0) WHERE game_id = $1 AND player_id = $2",
+          [gameId, buyInPlayerId]
+        );
+      }
+    }
+
+    // Delete round_scores and round
+    await client.query("DELETE FROM round_scores WHERE round_id = $1", [lastRound.id]);
+    await client.query("DELETE FROM rounds WHERE id = $1", [lastRound.id]);
+
+    // Recalculate all game_players state from remaining rounds
+    await client.query(
+      `UPDATE game_players SET
+        total_score = COALESCE((
+          SELECT SUM(rs.penalty_points)
+          FROM round_scores rs
+          JOIN rounds r ON r.id = rs.round_id
+          WHERE r.game_id = $1 AND rs.player_id = game_players.player_id
+        ), 0),
+        can_buy_in = false
+      WHERE game_id = $1`,
+      [gameId]
+    );
+    await client.query(
+      "UPDATE game_players SET is_active = (total_score < 15) WHERE game_id = $1",
+      [gameId]
+    );
+
+    // If game was finished, reopen it
+    if (gameStatus === "finished") {
+      await client.query(
+        "UPDATE games SET status = 'active', winner_player_id = NULL WHERE id = $1",
+        [gameId]
+      );
+    }
+
+    await client.query("COMMIT");
+
+    const state = await getFullGameState(getPool(), gameId);
+
+    // Broadcast via Socket.IO
+    const io = req.app.get("io") as Server | undefined;
+    if (io) io.to(`game:${gameId}`).emit("game_state", state);
+
+    res.json(state);
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error("Failed to undo round:", err);
     res.status(500).json({ error: "Serverfout" });
   } finally {
     client.release();

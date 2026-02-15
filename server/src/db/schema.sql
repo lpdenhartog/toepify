@@ -38,8 +38,11 @@ CREATE TABLE IF NOT EXISTS rounds (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   game_id UUID NOT NULL REFERENCES games(id),
   round_number INT NOT NULL,
+  round_type TEXT NOT NULL DEFAULT 'normal',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE rounds ADD COLUMN IF NOT EXISTS round_type TEXT NOT NULL DEFAULT 'normal';
 
 CREATE INDEX IF NOT EXISTS idx_rounds_game ON rounds(game_id, round_number);
 

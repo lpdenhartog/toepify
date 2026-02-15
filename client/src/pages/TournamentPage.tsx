@@ -6,6 +6,7 @@ import {
   buyIn,
   finishGame,
   startNewGame,
+  undoRound,
   type GameState,
 } from "../api/game";
 import {
@@ -29,6 +30,7 @@ export default function TournamentPage() {
   const [buyingIn, setBuyingIn] = useState(false);
   const buyingInRef = useRef(false);
   const [excludedPlayers, setExcludedPlayers] = useState<Set<string>>(new Set());
+  const [undoingRound, setUndoingRound] = useState(false);
 
   // Load initial state and set up socket
   useEffect(() => {
@@ -178,6 +180,24 @@ export default function TournamentPage() {
     setPendingPenalties(reset);
   }, [gameState]);
 
+  const handleUndoRound = useCallback(async () => {
+    if (!gameState) return;
+    setUndoingRound(true);
+    try {
+      const newState = await undoRound(gameState.game.id);
+      setGameState(newState);
+      const initial: Record<string, number> = {};
+      for (const p of newState.players) {
+        initial[p.player_id] = 0;
+      }
+      setPendingPenalties(initial);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Fout bij ongedaan maken ronde");
+    } finally {
+      setUndoingRound(false);
+    }
+  }, [gameState]);
+
   const handleNewGame = useCallback(async () => {
     if (!tournamentId) return;
     try {
@@ -212,6 +232,8 @@ export default function TournamentPage() {
       onNewGame={handleNewGame}
       excludedPlayers={excludedPlayers}
       onTogglePlayer={handleTogglePlayer}
+      onUndoRound={handleUndoRound}
+      undoingRound={undoingRound}
     />
   );
 }
