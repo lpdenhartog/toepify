@@ -124,6 +124,8 @@ export default function Scoreboard({
   const [showQR, setShowQR] = useState(false);
   const shareUrl = window.location.href;
 
+  const displayScore = (val: number) => (val === 14 ? "P" : val);
+
   const formatEuro = (amount: number) => {
     const formatted = Math.abs(amount).toFixed(2).replace(".", ",");
     if (amount >= 0) return `+€${formatted}`;
@@ -191,7 +193,7 @@ export default function Scoreboard({
                               : "score-cell"
                           }
                         >
-                          {val}
+                          {displayScore(val)}
                         </td>
                       );
                     })}
@@ -221,7 +223,7 @@ export default function Scoreboard({
                         : "score-cell")
                     }
                   >
-                    {val}
+                    {displayScore(val)}
                   </td>
                 );
               })}
@@ -247,7 +249,7 @@ export default function Scoreboard({
                   disabled={buyingIn}
                   onClick={() => onBuyIn(p.player_id)}
                 >
-                  {p.player_name} inkopen op {maxActiveScore} (€{tournament.stake_per_game.toFixed(2).replace(".", ",")})
+                  {p.player_name} inkopen op {displayScore(maxActiveScore)} (€{tournament.stake_per_game.toFixed(2).replace(".", ",")})
                 </button>
               );
             })}
