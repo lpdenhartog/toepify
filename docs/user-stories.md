@@ -4,13 +4,15 @@ Stories are grouped into **MVP** and **Later**. Each story includes acceptance c
 
 ## MVP — Admin
 
-### A1 — Admin login via PIN
-**As an admin**, I want to enter a PIN to access admin tools, **so that** only authorized people can create tournaments.
+### A1 — User login
+**As a user**, I want to log in with my username and password, **so that** I can create and manage tournaments.
 
 Acceptance criteria:
-- Admin page prompts for PIN if not authenticated.
-- Correct PIN grants access for a limited time (session).
-- Wrong PIN shows an error and does not grant access.
+- Login page prompts for username and password.
+- Correct credentials grant a 24h session.
+- Wrong credentials show an error.
+- If no activated users exist and ADMIN_PIN is set, PIN login is available as bootstrap.
+- Admin users can access the admin panel for user management.
 
 ### A2 — Create tournament
 **As an admin**, I want to create a tournament, **so that** players can join and track scores.
@@ -97,14 +99,45 @@ Acceptance criteria:
 - Latest game and scores are loaded from DB on page load.
 - The UI shows current scoreboard even after refresh.
 
+## Account stories
+
+### AC1 — Account activation
+**As a new user**, I want to activate my account via a link, **so that** I can set my password and start using the app.
+
+Acceptance criteria:
+- Admin creates user and receives an activation link.
+- Activation link is valid for 72 hours.
+- User sets a password (min 10 characters) on the activation page.
+- After activation, user can log in with username and password.
+
+### AC2 — Create tournament as logged-in user
+**As a logged-in user**, I want to create tournaments from the landing page, **so that** I don't need admin access to create tournaments.
+
+Acceptance criteria:
+- Logged-in users see a "Nieuw Toernooi" form on the landing page.
+- Created tournaments are linked to the user's account.
+- Tournaments appear in "Mijn Toernooien" list.
+
+### AC3 — View my tournaments
+**As a logged-in user**, I want to see tournaments I created or visited, **so that** I can quickly access them.
+
+Acceptance criteria:
+- Landing page shows "Mijn Toernooien" with created and visited tournaments.
+- Own tournaments have a delete button.
+- Visited tournaments are tracked automatically.
+
+### AC4 — Admin user management
+**As an admin**, I want to create and manage user accounts, **so that** I can control who has access.
+
+Acceptance criteria:
+- Admin can create new users and receive activation links.
+- Admin can list all users with their status.
+- Admin can reset user passwords (generates new activation link).
+
 ## Later (post-MVP)
 
-### L1 — Replace admin PIN with real accounts + roles
-- Admin role per tournament
-- Invite + manage permissions
-
 ### L2 — Separate view and write links / write PIN
-- Optional “write key” to prevent accidental edits
+- Optional "write key" to prevent accidental edits
 
 ### L3 — Score history + undo
 - Track each score event for auditing and undo

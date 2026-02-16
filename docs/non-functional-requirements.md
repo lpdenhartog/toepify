@@ -9,11 +9,15 @@
 - If two edits happen quickly, the server determines final state and broadcasts it.
 - Clients reconcile to the server state.
 
-## Security (MVP)
+## Security
 - Tournament IDs are unguessable secrets (capability access).
-- Admin PIN is never embedded in frontend code.
+- Admin PIN is never embedded in frontend code (used only for bootstrap).
+- Passwords hashed with bcrypt (cost factor 12).
+- Minimum password length: 10 characters.
+- Account activation tokens expire after 72 hours.
+- JWT tokens expire after 24 hours.
 - Basic rate limiting for:
-  - Admin login attempts
+  - Login attempts
   - Tournament creation
   - Score update endpoints
 

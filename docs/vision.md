@@ -14,8 +14,7 @@ A simple, fast scorekeeping app for the card game **Toepen** that works on both 
 - Score changes are synced **in realtime** to all participants.
 - State is persisted so sessions can be resumed later.
 
-## Non-goals (MVP)
-- Full user accounts / profiles
+## Non-goals
 - Public discovery of tournaments
 - Complex tournament brackets
 - Offline-first mode with conflict resolution

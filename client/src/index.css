@@ -46,11 +46,34 @@ body {
 .app-header {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   gap: 0.5rem;
   margin-bottom: 1rem;
   padding-bottom: 0.75rem;
   border-bottom: 2px solid var(--accent);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+}
+
+.auth-icon-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.35rem;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s, background-color 0.2s;
+}
+
+.auth-icon-btn:hover {
+  color: var(--accent);
+  background: rgba(232, 168, 23, 0.1);
 }
 
 .app-header h1 {
@@ -1017,4 +1040,77 @@ fieldset legend {
 .celebration-new-game {
   max-width: 400px;
   animation: scale-in 0.5s 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+/* ======== Login & Activation ======== */
+
+.login-page {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.login-toggle-btn {
+  width: 100%;
+  margin-top: 0.75rem;
+}
+
+/* ======== Admin: User Management ======== */
+
+.activation-link-box {
+  margin: 0.75rem 0;
+  padding: 0.75rem;
+  background: rgba(232, 168, 23, 0.08);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+}
+
+.activation-link-box label {
+  margin-bottom: 0.5rem;
+}
+
+.users-list {
+  margin-top: 0.75rem;
+}
+
+.user-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.user-row:last-child {
+  border-bottom: none;
+}
+
+.user-name {
+  font-weight: 600;
+}
+
+.user-badge {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  margin-left: 0.5rem;
+}
+
+.admin-badge {
+  color: var(--accent);
+  background: rgba(232, 168, 23, 0.15);
+}
+
+.pending-badge {
+  color: var(--text-muted);
+  background: rgba(136, 153, 170, 0.15);
+}
+
+/* My tournaments row */
+.my-tournament-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }

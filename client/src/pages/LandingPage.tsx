@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import CreateTournament from "../components/CreateTournament";
+import { fetchMyTournaments, deleteTournament, type MyTournament } from "../api/tournaments";
 
 interface RecentTournament {
   id: string;
@@ -28,26 +31,46 @@ export function saveRecentTournament(id: string, name: string, players: string[]
 
 function parseTournamentId(input: string): string {
   const trimmed = input.trim();
-  // Try to extract from URL like /t/xxx or https://...toepify.com/t/xxx
   const match = trimmed.match(/\/t\/([^/?#]+)/);
   if (match) return match[1];
-  // Otherwise treat the whole input as the ID
   return trimmed;
 }
 
 export default function LandingPage() {
   const [input, setInput] = useState("");
   const [recent, setRecent] = useState<RecentTournament[]>([]);
+  const [myTournaments, setMyTournaments] = useState<MyTournament[]>([]);
+  const [deleting, setDeleting] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { isAuthenticated, user, token } = useAuth();
 
   useEffect(() => {
-    setRecent(getRecentTournaments());
-  }, []);
+    if (isAuthenticated && token) {
+      fetchMyTournaments(token)
+        .then(setMyTournaments)
+        .catch(() => {});
+    } else {
+      setRecent(getRecentTournaments());
+    }
+  }, [isAuthenticated, token]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const id = parseTournamentId(input);
     if (id) navigate(`/t/${id}`);
+  }
+
+  async function handleDelete(id: string) {
+    if (!token) return;
+    setDeleting(id);
+    try {
+      await deleteTournament(token, id);
+      setMyTournaments((prev) => prev.filter((t) => t.id !== id));
+    } catch {
+      // silently fail
+    } finally {
+      setDeleting(null);
+    }
   }
 
   return (
@@ -67,7 +90,40 @@ export default function LandingPage() {
         </form>
       </div>
 
-      {recent.length > 0 && (
+      {isAuthenticated && <CreateTournament />}
+
+      {isAuthenticated && myTournaments.length > 0 && (
+        <div className="card">
+          <h2>Mijn Toernooien</h2>
+          {myTournaments.map((t) => (
+            <div key={t.id} className="tournament-row my-tournament-row">
+              <Link to={`/t/${t.id}`} style={{ flex: 1, textDecoration: "none", color: "inherit" }}>
+                <div>{t.name}</div>
+                <div className="tournament-players">{t.players.map((p) => p.name).join(", ")}</div>
+              </Link>
+              {t.isOwner && (
+                <button
+                  className="btn-danger btn-small"
+                  onClick={() => handleDelete(t.id)}
+                  disabled={deleting === t.id}
+                >
+                  {deleting === t.id ? "..." : "Verwijder"}
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {isAuthenticated && user?.isAdmin && (
+        <div className="card">
+          <Link to="/admin" className="btn-secondary" style={{ display: "block", textAlign: "center", textDecoration: "none" }}>
+            Admin Paneel
+          </Link>
+        </div>
+      )}
+
+      {!isAuthenticated && recent.length > 0 && (
         <div className="card">
           <h2>Recente toernooien</h2>
           {recent.map((t) => (

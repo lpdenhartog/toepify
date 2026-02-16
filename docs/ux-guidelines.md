@@ -9,11 +9,13 @@
 - **UI language:** All user interface elements must be in Dutch language.
 
 
-## Key screens (MVP)
-- Tournament join / loading screen
+## Key screens
+- Tournament join / loading screen (landing page)
 - Scoreboard (main screen) — columns per player, round history rows, +/− buttons, finish round button, game pot, tournament balances
-- Admin login (PIN)
-- Admin tournament creation (name, stake, player names)
+- Login page (username/password, optional PIN toggle for bootstrap)
+- Account activation page (set password for new account)
+- Landing page (logged in) — "Nieuw Toernooi" form, "Mijn Toernooien" list, admin panel link
+- Admin panel — user management (create users, reset passwords), all tournaments list
 
 ## Scoreboard layout
 - Each player is a **column**: name at top, current game stake, round-by-round score rows, +/− buttons at bottom for current round input

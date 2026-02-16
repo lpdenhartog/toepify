@@ -1,13 +1,11 @@
 import { useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
-import { createTournament } from "../api/admin";
-import type { Tournament } from "../api/admin";
+import { useAuth } from "../contexts/AuthContext";
+import { createTournament } from "../api/tournaments";
+import type { Tournament } from "../api/tournaments";
 
-interface Props {
-  token: string;
-}
-
-export default function CreateTournament({ token }: Props) {
+export default function CreateTournament() {
+  const { token } = useAuth();
   const [name, setName] = useState("");
   const [stakePerGame, setStakePerGame] = useState(2.5);
   const [playerNames, setPlayerNames] = useState(["", ""]);
@@ -36,6 +34,7 @@ export default function CreateTournament({ token }: Props) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!token) return;
     setError("");
     setLoading(true);
     try {

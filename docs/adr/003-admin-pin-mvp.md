@@ -1,7 +1,7 @@
 # ADR 003: Admin authentication via PIN for MVP
 
 - Date: 2026-02-13
-- Status: Accepted
+- Status: Superseded by [ADR 004](./004-user-accounts.md)
 
 ## Context
 Only admins should create tournaments. MVP must remain lightweight and avoid a full auth system.

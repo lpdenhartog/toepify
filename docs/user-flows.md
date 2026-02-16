@@ -1,19 +1,34 @@
 # User flows
 
-## Admin flow: create tournament
-1. Open `/admin`
-2. Enter PIN
-3. Click "Create Tournament"
-4. Enter tournament name
-5. Set stake per game (default €2.50)
-6. Enter player names (min 2, max 6)
-7. System creates tournament and shows join link
-8. Admin shares join link with players
+## Login flow
+1. Click login icon in header
+2. Enter username and password (or PIN if bootstrap mode)
+3. On success, redirect to previous page or landing page
+4. Token stored in localStorage for 24h session
 
-## Admin flow: start a new game (if enabled)
-1. On admin tournament screen, click “Start New Game”
-2. System creates new game as the most recent game
-3. Players opening the join link see this new game
+## Account activation flow
+1. Admin creates user in admin panel
+2. Admin copies activation link and shares with new user
+3. User opens activation link
+4. User sets password (min 10 characters) and confirms
+5. Account is activated, user can log in
+
+## Logged-in user: create tournament
+1. Open landing page (logged in)
+2. Fill in "Nieuw Toernooi" form (name, stake, player names)
+3. System creates tournament linked to user's account
+4. Tournament appears in "Mijn Toernooien" list
+
+## Admin flow: user management
+1. Log in as admin
+2. Open admin panel (link on landing page)
+3. Create new user: enter username, receive activation link
+4. View all users with status (active/pending)
+5. Reset user password if needed (generates new activation link)
+
+## Admin flow: manage tournaments
+1. Admin panel shows all tournaments
+2. Admin can delete any tournament
 
 ## Player flow: join tournament
 1. Open join link `/t/{tournamentId}`

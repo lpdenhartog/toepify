@@ -12,6 +12,8 @@ import cors from "cors";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import adminRoutes from "./routes/admin.js";
+import authRoutes from "./routes/auth.js";
+import tournamentRoutes from "./routes/tournaments.js";
 import gameRoutes from "./routes/games.js";
 import { setupSocket } from "./socket.js";
 import getPool from "./db/connection.js";
@@ -31,6 +33,8 @@ app.use(express.json());
 app.set("io", io);
 
 app.use("/api/admin", adminRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/tournaments", tournamentRoutes);
 app.use("/api", gameRoutes);
 
 // Socket.IO event handlers
