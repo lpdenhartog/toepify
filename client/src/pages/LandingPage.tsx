@@ -67,6 +67,12 @@ export default function LandingPage() {
     }
   }, [isAuthenticated, token, user]);
 
+  function refreshMyTournaments() {
+    if (token) {
+      fetchMyTournaments(token).then(setMyTournaments).catch(() => {});
+    }
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const id = parseTournamentId(input);
@@ -103,7 +109,7 @@ export default function LandingPage() {
         </form>
       </div>
 
-      {isAuthenticated && <CreateTournament />}
+      {isAuthenticated && <CreateTournament onCreated={refreshMyTournaments} />}
 
       {isAuthenticated && myTournaments.length > 0 && (
         <div className="card">

@@ -4,7 +4,11 @@ import { useAuth } from "../contexts/AuthContext";
 import { createTournament } from "../api/tournaments";
 import type { Tournament } from "../api/tournaments";
 
-export default function CreateTournament() {
+interface Props {
+  onCreated?: () => void;
+}
+
+export default function CreateTournament({ onCreated }: Props) {
   const { token } = useAuth();
   const [name, setName] = useState("");
   const [stakePerGame, setStakePerGame] = useState(2.5);
@@ -44,6 +48,7 @@ export default function CreateTournament() {
         playerNames,
       });
       setResult(tournament);
+      onCreated?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Toernooi aanmaken mislukt");
     } finally {
