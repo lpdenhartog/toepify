@@ -56,23 +56,6 @@ export default function TournamentPage() {
           state.players.map((p) => p.player_name)
         );
 
-        // Save visit to account if logged in
-        if (token && user) {
-          visitTournament(token, state.tournament.id).catch(() => {});
-
-          // Migrate localStorage tournaments to account on first load
-          const migratedKey = `toepify_tournaments_migrated_${user.username}`;
-          if (!localStorage.getItem(migratedKey)) {
-            const recentLocal = getRecentTournaments();
-            for (const t of recentLocal) {
-              if (t.id !== state.tournament.id) {
-                visitTournament(token, t.id).catch(() => {});
-              }
-            }
-            localStorage.setItem(migratedKey, "true");
-          }
-        }
-
         // Initialize pending penalties to 0 for all active players
         const initial: Record<string, number> = {};
         for (const p of state.players) {
@@ -120,6 +103,24 @@ export default function TournamentPage() {
       disconnectSocket();
     };
   }, [tournamentId]);
+
+  // Save visit to account when logged in (separate effect so it runs once auth is ready)
+  useEffect(() => {
+    if (!token || !user || !tournamentId) return;
+    visitTournament(token, tournamentId).catch(() => {});
+
+    // Migrate localStorage tournaments to account on first load
+    const migratedKey = `toepify_tournaments_migrated_${user.username}`;
+    if (!localStorage.getItem(migratedKey)) {
+      const recentLocal = getRecentTournaments();
+      for (const t of recentLocal) {
+        if (t.id !== tournamentId) {
+          visitTournament(token, t.id).catch(() => {});
+        }
+      }
+      localStorage.setItem(migratedKey, "true");
+    }
+  }, [token, user, tournamentId]);
 
   const handlePenaltyChange = useCallback(
     (playerId: string, delta: number) => {
