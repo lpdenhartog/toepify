@@ -129,11 +129,9 @@ export default function LandingPage() {
       )}
 
       {isAuthenticated && user?.isAdmin && (
-        <div className="card">
-          <Link to="/admin" className="btn-secondary" style={{ display: "block", textAlign: "center", textDecoration: "none" }}>
-            Admin Paneel
-          </Link>
-        </div>
+        <Link to="/admin" className="btn-primary" style={{ display: "block", textAlign: "center", textDecoration: "none" }}>
+          Admin
+        </Link>
       )}
 
       {!isAuthenticated && recent.length > 0 && (
