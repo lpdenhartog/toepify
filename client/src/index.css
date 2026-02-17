@@ -769,6 +769,16 @@ fieldset legend {
   background: var(--border);
 }
 
+.penalty-btn-pelt {
+  background: var(--accent);
+  color: #000;
+  border-color: var(--accent);
+}
+
+.penalty-btn-pelt:hover {
+  background: var(--accent-hover);
+}
+
 .penalty-value {
   font-size: 0.85rem;
   font-weight: 500;

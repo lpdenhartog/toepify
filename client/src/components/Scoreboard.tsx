@@ -267,7 +267,7 @@ export default function Scoreboard({
                   {p.is_active && !isExcluded ? (
                     <div className="penalty-input">
                       <button
-                        className="penalty-btn"
+                        className={`penalty-btn${p.total_score === 14 ? " penalty-btn-pelt" : ""}`}
                         onClick={() => onPenaltyChange(p.player_id, 1)}
                       >
                         {pendingPenalties[p.player_id] || 0}
