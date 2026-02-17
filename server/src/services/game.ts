@@ -36,6 +36,140 @@ export function computePot(
   return stakePerGame * (playerCount + totalBuyIns);
 }
 
+// --- Pure game logic (no DB dependencies) ---
+
+export interface PlayerState {
+  player_id: string;
+  total_score: number;
+  is_active: boolean;
+  buy_ins: number;
+  can_buy_in: boolean;
+}
+
+export interface PenaltyResult {
+  players: PlayerState[];
+  eliminated: string[]; // player_ids that were just eliminated
+  gameFinished: boolean; // true if 0 active players remain
+}
+
+/**
+ * Apply penalty points to players and check for eliminations.
+ * Returns the new player states, who was eliminated, and whether the game auto-finished.
+ */
+export function applyPenalties(
+  players: PlayerState[],
+  penalties: Array<{ playerId: string; points: number }>
+): PenaltyResult {
+  const updated = players.map((p) => ({ ...p, can_buy_in: false }));
+
+  // Add penalty points to active players
+  for (const { playerId, points } of penalties) {
+    const player = updated.find((p) => p.player_id === playerId);
+    if (player && player.is_active) {
+      player.total_score += points;
+    }
+  }
+
+  // Eliminate players at >= 15
+  const eliminated: string[] = [];
+  for (const player of updated) {
+    if (player.is_active && player.total_score >= 15) {
+      player.is_active = false;
+      player.can_buy_in = true;
+      eliminated.push(player.player_id);
+    }
+  }
+
+  const activeCount = updated.filter((p) => p.is_active).length;
+
+  return {
+    players: updated,
+    eliminated,
+    gameFinished: activeCount === 0,
+  };
+}
+
+export interface BuyInResult {
+  players: PlayerState[];
+  buyInScore: number; // the score the player was set to
+  adjustment: number; // the score difference (for round_scores record)
+}
+
+/**
+ * Compute the result of a player buying back in.
+ * The player's score is set to the highest active player's score.
+ */
+export function computeBuyIn(
+  players: PlayerState[],
+  playerId: string
+): BuyInResult {
+  const player = players.find((p) => p.player_id === playerId);
+  if (!player) throw new Error("Player not found");
+  if (player.is_active) throw new Error("Player is still active");
+  if (!player.can_buy_in) throw new Error("Buy-in not allowed");
+
+  const activePlayers = players.filter((p) => p.is_active);
+  if (activePlayers.length < 2) throw new Error("Not enough active players");
+
+  const maxScore = Math.max(...activePlayers.map((p) => p.total_score));
+  const oldScore = player.total_score;
+  const adjustment = maxScore - oldScore;
+
+  const updated = players.map((p) => {
+    if (p.player_id === playerId) {
+      return {
+        ...p,
+        is_active: true,
+        total_score: maxScore,
+        buy_ins: p.buy_ins + 1,
+        can_buy_in: false,
+      };
+    }
+    return { ...p };
+  });
+
+  return { players: updated, buyInScore: maxScore, adjustment };
+}
+
+export interface GameData {
+  winner_player_id: string | null;
+  stake_per_game: number;
+  players: Array<{ player_id: string; buy_ins: number }>;
+}
+
+/**
+ * Compute tournament balances from finished game data (pure, no DB).
+ */
+export function computeBalancesFromGames(
+  allPlayerIds: Array<{ id: string; name: string }>,
+  games: GameData[]
+): Array<{ player_id: string; player_name: string; balance: number }> {
+  const balanceMap = new Map<string, number>();
+  for (const p of allPlayerIds) {
+    balanceMap.set(p.id, 0);
+  }
+
+  for (const game of games) {
+    const totalBuyIns = game.players.reduce((s, p) => s + p.buy_ins, 0);
+    const pot = computePot(game.stake_per_game, game.players.length, totalBuyIns);
+
+    for (const p of game.players) {
+      const cost = game.stake_per_game * (1 + p.buy_ins);
+      if (p.player_id === game.winner_player_id) {
+        balanceMap.set(p.player_id, (balanceMap.get(p.player_id) || 0) + (pot - cost));
+      } else {
+        balanceMap.set(p.player_id, (balanceMap.get(p.player_id) || 0) - cost);
+      }
+    }
+  }
+
+  return allPlayerIds.map((p) => ({
+    player_id: p.id,
+    player_name: p.name,
+    balance: balanceMap.get(p.id) || 0,
+  }));
+}
+
 export async function getFullGameState(
   pool: pg.Pool,
   gameId: string
@@ -131,11 +265,6 @@ export async function computeTournamentBalances(
     [tournamentId]
   );
 
-  const balanceMap = new Map<string, number>();
-  for (const p of playersRes.rows) {
-    balanceMap.set(p.id, 0);
-  }
-
   // Get all finished games with their game_players
   const gamesRes = await pool.query(
     `SELECT g.id as game_id, g.winner_player_id, t.stake_per_game,
@@ -148,10 +277,7 @@ export async function computeTournamentBalances(
   );
 
   // Group by game
-  const gameMap = new Map<
-    string,
-    { winner_player_id: string; stake_per_game: number; players: Array<{ player_id: string; buy_ins: number }> }
-  >();
+  const gameMap = new Map<string, GameData>();
   for (const row of gamesRes.rows) {
     if (!gameMap.has(row.game_id)) {
       gameMap.set(row.game_id, {
@@ -166,26 +292,10 @@ export async function computeTournamentBalances(
     });
   }
 
-  // Calculate balances per finished game
-  for (const game of gameMap.values()) {
-    const totalBuyIns = game.players.reduce((s, p) => s + p.buy_ins, 0);
-    const pot = computePot(game.stake_per_game, game.players.length, totalBuyIns);
-
-    for (const p of game.players) {
-      const cost = game.stake_per_game * (1 + p.buy_ins);
-      if (p.player_id === game.winner_player_id) {
-        balanceMap.set(p.player_id, (balanceMap.get(p.player_id) || 0) + (pot - cost));
-      } else {
-        balanceMap.set(p.player_id, (balanceMap.get(p.player_id) || 0) - cost);
-      }
-    }
-  }
-
-  return playersRes.rows.map((p: { id: string; name: string }) => ({
-    player_id: p.id,
-    player_name: p.name,
-    balance: balanceMap.get(p.id) || 0,
-  }));
+  return computeBalancesFromGames(
+    playersRes.rows.map((p: { id: string; name: string }) => ({ id: p.id, name: p.name })),
+    Array.from(gameMap.values())
+  );
 }
 
 export interface Settlement {
