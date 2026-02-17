@@ -24,7 +24,7 @@ export interface PlayerBalance {
 }
 
 export interface GameState {
-  tournament: { id: string; name: string; stake_per_game: number };
+  tournament: { id: string; name: string; stake_per_game: number; created_by: string | null; status: string };
   game: { id: string; status: string; winner_player_id: string | null };
   players: GamePlayer[];
   rounds: Round[];

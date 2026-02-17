@@ -19,9 +19,10 @@ import {
   disconnectSocket,
 } from "../api/socket";
 import Scoreboard from "../components/Scoreboard";
+import TournamentClosed from "../components/TournamentClosed";
 import { saveRecentTournament, getRecentTournaments } from "./LandingPage";
 import { useAuth } from "../contexts/AuthContext";
-import { visitTournament } from "../api/tournaments";
+import { visitTournament, closeTournament, fetchSettlement, type SettlementData } from "../api/tournaments";
 
 export default function TournamentPage() {
   const { tournamentId } = useParams<{ tournamentId: string }>();
@@ -35,6 +36,7 @@ export default function TournamentPage() {
   const buyingInRef = useRef(false);
   const [excludedPlayers, setExcludedPlayers] = useState<Set<string>>(new Set());
   const [undoingRound, setUndoingRound] = useState(false);
+  const [settlementData, setSettlementData] = useState<SettlementData | null>(null);
 
   // Load initial state and set up socket
   useEffect(() => {
@@ -244,9 +246,39 @@ export default function TournamentPage() {
     }
   }, [tournamentId]);
 
+  // Fetch settlement data when tournament is closed
+  useEffect(() => {
+    if (!gameState || gameState.tournament.status !== "closed" || !tournamentId) return;
+    fetchSettlement(tournamentId)
+      .then(setSettlementData)
+      .catch(() => {});
+  }, [gameState?.tournament.status, tournamentId]);
+
+  const isCreator = !!(user && gameState && gameState.tournament.created_by === user.username);
+
+  const handleCloseTournament = useCallback(async () => {
+    if (!tournamentId || !token) return;
+    try {
+      const data = await closeTournament(token, tournamentId);
+      setSettlementData({ ...data, name: gameState?.tournament.name ?? "" });
+      // Update game state to reflect closed status
+      setGameState((prev) => prev ? {
+        ...prev,
+        tournament: { ...prev.tournament, status: "closed" },
+      } : prev);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Fout bij afsluiten toernooi");
+    }
+  }, [tournamentId, token, gameState?.tournament.name]);
+
   if (loading) return <p className="loading-text">Laden...</p>;
   if (error) return <p className="error-msg">{error}</p>;
   if (!gameState) return null;
+
+  // Show closed tournament view
+  if (gameState.tournament.status === "closed" && settlementData) {
+    return <TournamentClosed settlementData={settlementData} />;
+  }
 
   return (
     <Scoreboard
@@ -263,6 +295,8 @@ export default function TournamentPage() {
       onTogglePlayer={handleTogglePlayer}
       onUndoRound={handleUndoRound}
       undoingRound={undoingRound}
+      isCreator={isCreator}
+      onCloseTournament={handleCloseTournament}
     />
   );
 }

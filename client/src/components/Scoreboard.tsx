@@ -56,6 +56,8 @@ interface ScoreboardProps {
   onTogglePlayer: (playerId: string) => void;
   onUndoRound: () => void;
   undoingRound: boolean;
+  isCreator: boolean;
+  onCloseTournament: () => void;
 }
 
 export default function Scoreboard({
@@ -72,6 +74,8 @@ export default function Scoreboard({
   onTogglePlayer,
   onUndoRound,
   undoingRound,
+  isCreator,
+  onCloseTournament,
 }: ScoreboardProps) {
   const { tournament, game, players, rounds, pot, balances } = gameState;
   const abbreviations = useMemo(
@@ -136,7 +140,7 @@ export default function Scoreboard({
     <div className="scoreboard">
       {/* Celebration overlay */}
       {game.status === "finished" && (
-        <GameEndCelebration gameState={gameState} onNewGame={onNewGame} />
+        <GameEndCelebration gameState={gameState} onNewGame={onNewGame} isCreator={isCreator} onCloseTournament={onCloseTournament} />
       )}
 
       {/* Score table */}
@@ -415,6 +419,22 @@ export default function Scoreboard({
           Deel link
         </button>
       </div>
+
+      {/* Close tournament button on scoreboard (creator, active game, no rounds played) */}
+      {isCreator && isActive && rounds.length === 0 && (
+        <div className="btn-share-wrapper" style={{ marginTop: "0.75rem" }}>
+          <button
+            className="btn-primary btn-buyin btn-share"
+            onClick={() => {
+              if (window.confirm("Weet je zeker dat je het toernooi wilt afsluiten? Er kunnen dan geen nieuwe spellen meer worden gestart.")) {
+                onCloseTournament();
+              }
+            }}
+          >
+            Toernooi afsluiten
+          </button>
+        </div>
+      )}
 
     </div>
   );

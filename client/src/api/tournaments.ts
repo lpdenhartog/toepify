@@ -77,3 +77,41 @@ export async function deleteTournament(token: string, id: string): Promise<void>
     throw new Error(data.error || "Toernooi verwijderen mislukt");
   }
 }
+
+export interface Settlement {
+  from: string;
+  from_name: string;
+  to: string;
+  to_name: string;
+  amount: number;
+}
+
+export interface SettlementData {
+  name: string;
+  balances: Array<{ player_id: string; player_name: string; balance: number }>;
+  settlements: Settlement[];
+}
+
+export async function closeTournament(token: string, tournamentId: string): Promise<SettlementData> {
+  const res = await fetch(`${BASE}/${tournamentId}/close`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(data.error || "Toernooi afsluiten mislukt");
+  }
+  return res.json();
+}
+
+export async function fetchSettlement(tournamentId: string): Promise<SettlementData> {
+  const res = await fetch(`${BASE}/${tournamentId}/settlement`);
+  if (!res.ok) {
+    const data = await res.json();
+    throw new Error(data.error || "Afrekening ophalen mislukt");
+  }
+  return res.json();
+}
