@@ -87,15 +87,15 @@ router.get("/mine", requireAuth, async (req: AuthRequest, res: Response) => {
   try {
     const pool = getPool();
     const result = await pool.query(
-      `SELECT DISTINCT t.id, t.name, t.stake_per_game, t.created_at, t.created_by,
+      `SELECT t.id, t.name, t.stake_per_game, t.created_at, t.created_by,
               COALESCE(json_agg(json_build_object('name', p.name)) FILTER (WHERE p.id IS NOT NULL), '[]') AS players,
-              ut.last_visited
+              MAX(ut.last_visited) AS last_visited
        FROM tournaments t
        LEFT JOIN players p ON p.tournament_id = t.id
        LEFT JOIN user_tournaments ut ON ut.tournament_id = t.id AND ut.username = $1
        WHERE t.created_by = $1 OR ut.username = $1
-       GROUP BY t.id, ut.last_visited
-       ORDER BY COALESCE(ut.last_visited, t.created_at) DESC
+       GROUP BY t.id
+       ORDER BY COALESCE(MAX(ut.last_visited), t.created_at) DESC
        LIMIT 20`,
       [req.user!.username]
     );

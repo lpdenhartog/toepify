@@ -23,11 +23,9 @@ import { saveRecentTournament, getRecentTournaments } from "./LandingPage";
 import { useAuth } from "../contexts/AuthContext";
 import { visitTournament } from "../api/tournaments";
 
-const MIGRATED_KEY = "toepify_tournaments_migrated";
-
 export default function TournamentPage() {
   const { tournamentId } = useParams<{ tournamentId: string }>();
-  const { isAuthenticated, token } = useAuth();
+  const { token, user } = useAuth();
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [pendingPenalties, setPendingPenalties] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
@@ -59,18 +57,19 @@ export default function TournamentPage() {
         );
 
         // Save visit to account if logged in
-        if (token) {
+        if (token && user) {
           visitTournament(token, state.tournament.id).catch(() => {});
 
           // Migrate localStorage tournaments to account on first load
-          if (!localStorage.getItem(MIGRATED_KEY)) {
+          const migratedKey = `toepify_tournaments_migrated_${user.username}`;
+          if (!localStorage.getItem(migratedKey)) {
             const recentLocal = getRecentTournaments();
             for (const t of recentLocal) {
               if (t.id !== state.tournament.id) {
                 visitTournament(token, t.id).catch(() => {});
               }
             }
-            localStorage.setItem(MIGRATED_KEY, "true");
+            localStorage.setItem(migratedKey, "true");
           }
         }
 

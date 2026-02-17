@@ -19,6 +19,7 @@ export default function AdminPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
   const [newUsername, setNewUsername] = useState("");
+  const [newUserIsAdmin, setNewUserIsAdmin] = useState(false);
   const [creatingUser, setCreatingUser] = useState(false);
   const [activationLink, setActivationLink] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -65,12 +66,13 @@ export default function AdminPage() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ username: newUsername }),
+        body: JSON.stringify({ username: newUsername, isAdmin: newUserIsAdmin }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Aanmaken mislukt");
       setActivationLink(`${window.location.origin}${data.activationLink}`);
       setNewUsername("");
+      setNewUserIsAdmin(false);
       await loadUsers();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Aanmaken mislukt");
@@ -131,6 +133,14 @@ export default function AdminPage() {
               </button>
             </div>
           </div>
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              checked={newUserIsAdmin}
+              onChange={(e) => setNewUserIsAdmin(e.target.checked)}
+            />
+            Admin
+          </label>
         </form>
 
         {activationLink && (

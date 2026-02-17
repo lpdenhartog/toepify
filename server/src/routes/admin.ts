@@ -127,7 +127,7 @@ router.delete("/tournaments", requireAdmin, async (req: AuthRequest, res: Respon
 
 // POST /api/admin/users — create user (admin only)
 router.post("/users", requireAdmin, async (req: AuthRequest, res: Response) => {
-  const { username } = req.body;
+  const { username, isAdmin } = req.body;
 
   if (!username || typeof username !== "string") {
     res.status(400).json({ error: "Gebruikersnaam is vereist" });
@@ -157,8 +157,8 @@ router.post("/users", requireAdmin, async (req: AuthRequest, res: Response) => {
     const activationExpires = new Date(Date.now() + 72 * 60 * 60 * 1000); // 72h
 
     await pool.query(
-      "INSERT INTO users (username, activation_token, activation_expires) VALUES ($1, $2, $3)",
-      [trimmed, activationToken, activationExpires]
+      "INSERT INTO users (username, is_admin, activation_token, activation_expires) VALUES ($1, $2, $3, $4)",
+      [trimmed, !!isAdmin, activationToken, activationExpires]
     );
 
     res.status(201).json({

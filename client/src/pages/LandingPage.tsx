@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import CreateTournament from "../components/CreateTournament";
-import { fetchMyTournaments, deleteTournament, type MyTournament } from "../api/tournaments";
+import { fetchMyTournaments, deleteTournament, visitTournament, type MyTournament } from "../api/tournaments";
 
 interface RecentTournament {
   id: string;
@@ -45,14 +45,27 @@ export default function LandingPage() {
   const { isAuthenticated, user, token } = useAuth();
 
   useEffect(() => {
-    if (isAuthenticated && token) {
-      fetchMyTournaments(token)
-        .then(setMyTournaments)
-        .catch(() => {});
+    if (isAuthenticated && token && user) {
+      // Migrate localStorage tournaments to account (per-user key)
+      const migratedKey = `toepify_tournaments_migrated_${user.username}`;
+      const migrated = localStorage.getItem(migratedKey);
+      const localTournaments = getRecentTournaments();
+      if (!migrated && localTournaments.length > 0) {
+        Promise.all(
+          localTournaments.map((t) => visitTournament(token, t.id).catch(() => {}))
+        ).then(() => {
+          localStorage.setItem(migratedKey, "true");
+          return fetchMyTournaments(token);
+        }).then(setMyTournaments).catch(() => {});
+      } else {
+        fetchMyTournaments(token)
+          .then(setMyTournaments)
+          .catch(() => {});
+      }
     } else {
       setRecent(getRecentTournaments());
     }
-  }, [isAuthenticated, token]);
+  }, [isAuthenticated, token, user]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
