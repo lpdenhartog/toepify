@@ -15,10 +15,12 @@
 - Better reconnection + offline messaging
 - Optional: separate view/write link
 
-## Phase 3 (Accounts)
-- Proper users + roles
-- Admin management per tournament
-- Invitations and permissions
+## Phase 3 (Accounts) ✅ Done
+- Proper users + roles (username/password login, admin flag)
+- User management in admin panel (create users, reset passwords, activation links)
+- Logged-in users can create tournaments from landing page
+- "My tournaments" tracking (created + visited)
+- PIN login preserved as bootstrap mechanism for first deploy
 
 ## Phase 4 (Game features)
 - History and undo

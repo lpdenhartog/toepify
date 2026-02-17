@@ -52,3 +52,21 @@ CREATE TABLE IF NOT EXISTS round_scores (
   penalty_points INT NOT NULL DEFAULT 0,
   PRIMARY KEY (round_id, player_id)
 );
+
+CREATE TABLE IF NOT EXISTS users (
+  username TEXT PRIMARY KEY,
+  password_hash TEXT,
+  is_admin BOOLEAN NOT NULL DEFAULT false,
+  activation_token TEXT,
+  activation_expires TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS created_by TEXT REFERENCES users(username);
+
+CREATE TABLE IF NOT EXISTS user_tournaments (
+  username TEXT NOT NULL REFERENCES users(username),
+  tournament_id TEXT NOT NULL REFERENCES tournaments(id),
+  last_visited TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (username, tournament_id)
+);

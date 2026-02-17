@@ -58,9 +58,28 @@ Composite PK: (game_id, player_id)
 - **Current game pot**: `stake_per_game × (player_count + total_buy_ins_across_all_players)`
 - **Player tournament balance**: computed from finished games only. Per finished game: winner gains `pot − stake_per_game × (1 + own_buy_ins)`, losers lose `stake_per_game × (1 + own_buy_ins)`.
 
+### users
+Registered users who can create and manage tournaments.
+- `username` (TEXT) — PK, 3-30 chars, alphanumeric + underscores
+- `password_hash` (TEXT, nullable) — NULL until account is activated
+- `is_admin` (BOOLEAN, default false)
+- `activation_token` (TEXT, nullable) — temporary token for account activation
+- `activation_expires` (TIMESTAMPTZ, nullable) — expiry for activation token (72h)
+- `created_at` (TIMESTAMPTZ)
+
+### user_tournaments
+Tracks which tournaments a user has visited or created.
+- `username` (TEXT) FK -> users.username
+- `tournament_id` (TEXT) FK -> tournaments.id
+- `last_visited` (TIMESTAMPTZ)
+
+Composite PK: (username, tournament_id)
+
 ## Notes
 - Players are created at tournament level by the admin (not per-game, not self-registered).
 - Player count is fixed per tournament: minimum 2, maximum 6.
 - Round-by-round score history is derived by summing `round_scores` up to each round.
 - A player on exactly 14 cumulative points is on "Pelt" (UI warning). At ≥ 15, the player is out.
 - Buy-in resets a player's `is_active` to true but does **not** reset their `total_score` — they continue at the score they were at (they remain on Pelt at 14 after buy-in).
+- Users and tournament players are separate concepts. Users are registered accounts; players are display names within a tournament.
+- The `tournaments.created_by` column links a tournament to the user who created it.

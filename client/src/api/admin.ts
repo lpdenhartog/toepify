@@ -14,25 +14,12 @@ export async function login(pin: string): Promise<string> {
   return data.token;
 }
 
-export interface CreateTournamentInput {
-  name: string;
-  stakePerGame: number;
-  playerNames: string[];
-}
-
-export interface Tournament {
-  id: string;
-  name: string;
-  stakePerGame: number;
-  players: { id: string; name: string }[];
-  joinLink: string;
-}
-
 export interface TournamentSummary {
   id: string;
   name: string;
   stakePerGame: number;
   createdAt: string;
+  createdBy: string | null;
   players: { name: string }[];
 }
 
@@ -61,23 +48,4 @@ export async function deleteTournaments(token: string, ids: string[]): Promise<v
     const data = await res.json();
     throw new Error(data.error || "Failed to delete tournaments");
   }
-}
-
-export async function createTournament(
-  token: string,
-  input: CreateTournamentInput
-): Promise<Tournament> {
-  const res = await fetch(`${BASE}/tournaments`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(input),
-  });
-  if (!res.ok) {
-    const data = await res.json();
-    throw new Error(data.error || "Failed to create tournament");
-  }
-  return res.json();
 }

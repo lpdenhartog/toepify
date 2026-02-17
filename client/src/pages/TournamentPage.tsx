@@ -19,10 +19,13 @@ import {
   disconnectSocket,
 } from "../api/socket";
 import Scoreboard from "../components/Scoreboard";
-import { saveRecentTournament } from "./LandingPage";
+import { saveRecentTournament, getRecentTournaments } from "./LandingPage";
+import { useAuth } from "../contexts/AuthContext";
+import { visitTournament } from "../api/tournaments";
 
 export default function TournamentPage() {
   const { tournamentId } = useParams<{ tournamentId: string }>();
+  const { token, user } = useAuth();
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [pendingPenalties, setPendingPenalties] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
@@ -52,6 +55,23 @@ export default function TournamentPage() {
           state.tournament.name,
           state.players.map((p) => p.player_name)
         );
+
+        // Save visit to account if logged in
+        if (token && user) {
+          visitTournament(token, state.tournament.id).catch(() => {});
+
+          // Migrate localStorage tournaments to account on first load
+          const migratedKey = `toepify_tournaments_migrated_${user.username}`;
+          if (!localStorage.getItem(migratedKey)) {
+            const recentLocal = getRecentTournaments();
+            for (const t of recentLocal) {
+              if (t.id !== state.tournament.id) {
+                visitTournament(token, t.id).catch(() => {});
+              }
+            }
+            localStorage.setItem(migratedKey, "true");
+          }
+        }
 
         // Initialize pending penalties to 0 for all active players
         const initial: Record<string, number> = {};

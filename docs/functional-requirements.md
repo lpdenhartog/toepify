@@ -52,9 +52,13 @@
 - Updates are persisted immediately.
 - All clients receive updates in realtime.
 
-## Admin authentication (MVP)
-- `/admin` requires a PIN.
-- Admin session expires.
+## Authentication
+- Users log in with username and password (JWT, 24h expiry).
+- PIN login available as bootstrap when no activated users exist and `ADMIN_PIN` is set.
+- Admin users can access the admin panel for user management.
+- Logged-in users can create tournaments from the landing page.
+- Account activation via unique token link (72h expiry).
+- Passwords hashed with bcrypt (cost factor 12), minimum 10 characters.
 
 ## Sharing
 - Join link includes the secret tournamentId.
