@@ -321,6 +321,17 @@ router.post("/tournaments/:tournamentId/games", async (req: Request, res: Respon
   try {
     await client.query("BEGIN");
 
+    // Verify tournament is not closed
+    const tournamentRes = await client.query(
+      "SELECT status FROM tournaments WHERE id = $1",
+      [tournamentId]
+    );
+    if (tournamentRes.rows.length > 0 && tournamentRes.rows[0].status === "closed") {
+      res.status(400).json({ error: "Toernooi is afgesloten" });
+      await client.query("ROLLBACK");
+      return;
+    }
+
     // Verify latest game is finished
     const latestRes = await client.query(
       "SELECT id, status FROM games WHERE tournament_id = $1 ORDER BY created_at DESC LIMIT 1",

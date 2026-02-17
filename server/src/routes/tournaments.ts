@@ -2,6 +2,7 @@ import { Router, Response } from "express";
 import { v4 as uuidv4 } from "uuid";
 import getPool from "../db/connection.js";
 import { requireAuth, AuthRequest } from "../middleware/auth.js";
+import { computeTournamentBalances, computeSettlements } from "../services/game.js";
 
 const router = Router();
 
@@ -196,6 +197,77 @@ router.delete("/:id", requireAuth, async (req: AuthRequest, res: Response) => {
   } catch (err) {
     console.error("Failed to delete tournament:", err);
     res.status(500).json({ error: "Toernooi verwijderen mislukt" });
+  }
+});
+
+// POST /api/tournaments/:id/close — close tournament (owner only)
+router.post("/:id/close", requireAuth, async (req: AuthRequest, res: Response) => {
+  const id = req.params.id as string;
+
+  try {
+    const pool = getPool();
+    const tournament = await pool.query("SELECT created_by, status FROM tournaments WHERE id = $1", [id]);
+    if (tournament.rows.length === 0) {
+      res.status(404).json({ error: "Toernooi niet gevonden" });
+      return;
+    }
+
+    if (tournament.rows[0].created_by !== req.user!.username) {
+      res.status(403).json({ error: "Alleen de eigenaar kan het toernooi afsluiten" });
+      return;
+    }
+
+    if (tournament.rows[0].status === "closed") {
+      res.status(400).json({ error: "Toernooi is al afgesloten" });
+      return;
+    }
+
+    // Verify no active game exists
+    const activeGame = await pool.query(
+      "SELECT id FROM games WHERE tournament_id = $1 AND status = 'active' LIMIT 1",
+      [id]
+    );
+    if (activeGame.rows.length > 0) {
+      res.status(400).json({ error: "Er is nog een actief spel" });
+      return;
+    }
+
+    await pool.query("UPDATE tournaments SET status = 'closed' WHERE id = $1", [id]);
+
+    const balances = await computeTournamentBalances(pool, id);
+    const settlements = computeSettlements(balances);
+
+    res.json({ balances, settlements });
+  } catch (err) {
+    console.error("Failed to close tournament:", err);
+    res.status(500).json({ error: "Toernooi afsluiten mislukt" });
+  }
+});
+
+// GET /api/tournaments/:id/settlement — get settlement for closed tournament
+router.get("/:id/settlement", async (req, res) => {
+  const id = req.params.id as string;
+
+  try {
+    const pool = getPool();
+    const tournament = await pool.query("SELECT name, status FROM tournaments WHERE id = $1", [id]);
+    if (tournament.rows.length === 0) {
+      res.status(404).json({ error: "Toernooi niet gevonden" });
+      return;
+    }
+
+    if (tournament.rows[0].status !== "closed") {
+      res.status(400).json({ error: "Toernooi is niet afgesloten" });
+      return;
+    }
+
+    const balances = await computeTournamentBalances(pool, id);
+    const settlements = computeSettlements(balances);
+
+    res.json({ name: tournament.rows[0].name, balances, settlements });
+  } catch (err) {
+    console.error("Failed to get settlement:", err);
+    res.status(500).json({ error: "Afrekening ophalen mislukt" });
   }
 });
 

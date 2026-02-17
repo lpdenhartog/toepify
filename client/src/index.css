@@ -1142,3 +1142,77 @@ fieldset legend {
   align-items: center;
   gap: 0.5rem;
 }
+
+/* ======== Tournament Closed ======== */
+
+.tournament-closed {
+  width: 100%;
+}
+
+.tournament-closed-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.tournament-closed-header h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 0.5rem 0;
+}
+
+.tournament-closed-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  background: rgba(136, 153, 170, 0.15);
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+}
+
+.tournament-closed-section {
+  margin-bottom: 1.5rem;
+}
+
+.settlement-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin: 0 0 0.75rem 0;
+}
+
+.settlement-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.settlement-table th {
+  text-align: left;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  padding: 0.3rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.settlement-table td {
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Close tournament button in celebration */
+.celebration-close-tournament {
+  max-width: 400px;
+  width: 100%;
+  margin-top: 0.75rem;
+  animation: scale-in 0.5s 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+

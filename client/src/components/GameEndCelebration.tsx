@@ -4,11 +4,15 @@ import type { GameState } from "../api/game";
 interface GameEndCelebrationProps {
   gameState: GameState;
   onNewGame: () => void;
+  isCreator: boolean;
+  onCloseTournament: () => void;
 }
 
 export default function GameEndCelebration({
   gameState,
   onNewGame,
+  isCreator,
+  onCloseTournament,
 }: GameEndCelebrationProps) {
   const { players, rounds, pot, balances, tournament } = gameState;
 
@@ -161,6 +165,20 @@ export default function GameEndCelebration({
       <button className="btn-primary celebration-new-game" onClick={onNewGame}>
         Nieuw spel
       </button>
+
+      {/* Close tournament button (creator only) */}
+      {isCreator && (
+        <button
+          className="btn-primary celebration-close-tournament"
+          onClick={() => {
+            if (window.confirm("Weet je zeker dat je het toernooi wilt afsluiten? Er kunnen dan geen nieuwe spellen meer worden gestart.")) {
+              onCloseTournament();
+            }
+          }}
+        >
+          Toernooi afsluiten
+        </button>
+      )}
     </div>
   );
 }

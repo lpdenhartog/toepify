@@ -63,6 +63,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS created_by TEXT REFERENCES users(username);
+ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'active';
 
 CREATE TABLE IF NOT EXISTS user_tournaments (
   username TEXT NOT NULL REFERENCES users(username),

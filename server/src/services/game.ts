@@ -20,7 +20,7 @@ export interface Round {
 }
 
 export interface GameState {
-  tournament: { id: string; name: string; stake_per_game: number };
+  tournament: { id: string; name: string; stake_per_game: number; created_by: string | null; status: string };
   game: { id: string; status: string; winner_player_id: string | null };
   players: GamePlayer[];
   rounds: Round[];
@@ -43,7 +43,7 @@ export async function getFullGameState(
   // Get game + tournament info
   const gameRes = await pool.query(
     `SELECT g.id, g.status, g.winner_player_id, g.tournament_id,
-            t.name as tournament_name, t.stake_per_game
+            t.name as tournament_name, t.stake_per_game, t.created_by, t.status as tournament_status
      FROM games g
      JOIN tournaments t ON t.id = g.tournament_id
      WHERE g.id = $1`,
@@ -106,6 +106,8 @@ export async function getFullGameState(
       id: game.tournament_id,
       name: game.tournament_name,
       stake_per_game: Number(game.stake_per_game),
+      created_by: game.created_by,
+      status: game.tournament_status,
     },
     game: {
       id: game.id,
@@ -184,4 +186,54 @@ export async function computeTournamentBalances(
     player_name: p.name,
     balance: balanceMap.get(p.id) || 0,
   }));
+}
+
+export interface Settlement {
+  from: string;
+  from_name: string;
+  to: string;
+  to_name: string;
+  amount: number;
+}
+
+export function computeSettlements(
+  balances: Array<{ player_id: string; player_name: string; balance: number }>
+): Settlement[] {
+  const debtors: Array<{ id: string; name: string; amount: number }> = [];
+  const creditors: Array<{ id: string; name: string; amount: number }> = [];
+
+  for (const b of balances) {
+    if (b.balance < 0) {
+      debtors.push({ id: b.player_id, name: b.player_name, amount: Math.abs(b.balance) });
+    } else if (b.balance > 0) {
+      creditors.push({ id: b.player_id, name: b.player_name, amount: b.balance });
+    }
+  }
+
+  // Sort descending by amount
+  debtors.sort((a, b) => b.amount - a.amount);
+  creditors.sort((a, b) => b.amount - a.amount);
+
+  const settlements: Settlement[] = [];
+  let di = 0;
+  let ci = 0;
+
+  while (di < debtors.length && ci < creditors.length) {
+    const transfer = Math.min(debtors[di].amount, creditors[ci].amount);
+    if (transfer > 0.001) {
+      settlements.push({
+        from: debtors[di].id,
+        from_name: debtors[di].name,
+        to: creditors[ci].id,
+        to_name: creditors[ci].name,
+        amount: Math.round(transfer * 100) / 100,
+      });
+    }
+    debtors[di].amount -= transfer;
+    creditors[ci].amount -= transfer;
+    if (debtors[di].amount < 0.001) di++;
+    if (creditors[ci].amount < 0.001) ci++;
+  }
+
+  return settlements;
 }
