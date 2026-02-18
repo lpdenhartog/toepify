@@ -8,8 +8,9 @@ This is a minimal relational model in Postgres. You can adapt as needed.
 - `id` (TEXT / UUID) — secret tournamentId (unguessable)
 - `name` (TEXT)
 - `stake_per_game` (NUMERIC) — amount each player puts in per game, default 2.50 (winner takes all)
+- `status` (TEXT) — `active` | `closed` (default `active`; closed tournaments show settlement)
 - `created_at` (TIMESTAMPTZ)
-- `created_by` (TEXT) — optional (admin identifier later)
+- `created_by` (TEXT) — FK -> users.username (the user who created the tournament)
 
 Indexes:
 - PK on `id`
@@ -36,6 +37,7 @@ One row per completed round in a game.
 - `id` (UUID)
 - `game_id` (UUID) FK -> games.id
 - `round_number` (INT) — sequential within the game (1, 2, 3…)
+- `round_type` (TEXT) — `normal` | `buy_in` (default `normal`; buy-in rounds record the score adjustment from a buy-in)
 - `created_at` (TIMESTAMPTZ)
 
 ### round_scores
@@ -51,6 +53,7 @@ Tracks per-player state within a game (active/out, buy-ins).
 - `is_active` (BOOLEAN) — false when eliminated (cumulative score ≥ 15)
 - `buy_ins` (INT, default 0) — number of times this player bought back in
 - `total_score` (INT, default 0) — cumulative penalty points across all rounds
+- `can_buy_in` (BOOLEAN, default false) — true only in the round a player is eliminated, enabling the buy-in option
 
 Composite PK: (game_id, player_id)
 
@@ -80,6 +83,6 @@ Composite PK: (username, tournament_id)
 - Player count is fixed per tournament: minimum 2, maximum 6.
 - Round-by-round score history is derived by summing `round_scores` up to each round.
 - A player on exactly 14 cumulative points is on "Pelt" (UI warning). At ≥ 15, the player is out.
-- Buy-in resets a player's `is_active` to true but does **not** reset their `total_score` — they continue at the score they were at (they remain on Pelt at 14 after buy-in).
+- Buy-in resets a player's `is_active` to true and sets their `total_score` to the **highest active player's score** (so they rejoin at the worst surviving position). A `buy_in` round is inserted to record this score adjustment.
 - Users and tournament players are separate concepts. Users are registered accounts; players are display names within a tournament.
 - The `tournaments.created_by` column links a tournament to the user who created it.

@@ -1,13 +1,14 @@
 # Release plan
 
-## MVP (Phase 1)
-- Admin PIN login
+## MVP (Phase 1) ✅ Done
 - Create tournament (generates secret tournamentId)
 - Create initial game automatically
 - Public join via `/t/{tournamentId}`
-- Enter display name (stored locally)
 - Live scoreboard with realtime updates
 - Persistent state in Postgres
+- Finish round, eliminations, buy-ins, finish game, start new game
+- Tournament balances across games
+- Close tournament with settlement calculation
 
 ## Phase 2 (Hardening)
 - Rate limiting
@@ -23,6 +24,6 @@
 - PIN login preserved as bootstrap mechanism for first deploy
 
 ## Phase 4 (Game features)
-- History and undo
+- ✅ Undo round (implemented)
 - Multiple games browsing
 - Stats

@@ -1,4 +1,4 @@
-# Realtime design (Option 1: Node.js WebSockets)
+# Realtime design
 
 ## Goals
 - Any score update is broadcast immediately to all connected clients viewing the same game.
@@ -6,48 +6,46 @@
 - Server is the authority and persists updates to Postgres.
 
 ## Transport
-- WebSockets (Socket.IO recommended for rooms and reconnection)
+- Socket.IO (provides rooms, reconnection, and fallback to long-polling).
 
 ## Room model
-- Room name: `tournament:{tournamentId}` or `game:{gameId}`
-- Recommended: `game:{gameId}` so “most recent game” can change cleanly.
+- Room name: `game:{gameId}`
+- When a new game starts, clients are notified and join the new room.
+
+## Architecture: Hybrid HTTP + WebSocket
+
+All authoritative game mutations go through **HTTP POST** endpoints. After each mutation, the server fetches the full updated game state from the database and **broadcasts** it to the Socket.IO room. This is simpler and less error-prone than fine-grained per-event messages.
+
+The one exception is **pending penalty inputs**: these are relayed via WebSocket only (not persisted to the database) so all connected players see each other's in-progress inputs in real time.
 
 ## Client lifecycle
 1. HTTP fetch: `GET /api/tournaments/{tournamentId}/latest`
-   - returns `gameId`, tournament name, current scoreboard state
-2. WebSocket connect
-3. Join room: `join_game` with `{ gameId, tournamentId }`
-4. Server verifies that `gameId` belongs to `tournamentId` and allows join.
+   - returns full game state: tournament info, game, players, rounds, scores, pot, balances
+2. WebSocket connect (Socket.IO, same origin)
+3. Emit `join_game { gameId }` to join the room
+4. Listen for `game_state` broadcasts after any mutation
+5. On `new_game_started`: re-fetch latest state and join new game room
 
-## Events (suggested)
+## Events
 
-### Client -> Server
-- `join_game` { gameId }
-- `round_penalty_update` { gameId, playerId, penalty, deviceId } — update a player's pending round penalty (before finishing round)
-- `finish_round` { gameId, deviceId } — commit all pending round penalties
-- `buy_in` { gameId, playerId, deviceId } — player buys back into the game
-- `finish_game` { gameId, deviceId } — end the game, compute winner and balances
-- `start_new_game` { tournamentId, deviceId } — create a new game in the tournament
+### Client -> Server (WebSocket)
+- `join_game` `{ gameId }` — join the Socket.IO room for this game
+- `round_penalty_update` `{ gameId, playerId, penalty }` — relay pending penalty to other clients (not persisted)
 
-### Server -> Client
-- `game_state` { gameId, players: [...], rounds: [...], gamePlayers: [...], pot, version }
-- `round_penalty_updated` { gameId, playerId, penalty, version } — pending round penalty changed
-- `round_finished` { gameId, roundNumber, scores: [...], eliminations: [...], version }
-- `player_bought_in` { gameId, playerId, newPot, version }
-- `game_finished` { gameId, winnerId, balanceUpdates: [...], version }
-- `new_game_started` { gameId, tournamentId }
-- `error` { code, message }
+### Server -> Client (WebSocket broadcast)
+- `game_state` `{ ...fullGameState }` — broadcast after every HTTP mutation (finish round, buy-in, finish game, undo round, etc.)
+- `round_penalty_updated` `{ gameId, playerId, penalty }` — relayed from another client's `round_penalty_update`
+- `new_game_started` `{ gameId }` — new game created in the tournament
 
-## Consistency
-- Maintain a `version` integer on game state (or updated_at timestamps).
-- On `score_update`, server:
-  1) reads current score (or uses atomic SQL update)
-  2) writes updated score
-  3) increments version
-  4) broadcasts authoritative update
+### HTTP mutations that trigger `game_state` broadcast
+- `POST /api/games/:gameId/finish-round` — commit round penalties, handle eliminations
+- `POST /api/games/:gameId/buy-in` — player buys back in
+- `POST /api/games/:gameId/finish` — set winner, close game
+- `POST /api/games/:gameId/undo-round` — delete last round, recalculate scores
+- `POST /api/tournaments/:tournamentId/games` — create new game (broadcasts `new_game_started` to old game room)
 
 ## Reconnect behavior
-- On reconnect, client requests `game_state` again (or server pushes it on join).
+- On reconnect, client re-fetches full game state via HTTP and re-joins the Socket.IO room.
 
 ## Security notes (MVP)
 - TournamentId is treated as a secret.

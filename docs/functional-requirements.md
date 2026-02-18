@@ -23,13 +23,13 @@
 - When a player reaches **15 points**, they are **out** of the game.
 - A player who is eliminated can **buy back in** immediately after the round they were knocked out in (not later).
   - Buying in costs one additional `stake_per_game` and increases the current game pot.
-  - After buying in, the player continues at 15 points reset to 14 (still on Pelt).
+  - After buying in, the player's score is set to the **highest active player's score** (so they rejoin at the worst surviving position). A `buy_in` round is inserted to record this adjustment.
 - The last player standing wins the game and takes the full pot.
 - Tournament balances are only updated when a game is **finished** (not during).
 
 ## Round flow
-1. During a round, use **+/−** buttons per player to set that round's penalty points.
-2. Press a **"Finish Round"** button/icon to commit the round.
+1. During a round, tap a player's penalty button to increment their penalty points (tap to increment, cancel to reset to 0).
+2. Press a **"Finish Round"** button to commit the round.
 3. Round penalties are added to each player's cumulative game score.
 4. New scores appear on a **new line** below the previous round's score (running history visible).
 5. After finishing a round, check for eliminations (≥ 15 points) and offer buy-in if applicable.
@@ -42,7 +42,7 @@
   - **Round-by-round score history** — each round's cumulative total on a new line.
   - **Pelt warning icon** when on 14 points.
   - **Out indicator** when on ≥ 15 points (with buy-in icon if eligible).
-  - **+/−** buttons at the bottom of the column for the current round's penalty input.
+  - Penalty button at the bottom of the column (tap to increment) for the current round's penalty input.
 - Below/above the scoreboard:
   - **Current game pot** — total amount at stake in this game (base stakes + buy-ins from all players).
   - **Tournament balance** per player — running total across completed games (updated only when a game finishes).
@@ -60,7 +60,20 @@
 - Account activation via unique token link (72h expiry).
 - Passwords hashed with bcrypt (cost factor 12), minimum 10 characters.
 
+## Undo
+- The last round can be undone, which deletes it and recalculates all scores from scratch.
+- If the game was finished (last player standing), undoing the last round reopens the game.
+
+## Close tournament
+- The tournament creator can close a tournament when no rounds have been played in the active game.
+- Closing computes final balances across all finished games and a settlement (minimized transactions).
+- Closed tournaments display a settlement view instead of the scoreboard.
+
+## Player sit-out
+- When starting a new game, players can be excluded via checkboxes so absent players sit out.
+
 ## Sharing
 - Join link includes the secret tournamentId.
 - Join link can be copied and shared via messaging/email.
+- QR code overlay available for easy sharing.
 

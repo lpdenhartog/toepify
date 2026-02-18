@@ -60,7 +60,7 @@ Acceptance criteria:
 **As a player**, I want to enter penalty points per player for the current round, **so that** we can record each round's results.
 
 Acceptance criteria:
-- Each player column has **+/−** buttons (at the bottom) to adjust that player's round penalty.
+- Each player column has a penalty button (tap to increment) to set that player's round penalty.
 - Round winner gets 0 penalty points.
 - Changes are reflected in realtime for all clients.
 
@@ -81,7 +81,7 @@ Acceptance criteria:
 - Buy-in icon appears next to an eliminated player immediately after the round they are knocked out.
 - Buy-in costs one additional `stake_per_game` (as configured in the tournament).
 - Buying in increases the current game pot and updates the stake display.
-- After buying in, the player continues at 14 points (on Pelt).
+- After buying in, the player's score is set to the highest active player's score (they rejoin at the worst surviving position).
 - Buy-in is only available immediately after elimination — not in later rounds.
 
 ### P6 — Finish game
@@ -134,13 +134,38 @@ Acceptance criteria:
 - Admin can list all users with their status.
 - Admin can reset user passwords (generates new activation link).
 
+## Implemented (post-MVP)
+
+### P8 — Undo round
+**As a player**, I want to undo the last round, **so that** I can correct mistakes.
+
+Acceptance criteria:
+- An "Undo" button is available when at least one round has been played.
+- Undoing deletes the last round and recalculates all scores from scratch.
+- If the game was finished (only one player left), undoing reopens the game.
+- All connected clients receive the updated state in realtime.
+
+### P9 — Close tournament
+**As the tournament creator**, I want to close a tournament, **so that** final balances and settlements are calculated.
+
+Acceptance criteria:
+- Close button is visible when no rounds have been played in the active game.
+- Closing a tournament computes final balances across all finished games.
+- Settlement is computed (minimized transactions between players).
+- Closed tournaments show a settlement view instead of the scoreboard.
+- Settlement is accessible via `GET /api/tournaments/:id/settlement`.
+
+### P10 — Player sit-out
+**As a player**, I want to exclude players from a new game, **so that** players who aren't present can sit out.
+
+Acceptance criteria:
+- When starting a new game, checkboxes allow excluding tournament players.
+- Excluded players are not added as game_players for that game.
+
 ## Later (post-MVP)
 
 ### L2 — Separate view and write links / write PIN
 - Optional "write key" to prevent accidental edits
-
-### L3 — Score history + undo
-- Track each score event for auditing and undo
 
 ### L4 — Multiple games within a tournament UI
 - List past games and statistics
