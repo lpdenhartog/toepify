@@ -70,6 +70,7 @@ export default function GameEndCelebration({
       color: chartColors[index % chartColors.length],
       points: [] as Array<number | null>,
       markers: [] as Array<{ type: "buy_in" | "ejection"; roundIndex: number; value: number }>,
+      buyInRounds: [] as number[],
     }));
     const seriesById = new Map(series.map((line) => [line.playerId, line]));
 
@@ -98,10 +99,18 @@ export default function GameEndCelebration({
           if (excludedPlayers.has(score.player_id)) continue;
           const line = seriesById.get(score.player_id);
           if (!line) continue;
+          line.buyInRounds.push(roundIndex);
+          const markerRoundIndex =
+            pendingEjectionRound[score.player_id] ?? Math.max(0, roundIndex - 1);
+          const markerValue =
+            pendingEjectionValue[score.player_id] ??
+            preBuyInTotals[score.player_id] ??
+            totals[score.player_id] ??
+            0;
           line.markers.push({
             type: "buy_in",
-            roundIndex: Math.max(0, roundIndex - 1),
-            value: preBuyInTotals[score.player_id] ?? totals[score.player_id] ?? 0,
+            roundIndex: markerRoundIndex,
+            value: markerValue,
           });
           active[score.player_id] = true;
           pendingEjectionRound[score.player_id] = null;
@@ -341,74 +350,159 @@ export default function GameEndCelebration({
                       Punten
                     </text>
 
-                    {scoreProgression.series.map((line) => {
-                      let started = false;
-                      const path = line.points
-                        .map((value, index) => {
-                          if (value === null) {
-                            started = false;
-                            return null;
-                          }
-                          const x = xForIndex(index);
-                          const y = yForValue(value);
-                          const segment = `${started ? "L" : "M"} ${x} ${y}`;
-                          started = true;
-                          return segment;
-                        })
-                        .filter(Boolean)
-                        .join(" ");
-                      return (
-                        <path
-                          key={line.playerId}
-                          d={path}
-                          className="celebration-chart-line"
-                          style={{ stroke: line.color }}
-                        />
-                      );
-                    })}
+                    {(() => {
+                      const yOffsetMap = new Map<string, number>();
+                      const offsetStep = 3;
 
-                    {scoreProgression.series.flatMap((line) =>
-                      line.markers.map((marker, idx) => {
-                        const x = xForIndex(marker.roundIndex);
-                        const y = yForValue(marker.value);
-                        const isCross = marker.type === "ejection";
-                        const label = isCross ? "†" : "\u20AC";
-                        return (
-                          <g
-                            key={`${line.playerId}-${marker.type}-${idx}`}
-                            className="celebration-chart-marker"
-                          >
-                            <circle
-                              cx={x}
-                              cy={y}
-                              r={13}
-                              fill="var(--surface)"
-                            />
-                            <circle
-                              cx={x}
-                              cy={y}
-                              r={12}
-                              fill="none"
-                              stroke={line.color}
-                              strokeWidth={2}
-                            />
-                            <text
-                              x={x}
-                              y={isCross ? y + 7 : y + 4}
-                              textAnchor="middle"
-                              className="celebration-chart-marker-icon"
-                              style={{ fill: line.color }}
-                            >
-                              {isCross ? (
-                                <tspan style={{ fontSize: "17px" }}>{label}</tspan>
-                              ) : (
-                                label
-                              )}
-                            </text>
-                          </g>
-                        );
-                      })
-                    )}
+                      const overlapThreshold = 3;
+
+                      for (let roundIndex = 0; roundIndex < scoreProgression.roundCount; roundIndex++) {
+                        const items: Array<{
+                          line: typeof scoreProgression.series[number];
+                          y: number;
+                        }> = [];
+                        for (const line of scoreProgression.series) {
+                          const value = line.points[roundIndex];
+                          if (value === null) continue;
+                          items.push({ line, y: yForValue(value) });
+                        }
+                        items.sort((a, b) => a.y - b.y);
+
+                        let group: typeof items = [];
+                        const flushGroup = () => {
+                          if (group.length <= 1) {
+                            group = [];
+                            return;
+                          }
+                          const center = (group.length - 1) / 2;
+                          group.forEach((item, idx) => {
+                            yOffsetMap.set(
+                              `${item.line.playerId}:${roundIndex}`,
+                              (idx - center) * offsetStep
+                            );
+                          });
+                          group = [];
+                        };
+
+                        for (const item of items) {
+                          if (group.length === 0) {
+                            group.push(item);
+                            continue;
+                          }
+                          const last = group[group.length - 1];
+                          if (Math.abs(item.y - last.y) <= overlapThreshold) {
+                            group.push(item);
+                          } else {
+                            flushGroup();
+                            group.push(item);
+                          }
+                        }
+                        flushGroup();
+                      }
+
+                      const yWithOffset = (
+                        line: typeof scoreProgression.series[number],
+                        index: number,
+                        value: number
+                      ) => {
+                        const directOffset = yOffsetMap.get(`${line.playerId}:${index}`);
+                        if (directOffset !== undefined) {
+                          return yForValue(value) + directOffset;
+                        }
+                        if (line.buyInRounds.includes(index) && index > 0) {
+                          const priorOffset = yOffsetMap.get(`${line.playerId}:${index - 1}`) || 0;
+                          return yForValue(value) + priorOffset;
+                        }
+                        return yForValue(value);
+                      };
+
+                      return (
+                        <>
+                          <defs>
+                            {scoreProgression.series.map((line) => {
+                              const maskId = `line-mask-${line.playerId}`;
+                              return (
+                                <mask key={maskId} id={maskId} maskUnits="userSpaceOnUse">
+                                  <rect x={0} y={0} width={width} height={height} fill="#ffffff" />
+                                  {line.markers.map((marker, idx) => {
+                                    const x = xForIndex(marker.roundIndex);
+                                    const y = yWithOffset(line, marker.roundIndex, marker.value);
+                                    return (
+                                      <circle key={idx} cx={x} cy={y} r={13} fill="#000000" />
+                                    );
+                                  })}
+                                </mask>
+                              );
+                            })}
+                          </defs>
+
+                          {scoreProgression.series.map((line) => {
+                            const maskId = `line-mask-${line.playerId}`;
+                            let started = false;
+                            const path = line.points
+                              .map((value, index) => {
+                                if (value === null) {
+                                  started = false;
+                                  return null;
+                                }
+                                const x = xForIndex(index);
+                                const y = yWithOffset(line, index, value);
+                                const segment = `${started ? "L" : "M"} ${x} ${y}`;
+                                started = true;
+                                return segment;
+                              })
+                              .filter(Boolean)
+                              .join(" ");
+                            return (
+                              <path
+                                key={line.playerId}
+                                d={path}
+                                className="celebration-chart-line"
+                                mask={`url(#${maskId})`}
+                                style={{ stroke: line.color }}
+                              />
+                            );
+                          })}
+
+                          {scoreProgression.series.flatMap((line) =>
+                            line.markers.map((marker, idx) => {
+                              const x = xForIndex(marker.roundIndex);
+                              const y = yWithOffset(line, marker.roundIndex, marker.value);
+                              const isCross = marker.type === "ejection";
+                              const label = isCross ? "†" : "\u20AC";
+                              return (
+                                <g
+                                  key={`${line.playerId}-${marker.type}-${idx}`}
+                                  className="celebration-chart-marker"
+                                >
+                                  <circle
+                                    cx={x}
+                                    cy={y}
+                                    r={12}
+                                    fill="none"
+                                    stroke={line.color}
+                                    strokeWidth={2}
+                                  />
+                                  <text
+                                    x={x}
+                                    y={isCross ? y + 7 : y + 4}
+                                    textAnchor="middle"
+                                    className="celebration-chart-marker-icon"
+                                    style={{ fill: line.color }}
+                                  >
+                                    {isCross ? (
+                                      <tspan style={{ fontSize: "17px" }}>{label}</tspan>
+                                    ) : (
+                                      label
+                                    )}
+                                  </text>
+                                </g>
+                              );
+                            })
+                          )}
+                        </>
+                      );
+                    })()}
                   </>
                 );
               })()}
