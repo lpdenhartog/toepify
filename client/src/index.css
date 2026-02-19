@@ -1039,8 +1039,8 @@ fieldset legend {
   margin-top: 0.15rem;
 }
 
-/* Score progression chart */
-.celebration-chart {
+/* Drama grid */
+.drama-grid-container {
   width: 100%;
   max-width: 800px;
   background: var(--surface);
@@ -1051,83 +1051,115 @@ fieldset legend {
   animation: scale-in 0.5s 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
 }
 
-.celebration-chart-title {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-muted);
-  margin-bottom: 0.5rem;
-}
-
-.celebration-chart-body {
+.drama-grid-header-row,
+.drama-grid-row {
   display: flex;
-  gap: 0.75rem;
-  align-items: stretch;
+  align-items: center;
+  gap: 1px;
 }
 
-.celebration-chart-svg {
-  width: 100%;
-  height: 275px;
-  flex: 1;
+.drama-grid-sticky-corner,
+.drama-grid-player-label {
+  min-width: 80px;
+  max-width: 80px;
+  flex: 0 0 80px;
 }
 
-.celebration-chart-grid {
-  stroke: rgba(136, 153, 170, 0.2);
-  stroke-width: 1;
+.drama-grid-sticky-corner {
+  height: 28px;
 }
 
-.celebration-chart-axis {
-  stroke: rgba(136, 153, 170, 0.4);
-  stroke-width: 1.2;
+.drama-grid-player-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text);
+  padding: 0 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  height: 40px;
+  display: flex;
+  align-items: center;
 }
 
-.celebration-chart-line {
-  fill: none;
-  stroke-width: 2.2;
-}
-
-.celebration-chart-marker-icon {
-  fill: #ffffff;
-  font-size: 13.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  pointer-events: none;
-}
-
-.celebration-chart-axis-label {
-  fill: var(--text-muted);
-  font-size: 10px;
+.drama-grid-col-header {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 50px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  color: var(--text-muted);
   font-variant-numeric: tabular-nums;
 }
 
-.celebration-chart-axis-title {
-  fill: var(--text-muted);
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
 
-.celebration-chart-legend {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  min-width: 130px;
-  justify-content: center;
-  font-size: 0.8rem;
-}
-
-.celebration-chart-legend-item {
+.drama-cell {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 50px;
+  height: 40px;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  color: var(--text);
+  justify-content: center;
+  border-radius: 4px;
+  position: relative;
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+  cursor: default;
+  overflow: hidden;
 }
 
-.celebration-chart-legend-swatch {
-  width: 12px;
-  height: 12px;
-  border-radius: 999px;
-  flex: 0 0 auto;
+.drama-cell-value {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.drama-cell-icon {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  font-size: 0.6rem;
+  line-height: 1;
+}
+
+/* Penalty colour tiers */
+.drama-cell--penalty-0 {
+  background: rgba(136, 153, 170, 0.08);
+}
+
+.drama-cell--penalty-1 {
+  background: rgba(241, 196, 15, 0.18);
+}
+
+.drama-cell--penalty-2 {
+  background: rgba(243, 156, 18, 0.28);
+}
+
+.drama-cell--penalty-3 {
+  background: rgba(231, 76, 60, 0.32);
+}
+
+.drama-cell--penalty-4 {
+  background: rgba(139, 92, 246, 0.35);
+}
+
+/* Special states */
+.drama-cell--dead {
+  background: rgba(136, 153, 170, 0.04);
+}
+
+.drama-cell--dead .drama-cell-value {
+  color: transparent;
+}
+
+
+.drama-cell--winner {
+  background: rgba(232, 168, 23, 0.28);
 }
 
 /* Leaderboard inside celebration */
