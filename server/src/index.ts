@@ -17,6 +17,7 @@ import tournamentRoutes from "./routes/tournaments.js";
 import gameRoutes from "./routes/games.js";
 import { setupSocket } from "./socket.js";
 import getPool from "./db/connection.js";
+import { generalLimiter } from "./middleware/rateLimiter.js";
 
 const app = express();
 const httpServer = createServer(app);
@@ -31,6 +32,9 @@ app.use(express.json());
 
 // Make io accessible in route handlers
 app.set("io", io);
+
+// Global rate limit for all API endpoints
+app.use("/api", generalLimiter);
 
 app.use("/api/admin", adminRoutes);
 app.use("/api/auth", authRoutes);

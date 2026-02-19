@@ -3,11 +3,12 @@ import { v4 as uuidv4 } from "uuid";
 import getPool from "../db/connection.js";
 import { requireAuth, AuthRequest } from "../middleware/auth.js";
 import { computeTournamentBalances, computeSettlements } from "../services/game.js";
+import { writeLimiter } from "../middleware/rateLimiter.js";
 
 const router = Router();
 
 // POST /api/tournaments — create tournament (requires auth)
-router.post("/", requireAuth, async (req: AuthRequest, res: Response) => {
+router.post("/", writeLimiter, requireAuth, async (req: AuthRequest, res: Response) => {
   const { name, stakePerGame = 2.5, playerNames } = req.body;
 
   if (!name || typeof name !== "string" || !name.trim()) {
@@ -146,7 +147,7 @@ router.post("/visit", requireAuth, async (req: AuthRequest, res: Response) => {
 });
 
 // DELETE /api/tournaments/:id — delete own tournament
-router.delete("/:id", requireAuth, async (req: AuthRequest, res: Response) => {
+router.delete("/:id", writeLimiter, requireAuth, async (req: AuthRequest, res: Response) => {
   const { id } = req.params;
 
   try {
@@ -201,7 +202,7 @@ router.delete("/:id", requireAuth, async (req: AuthRequest, res: Response) => {
 });
 
 // POST /api/tournaments/:id/close — close tournament (owner only)
-router.post("/:id/close", requireAuth, async (req: AuthRequest, res: Response) => {
+router.post("/:id/close", writeLimiter, requireAuth, async (req: AuthRequest, res: Response) => {
   const id = req.params.id as string;
 
   try {

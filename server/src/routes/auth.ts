@@ -3,11 +3,12 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import getPool from "../db/connection.js";
 import { requireAuth, AuthRequest } from "../middleware/auth.js";
+import { authLimiter } from "../middleware/rateLimiter.js";
 
 const router = Router();
 
 // POST /api/auth/login — username + password login (or PIN fallback)
-router.post("/login", async (req: AuthRequest, res: Response) => {
+router.post("/login", authLimiter, async (req: AuthRequest, res: Response) => {
   const { username, password, pin } = req.body;
 
   // PIN fallback: only if no users with passwords exist and ADMIN_PIN is set
@@ -74,7 +75,7 @@ router.post("/login", async (req: AuthRequest, res: Response) => {
 });
 
 // POST /api/auth/activate — set password for new account
-router.post("/activate", async (req: AuthRequest, res: Response) => {
+router.post("/activate", authLimiter, async (req: AuthRequest, res: Response) => {
   const { token, password } = req.body;
 
   if (!token || !password) {

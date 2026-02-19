@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import getPool from "../db/connection.js";
 import { getFullGameState } from "../services/game.js";
+import { gameActionLimiter } from "../middleware/rateLimiter.js";
 import type { Server } from "socket.io";
 
 const router = Router();
@@ -37,7 +38,7 @@ router.get("/tournaments/:tournamentId/latest", async (req: Request, res: Respon
 });
 
 // POST /api/games/:gameId/finish-round
-router.post("/games/:gameId/finish-round", async (req: Request, res: Response) => {
+router.post("/games/:gameId/finish-round", gameActionLimiter, async (req: Request, res: Response) => {
   const gameId = req.params.gameId as string;
   const { penalties, excludedPlayerIds } = req.body as {
     penalties: Array<{ playerId: string; points: number }>;
@@ -158,7 +159,7 @@ router.post("/games/:gameId/finish-round", async (req: Request, res: Response) =
 });
 
 // POST /api/games/:gameId/buy-in
-router.post("/games/:gameId/buy-in", async (req: Request, res: Response) => {
+router.post("/games/:gameId/buy-in", gameActionLimiter, async (req: Request, res: Response) => {
   const gameId = req.params.gameId as string;
   const { playerId } = req.body as { playerId: string };
 
@@ -271,7 +272,7 @@ router.post("/games/:gameId/buy-in", async (req: Request, res: Response) => {
 });
 
 // POST /api/games/:gameId/finish
-router.post("/games/:gameId/finish", async (req: Request, res: Response) => {
+router.post("/games/:gameId/finish", gameActionLimiter, async (req: Request, res: Response) => {
   const gameId = req.params.gameId as string;
   const { excludedPlayerIds } = req.body as { excludedPlayerIds?: string[] };
   const pool = getPool();
@@ -314,7 +315,7 @@ router.post("/games/:gameId/finish", async (req: Request, res: Response) => {
 });
 
 // POST /api/tournaments/:tournamentId/games — start new game
-router.post("/tournaments/:tournamentId/games", async (req: Request, res: Response) => {
+router.post("/tournaments/:tournamentId/games", gameActionLimiter, async (req: Request, res: Response) => {
   const tournamentId = req.params.tournamentId as string;
   const client = await getPool().connect();
 
@@ -387,7 +388,7 @@ router.post("/tournaments/:tournamentId/games", async (req: Request, res: Respon
 });
 
 // POST /api/games/:gameId/undo-round
-router.post("/games/:gameId/undo-round", async (req: Request, res: Response) => {
+router.post("/games/:gameId/undo-round", gameActionLimiter, async (req: Request, res: Response) => {
   const gameId = req.params.gameId as string;
   const client = await getPool().connect();
 

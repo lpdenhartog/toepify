@@ -3,11 +3,12 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import getPool from "../db/connection.js";
 import { requireAdmin, AuthRequest } from "../middleware/auth.js";
+import { authLimiter, writeLimiter } from "../middleware/rateLimiter.js";
 
 const router = Router();
 
 // POST /api/admin/login — PIN-based login (only when no users with passwords exist)
-router.post("/login", async (req: AuthRequest, res: Response) => {
+router.post("/login", authLimiter, async (req: AuthRequest, res: Response) => {
   const { pin } = req.body;
   if (!pin) {
     res.status(400).json({ error: "PIN is vereist" });
@@ -126,7 +127,7 @@ router.delete("/tournaments", requireAdmin, async (req: AuthRequest, res: Respon
 });
 
 // POST /api/admin/users — create user (admin only)
-router.post("/users", requireAdmin, async (req: AuthRequest, res: Response) => {
+router.post("/users", writeLimiter, requireAdmin, async (req: AuthRequest, res: Response) => {
   const { username, isAdmin } = req.body;
 
   if (!username || typeof username !== "string") {
@@ -193,7 +194,7 @@ router.get("/users", requireAdmin, async (_req: AuthRequest, res: Response) => {
 });
 
 // POST /api/admin/users/:username/reset-password — reset user password (admin only)
-router.post("/users/:username/reset-password", requireAdmin, async (req: AuthRequest, res: Response) => {
+router.post("/users/:username/reset-password", writeLimiter, requireAdmin, async (req: AuthRequest, res: Response) => {
   const { username } = req.params;
 
   try {
