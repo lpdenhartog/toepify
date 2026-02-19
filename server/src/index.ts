@@ -37,6 +37,22 @@ app.use("/api/auth", authRoutes);
 app.use("/api/tournaments", tournamentRoutes);
 app.use("/api", gameRoutes);
 
+// Test-only: reset database endpoint (truncate game data, keep users)
+if (process.env.NODE_ENV === "test") {
+  app.post("/__test__/reset", async (_req, res) => {
+    try {
+      const pool = getPool();
+      await pool.query(`
+        TRUNCATE round_scores, rounds, game_players, games, players, user_tournaments, tournaments CASCADE
+      `);
+      res.json({ ok: true });
+    } catch (err) {
+      console.error("Test reset failed:", err);
+      res.status(500).json({ error: "Reset failed" });
+    }
+  });
+}
+
 // Socket.IO event handlers
 setupSocket(io);
 

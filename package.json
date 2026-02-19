@@ -6,13 +6,15 @@
     "build": "npm run build -w client && npm run build -w server",
     "start": "node server/dist/index.js",
     "db:init": "psql $DATABASE_URL -f server/src/db/schema.sql",
-    "test": "npm test -w server"
+    "test": "npm test -w server",
+    "test:e2e": "npx playwright test"
   },
   "workspaces": [
     "server",
     "client"
   ],
   "devDependencies": {
+    "@playwright/test": "^1.50.0",
     "concurrently": "^9.1.0"
   }
 }
