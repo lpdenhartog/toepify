@@ -1039,6 +1039,89 @@ fieldset legend {
   margin-top: 0.15rem;
 }
 
+/* Score progression chart */
+.celebration-chart {
+  width: 100%;
+  max-width: 640px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.75rem 1rem 1rem;
+  margin-bottom: 1.5rem;
+  animation: scale-in 0.5s 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+.celebration-chart-title {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.celebration-chart-body {
+  display: flex;
+  gap: 0.75rem;
+  align-items: stretch;
+}
+
+.celebration-chart-svg {
+  width: 100%;
+  height: 220px;
+  flex: 1;
+}
+
+.celebration-chart-grid {
+  stroke: rgba(136, 153, 170, 0.2);
+  stroke-width: 1;
+}
+
+.celebration-chart-axis {
+  stroke: rgba(136, 153, 170, 0.4);
+  stroke-width: 1.2;
+}
+
+.celebration-chart-line {
+  fill: none;
+  stroke-width: 2.2;
+}
+
+.celebration-chart-axis-label {
+  fill: var(--text-muted);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.celebration-chart-axis-title {
+  fill: var(--text-muted);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.celebration-chart-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 130px;
+  justify-content: center;
+  font-size: 0.8rem;
+}
+
+.celebration-chart-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text);
+}
+
+.celebration-chart-legend-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  flex: 0 0 auto;
+}
+
 /* Leaderboard inside celebration */
 .celebration-leaderboard {
   width: 100%;
@@ -1215,4 +1298,3 @@ fieldset legend {
   margin-top: 0.75rem;
   animation: scale-in 0.5s 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
 }
-
