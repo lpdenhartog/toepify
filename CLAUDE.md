@@ -5,6 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Rules
 
 - **Never push to main without explicitly asking the user for confirmation first.**
+- **When a new feature of fix is implemented, check is there are additonal tests (unit or e2e) to implement as well. Ask if the tests should be built.**
 
 ## Project Overview
 
