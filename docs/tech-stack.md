@@ -28,6 +28,11 @@
 - Frontend can be hosted on Railway or a static host (Vercel/Netlify/Cloudflare Pages).
   - For simplicity, you can host both frontend + backend on Railway in MVP.
 
+### Testing
+- Vitest for server-side unit tests (game logic)
+- Playwright for browser E2E tests (full user flows against built app + test database)
+- GitHub Actions CI runs both unit and E2E tests (with PostgreSQL service container)
+
 ## Why this stack
 - Supports strict realtime requirements with low latency
 - Keeps DB credentials server-side

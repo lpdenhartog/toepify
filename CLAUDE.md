@@ -17,7 +17,7 @@ Toepify is a realtime scorekeeping app for the Dutch card game "Toepen". It trac
 - **Database**: PostgreSQL
 - **Auth**: JWT (24h expiry), bcrypt password hashing, PIN bootstrap login
 - **Hosting**: Railway (backend + DB, frontend served as static files from the same Express server)
-- **Testing**: Vitest (server-side unit tests), GitHub Actions CI
+- **Testing**: Vitest (server-side unit tests), Playwright (browser E2E tests), GitHub Actions CI
 
 ## Architecture
 

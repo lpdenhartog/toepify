@@ -8,7 +8,7 @@ Realtime scorekeeping app for the Dutch card game **Toepen**. Tracks scores, eli
 - **Backend**: Node.js + Express, Socket.IO
 - **Database**: PostgreSQL
 - **Auth**: JWT + bcrypt, with PIN bootstrap for first deploy
-- **Testing**: Vitest, GitHub Actions CI
+- **Testing**: Vitest (unit), Playwright (E2E), GitHub Actions CI
 
 The project uses npm workspaces with two packages: `server/` and `client/`.
 
@@ -58,6 +58,7 @@ The client dev server proxies `/api` and `/socket.io` to the backend at `localho
 | `npm run build` | Build client and server for production |
 | `npm start` | Run the production server (serves client from `client/dist/`) |
 | `npm test` | Run server-side unit tests (Vitest) |
+| `npm run test:e2e` | Run Playwright E2E tests (requires `toepify_test` DB) |
 | `npm run db:init` | Apply database schema via psql |
 
 ## How it works
@@ -88,6 +89,13 @@ The client dev server proxies `/api` and `/socket.io` to the backend at `localho
 │       └── services/
 │           ├── game.ts        # Game logic + DB queries
 │           └── game.test.ts   # Unit tests
+├── e2e/                           # Playwright E2E tests
+│   ├── tests/                 # Test spec files
+│   ├── fixtures/              # Auth fixture
+│   ├── helpers/               # API helpers for test setup
+│   ├── global-setup.ts        # Create test user + auth state
+│   └── global-teardown.ts     # Cleanup test user
+├── playwright.config.ts       # Playwright configuration
 ├── client/
 │   └── src/
 │       ├── App.tsx            # Router + auth provider
