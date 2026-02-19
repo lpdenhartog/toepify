@@ -6,6 +6,7 @@ import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import ActivatePage from "./pages/ActivatePage";
 import headerIcon from "./assets/header-icon.svg";
+import { APP_VERSION } from "./version";
 
 function HeaderActions() {
   const { isAuthenticated, logout, loading } = useAuth();
@@ -67,6 +68,7 @@ export default function App() {
             <Route path="/t/:tournamentId" element={<TournamentPage />} />
             <Route path="*" element={<p>Not found</p>} />
           </Routes>
+          <footer className="app-footer">Version {APP_VERSION}</footer>
         </div>
       </AuthProvider>
     </BrowserRouter>
