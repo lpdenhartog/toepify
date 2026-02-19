@@ -42,6 +42,13 @@ body {
   padding: 1.5rem 1rem;
 }
 
+.app-footer {
+  margin-top: 2rem;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
 /* Header */
 .app-header {
   display: flex;
