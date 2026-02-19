@@ -140,7 +140,13 @@ export default function Scoreboard({
     <div className="scoreboard">
       {/* Celebration overlay */}
       {game.status === "finished" && (
-        <GameEndCelebration gameState={gameState} onNewGame={onNewGame} isCreator={isCreator} onCloseTournament={onCloseTournament} />
+        <GameEndCelebration
+          gameState={gameState}
+          onNewGame={onNewGame}
+          isCreator={isCreator}
+          onCloseTournament={onCloseTournament}
+          excludedPlayers={excludedPlayers}
+        />
       )}
 
       {/* Score table */}
