@@ -51,28 +51,101 @@ export default function GameEndCelebration({
     const orderedRounds = [...rounds].sort(
       (a, b) => a.round_number - b.round_number
     );
-    const runningTotals: Record<string, number> = {};
-    for (const p of includedPlayers) runningTotals[p.player_id] = 0;
+
+    const totals: Record<string, number> = {};
+    const active: Record<string, boolean> = {};
+    const pendingEjectionRound: Record<string, number | null> = {};
+    const pendingEjectionValue: Record<string, number> = {};
+
+    for (const p of includedPlayers) {
+      totals[p.player_id] = 0;
+      active[p.player_id] = true;
+      pendingEjectionRound[p.player_id] = null;
+      pendingEjectionValue[p.player_id] = 0;
+    }
 
     const series = includedPlayers.map((player, index) => ({
       playerId: player.player_id,
       playerName: player.player_name,
       color: chartColors[index % chartColors.length],
-      points: [] as number[],
+      points: [] as Array<number | null>,
+      markers: [] as Array<{ type: "buy_in" | "ejection"; roundIndex: number; value: number }>,
     }));
+    const seriesById = new Map(series.map((line) => [line.playerId, line]));
 
-    for (const round of orderedRounds) {
-      for (const score of round.scores) {
-        if (excludedPlayers.has(score.player_id)) continue;
-        runningTotals[score.player_id] =
-          (runningTotals[score.player_id] || 0) + score.penalty_points;
+    orderedRounds.forEach((round, roundIndex) => {
+      const scoresByPlayer = new Map(
+        round.scores.map((score) => [score.player_id, score.penalty_points])
+      );
+      const isBuyInRound = round.scores.some((score) => score.penalty_points < 0);
+      const ejectedThisRound = new Set<string>();
+
+      if (isBuyInRound) {
+        const preBuyInTotals: Record<string, number> = {};
+        for (const score of round.scores) {
+          if (score.penalty_points < 0) {
+            preBuyInTotals[score.player_id] = totals[score.player_id] || 0;
+          }
+        }
+
+        for (const player of includedPlayers) {
+          const delta = scoresByPlayer.get(player.player_id) ?? 0;
+          totals[player.player_id] = (totals[player.player_id] || 0) + delta;
+        }
+
+        for (const score of round.scores) {
+          if (score.penalty_points >= 0) continue;
+          if (excludedPlayers.has(score.player_id)) continue;
+          const line = seriesById.get(score.player_id);
+          if (!line) continue;
+          line.markers.push({
+            type: "buy_in",
+            roundIndex: Math.max(0, roundIndex - 1),
+            value: preBuyInTotals[score.player_id] ?? totals[score.player_id] ?? 0,
+          });
+          active[score.player_id] = true;
+          pendingEjectionRound[score.player_id] = null;
+        }
+      } else {
+        for (const player of includedPlayers) {
+          const delta = scoresByPlayer.get(player.player_id) ?? 0;
+          totals[player.player_id] = (totals[player.player_id] || 0) + delta;
+        }
+
+        for (const player of includedPlayers) {
+          const playerId = player.player_id;
+          if (active[playerId] && (totals[playerId] || 0) >= 15) {
+            active[playerId] = false;
+            ejectedThisRound.add(playerId);
+            pendingEjectionRound[playerId] = roundIndex;
+            pendingEjectionValue[playerId] = totals[playerId] || 0;
+          }
+        }
       }
+
       for (const line of series) {
-        line.points.push(runningTotals[line.playerId] || 0);
+        if (active[line.playerId] || ejectedThisRound.has(line.playerId)) {
+          line.points.push(totals[line.playerId] || 0);
+        } else {
+          line.points.push(null);
+        }
+      }
+    });
+
+    for (const line of series) {
+      const roundIndex = pendingEjectionRound[line.playerId];
+      if (roundIndex !== null) {
+        line.markers.push({
+          type: "ejection",
+          roundIndex,
+          value: pendingEjectionValue[line.playerId] || 0,
+        });
       }
     }
 
-    const allValues = series.flatMap((line) => line.points);
+    const allValues = series
+      .flatMap((line) => line.points)
+      .filter((value): value is number => value !== null);
     const maxValue = allValues.length > 0 ? Math.max(...allValues) : 0;
 
     return {
@@ -269,12 +342,20 @@ export default function GameEndCelebration({
                     </text>
 
                     {scoreProgression.series.map((line) => {
+                      let started = false;
                       const path = line.points
                         .map((value, index) => {
+                          if (value === null) {
+                            started = false;
+                            return null;
+                          }
                           const x = xForIndex(index);
                           const y = yForValue(value);
-                          return `${index === 0 ? "M" : "L"} ${x} ${y}`;
+                          const segment = `${started ? "L" : "M"} ${x} ${y}`;
+                          started = true;
+                          return segment;
                         })
+                        .filter(Boolean)
                         .join(" ");
                       return (
                         <path
@@ -285,6 +366,49 @@ export default function GameEndCelebration({
                         />
                       );
                     })}
+
+                    {scoreProgression.series.flatMap((line) =>
+                      line.markers.map((marker, idx) => {
+                        const x = xForIndex(marker.roundIndex);
+                        const y = yForValue(marker.value);
+                        const isCross = marker.type === "ejection";
+                        const label = isCross ? "†" : "\u20AC";
+                        return (
+                          <g
+                            key={`${line.playerId}-${marker.type}-${idx}`}
+                            className="celebration-chart-marker"
+                          >
+                            <circle
+                              cx={x}
+                              cy={y}
+                              r={13}
+                              fill="var(--surface)"
+                            />
+                            <circle
+                              cx={x}
+                              cy={y}
+                              r={12}
+                              fill="none"
+                              stroke={line.color}
+                              strokeWidth={2}
+                            />
+                            <text
+                              x={x}
+                              y={isCross ? y + 7 : y + 4}
+                              textAnchor="middle"
+                              className="celebration-chart-marker-icon"
+                              style={{ fill: line.color }}
+                            >
+                              {isCross ? (
+                                <tspan style={{ fontSize: "17px" }}>{label}</tspan>
+                              ) : (
+                                label
+                              )}
+                            </text>
+                          </g>
+                        );
+                      })
+                    )}
                   </>
                 );
               })()}
