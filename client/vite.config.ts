@@ -14,7 +14,14 @@ const getGitVersion = () => {
   }
 }
 
-const appVersion = process.env.VITE_APP_VERSION || getGitVersion()
+const envVersion =
+  process.env.VITE_APP_VERSION ||
+  process.env.RAILWAY_GIT_COMMIT_SHA ||
+  process.env.RAILWAY_GIT_COMMIT ||
+  process.env.GITHUB_SHA ||
+  process.env.COMMIT_SHA
+
+const appVersion = envVersion || getGitVersion()
 
 // https://vite.dev/config/
 export default defineConfig({
