@@ -1,7 +1,13 @@
 import { useMemo } from "react";
 import type { GameState } from "../api/game";
 import GameDramaGrid from "./GameDramaGrid";
-import { getMostPenaltyStat, getNormalRounds } from "./celebrationStats";
+import {
+  getMostPenaltyStat,
+  getNormalRounds,
+  getSloperStat,
+  getSnurkerStat,
+} from "./celebrationStats";
+import "./CelebrationStatsOverlay.css";
 
 interface GameEndCelebrationProps {
   gameState: GameState;
@@ -11,7 +17,7 @@ interface GameEndCelebrationProps {
   excludedPlayers: Set<string>;
 }
 
-export default function GameEndCelebration({
+export default function CelebrationStatsOverlay({
   gameState,
   onNewGame,
   isCreator,
@@ -31,6 +37,14 @@ export default function GameEndCelebration({
     () => getMostPenaltyStat(rounds, players),
     [rounds, players]
   );
+  const sloper = useMemo(
+    () => getSloperStat(rounds, players),
+    [rounds, players]
+  );
+  const snurker = useMemo(
+    () => getSnurkerStat(rounds, players),
+    [rounds, players]
+  );
 
   const sortedBalances = useMemo(
     () => [...balances].sort((a, b) => b.balance - a.balance),
@@ -45,6 +59,9 @@ export default function GameEndCelebration({
 
   const formatPot = (amount: number) =>
     `\u20AC${amount.toFixed(2).replace(".", ",")}`;
+
+  const formatNames = (names: string[]) =>
+    names.length > 0 ? names.join(", ") : "-";
 
   // Generate deterministic confetti pieces so rendering remains pure.
   const confettiPieces = useMemo(() => {
@@ -94,24 +111,38 @@ export default function GameEndCelebration({
       </div>
 
       {/* Stats */}
-      <dl className="celebration-stats" aria-label="Spelstatistieken">
+      <div className="celebration-stats" aria-label="Spelstatistieken">
         <div className="celebration-stat-row">
-          <dt>Aantal inkopen</dt>
-          <dd>{totalBuyIns}</dd>
+          <span className="celebration-stat-label">Aantal inkopen</span>
+          <span className="celebration-stat-value">{totalBuyIns}</span>
         </div>
         <div className="celebration-stat-row">
-          <dt>Meeste punten in 1 ronde</dt>
-          <dd>
+          <span className="celebration-stat-label">Meeste punten in 1 ronde</span>
+          <span className="celebration-stat-value">
             {mostPenalty.points > 0
               ? `${mostPenalty.points} (${mostPenalty.playerNames.join(", ")})`
               : "0"}
-          </dd>
+          </span>
         </div>
         <div className="celebration-stat-row">
-          <dt>Aantal ronden</dt>
-          <dd>{roundCount}</dd>
+          <span className="celebration-stat-label">Aantal ronden</span>
+          <span className="celebration-stat-value">{roundCount}</span>
         </div>
-      </dl>
+        <div className="celebration-stat-row">
+          <span className="celebration-stat-label">Sloper</span>
+          <span className="celebration-stat-value">
+            {sloper.points > 0
+              ? `${formatNames(sloper.playerNames)} (${sloper.points} punten)`
+              : "-"}
+          </span>
+        </div>
+        <div className="celebration-stat-row">
+          <span className="celebration-stat-label">Snurker</span>
+          <span className="celebration-stat-value">
+            {snurker.rounds > 0 ? formatNames(snurker.playerNames) : "-"}
+          </span>
+        </div>
+      </div>
 
       {/* Drama grid */}
       {normalRounds.length > 0 && (
