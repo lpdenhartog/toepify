@@ -10,9 +10,15 @@ export interface PlayerPointsStat {
   playerNames: string[];
 }
 
+export interface PlayerRoundCountEntry {
+  playerName: string;
+  matchingRounds: number;
+  playedRounds: number;
+}
+
 export interface PlayerRoundCountStat {
   rounds: number;
-  playerNames: string[];
+  players: PlayerRoundCountEntry[];
 }
 
 export function isBuyInRound(round: Round): boolean {
@@ -111,23 +117,47 @@ export function getSnurkerStat(
   players: GamePlayer[]
 ): PlayerRoundCountStat {
   const playerNames = getPlayerNameMap(players);
-  const roundsByPlayer = new Map(players.map((player) => [player.player_id, 0]));
+  const onePointRoundsByPlayer = new Map(
+    players.map((player) => [player.player_id, 0])
+  );
+  const playedRoundsByPlayer = new Map(
+    players.map((player) => [player.player_id, 0])
+  );
 
   for (const round of getNormalRounds(rounds)) {
     for (const score of round.scores) {
-      if (score.penalty_points === 1 && roundsByPlayer.has(score.player_id)) {
-        roundsByPlayer.set(
+      if (!playedRoundsByPlayer.has(score.player_id)) continue;
+
+      playedRoundsByPlayer.set(
+        score.player_id,
+        (playedRoundsByPlayer.get(score.player_id) ?? 0) + 1
+      );
+
+      if (score.penalty_points === 1) {
+        onePointRoundsByPlayer.set(
           score.player_id,
-          (roundsByPlayer.get(score.player_id) ?? 0) + 1
+          (onePointRoundsByPlayer.get(score.player_id) ?? 0) + 1
         );
       }
     }
   }
 
-  const roundCount = Math.max(0, ...roundsByPlayer.values());
+  const roundCount = Math.max(0, ...onePointRoundsByPlayer.values());
 
   return {
     rounds: roundCount,
-    playerNames: namesForTopPlayers(roundsByPlayer, playerNames, roundCount),
+    players: Array.from(onePointRoundsByPlayer.entries())
+      .filter(([, total]) => total === roundCount && roundCount > 0)
+      .map(([playerId, matchingRounds]) => {
+        const playerName = playerNames.get(playerId);
+        if (!playerName) return null;
+
+        return {
+          playerName,
+          matchingRounds,
+          playedRounds: playedRoundsByPlayer.get(playerId) ?? 0,
+        };
+      })
+      .filter((entry): entry is PlayerRoundCountEntry => Boolean(entry)),
   };
 }

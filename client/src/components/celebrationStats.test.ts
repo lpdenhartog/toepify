@@ -110,7 +110,9 @@ describe("snurker", () => {
 
     expect(getSnurkerStat(rounds, players)).toEqual({
       rounds: 2,
-      playerNames: ["Alice"],
+      players: [
+        { playerName: "Alice", matchingRounds: 2, playedRounds: 2 },
+      ],
     });
   });
 
@@ -122,7 +124,28 @@ describe("snurker", () => {
 
     expect(getSnurkerStat(rounds, players)).toEqual({
       rounds: 1,
-      playerNames: ["Alice", "Bob", "Charlie"],
+      players: [
+        { playerName: "Alice", matchingRounds: 1, playedRounds: 2 },
+        { playerName: "Bob", matchingRounds: 1, playedRounds: 2 },
+        { playerName: "Charlie", matchingRounds: 1, playedRounds: 2 },
+      ],
+    });
+  });
+
+  it("counts played rounds per player from normal score entries only", () => {
+    const rounds = [
+      makeRound(1, { a: 1, b: 0 }, "normal"),
+      makeRound(2, { a: 1, b: 1 }, "normal"),
+      makeRound(3, { a: -2 }, "buy_in"),
+      makeRound(4, { b: 1 }, "normal"),
+    ];
+
+    expect(getSnurkerStat(rounds, players)).toEqual({
+      rounds: 2,
+      players: [
+        { playerName: "Alice", matchingRounds: 2, playedRounds: 2 },
+        { playerName: "Bob", matchingRounds: 2, playedRounds: 3 },
+      ],
     });
   });
 });
