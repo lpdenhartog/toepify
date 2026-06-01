@@ -63,6 +63,16 @@ export default function CelebrationStatsOverlay({
   const formatNames = (names: string[]) =>
     names.length > 0 ? names.join(", ") : "-";
 
+  const formatSnurkers = () =>
+    snurker.players.length > 0
+      ? snurker.players
+          .map(
+            (player) =>
+              `${player.playerName} (${player.matchingRounds} keer van ${player.playedRounds} ronden)`
+          )
+          .join(", ")
+      : "-";
+
   // Generate deterministic confetti pieces so rendering remains pure.
   const confettiPieces = useMemo(() => {
     const colors = ["#e8a817", "#e74c3c", "#2ecc71", "#3498db", "#9b59b6", "#f39c12"];
@@ -113,6 +123,18 @@ export default function CelebrationStatsOverlay({
       {/* Stats */}
       <div className="celebration-stats" aria-label="Spelstatistieken">
         <div className="celebration-stat-row">
+          <span className="celebration-stat-label">Sloper</span>
+          <span className="celebration-stat-value">
+            {sloper.points > 0
+              ? `${formatNames(sloper.playerNames)} (${sloper.points} punten)`
+              : "-"}
+          </span>
+        </div>
+        <div className="celebration-stat-row">
+          <span className="celebration-stat-label">Snurker</span>
+          <span className="celebration-stat-value">{formatSnurkers()}</span>
+        </div>
+        <div className="celebration-stat-row">
           <span className="celebration-stat-label">Aantal inkopen</span>
           <span className="celebration-stat-value">{totalBuyIns}</span>
         </div>
@@ -127,20 +149,6 @@ export default function CelebrationStatsOverlay({
         <div className="celebration-stat-row">
           <span className="celebration-stat-label">Aantal ronden</span>
           <span className="celebration-stat-value">{roundCount}</span>
-        </div>
-        <div className="celebration-stat-row">
-          <span className="celebration-stat-label">Sloper</span>
-          <span className="celebration-stat-value">
-            {sloper.points > 0
-              ? `${formatNames(sloper.playerNames)} (${sloper.points} punten)`
-              : "-"}
-          </span>
-        </div>
-        <div className="celebration-stat-row">
-          <span className="celebration-stat-label">Snurker</span>
-          <span className="celebration-stat-value">
-            {snurker.rounds > 0 ? formatNames(snurker.playerNames) : "-"}
-          </span>
         </div>
       </div>
 
