@@ -9,7 +9,6 @@ interface GameDramaGridProps {
 
 function cellPenaltyClass(cell: GridCell): string {
   if (cell.event === "dead") return "drama-cell--dead";
-  if (cell.event === "winner") return "drama-cell--winner";
   const p = cell.penalty ?? 0;
   if (p === 0) return "drama-cell--penalty-0";
   if (p === 1) return "drama-cell--penalty-1";
@@ -69,7 +68,9 @@ export default function GameDramaGrid({ gameState, excludedPlayers }: GameDramaG
             return (
               <div
                 key={colIdx}
-                className={`drama-cell ${cellPenaltyClass(cell)}`}
+                className={`drama-cell ${cellPenaltyClass(cell)} ${
+                  cell.event === "winner" ? "drama-cell--winner" : ""
+                }`}
                 title={cellTooltip(row.playerName, cell)}
               >
                 {cell.event !== "dead" && (

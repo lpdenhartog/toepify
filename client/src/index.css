@@ -1134,25 +1134,25 @@ fieldset legend {
   line-height: 1;
 }
 
-/* Penalty colour tiers */
+/* Penalty colour tiers: color indicates penalty points in this round */
 .drama-cell--penalty-0 {
-  background: rgba(136, 153, 170, 0.08);
+  background: rgba(34, 197, 94, 0.2);
 }
 
 .drama-cell--penalty-1 {
-  background: rgba(241, 196, 15, 0.18);
+  background: rgba(190, 242, 100, 0.24);
 }
 
 .drama-cell--penalty-2 {
-  background: rgba(243, 156, 18, 0.28);
+  background: rgba(250, 204, 21, 0.3);
 }
 
 .drama-cell--penalty-3 {
-  background: rgba(231, 76, 60, 0.32);
+  background: rgba(249, 115, 22, 0.34);
 }
 
 .drama-cell--penalty-4 {
-  background: rgba(139, 92, 246, 0.35);
+  background: rgba(239, 68, 68, 0.4);
 }
 
 /* Special states */
@@ -1166,7 +1166,8 @@ fieldset legend {
 
 
 .drama-cell--winner {
-  background: rgba(232, 168, 23, 0.28);
+  outline: 2px solid rgba(232, 168, 23, 0.75);
+  outline-offset: -2px;
 }
 
 /* Leaderboard inside celebration */
