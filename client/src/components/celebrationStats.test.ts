@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { GamePlayer, Round } from "../api/game";
 import {
+  formatMostPenaltyStat,
   getMostPenaltyStat,
   getNormalRounds,
   getSloperStat,
@@ -70,6 +71,19 @@ describe("celebration stats", () => {
       points: 4,
       playerNames: ["Alice", "Bob", "Charlie"],
     });
+  });
+
+  it("formats most points with player names before the point total", () => {
+    expect(
+      formatMostPenaltyStat({
+        points: 4,
+        playerNames: ["Alice", "Bob", "Charlie"],
+      })
+    ).toBe("Alice, Bob, Charlie (4)");
+  });
+
+  it("formats missing most points as zero", () => {
+    expect(formatMostPenaltyStat({ points: 0, playerNames: [] })).toBe("0");
   });
 });
 

@@ -63,6 +63,12 @@ export function getMostPenaltyStat(
   };
 }
 
+export function formatMostPenaltyStat(stat: MostPenaltyStat): string {
+  if (stat.points <= 0 || stat.playerNames.length === 0) return "0";
+
+  return `${stat.playerNames.join(", ")} (${stat.points})`;
+}
+
 function getPlayerNameMap(players: GamePlayer[]): Map<string, string> {
   return new Map(players.map((player) => [player.player_id, player.player_name]));
 }
