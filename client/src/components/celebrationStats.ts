@@ -5,6 +5,16 @@ export interface MostPenaltyStat {
   playerNames: string[];
 }
 
+export interface PlayerPointsStat {
+  points: number;
+  playerNames: string[];
+}
+
+export interface PlayerRoundCountStat {
+  rounds: number;
+  playerNames: string[];
+}
+
 export function isBuyInRound(round: Round): boolean {
   return (
     round.round_type === "buy_in" ||
@@ -44,5 +54,80 @@ export function getMostPenaltyStat(
     playerNames: Array.from(playerIds)
       .map((playerId) => playerNames.get(playerId))
       .filter((name): name is string => Boolean(name)),
+  };
+}
+
+function getPlayerNameMap(players: GamePlayer[]): Map<string, string> {
+  return new Map(players.map((player) => [player.player_id, player.player_name]));
+}
+
+function namesForTopPlayers(
+  totals: Map<string, number>,
+  playerNames: Map<string, string>,
+  topValue: number
+): string[] {
+  if (topValue <= 0) return [];
+
+  return Array.from(totals.entries())
+    .filter(([, total]) => total === topValue)
+    .map(([playerId]) => playerNames.get(playerId))
+    .filter((name): name is string => Boolean(name));
+}
+
+export function getSloperStat(
+  rounds: Round[],
+  players: GamePlayer[]
+): PlayerPointsStat {
+  const playerNames = getPlayerNameMap(players);
+  const damageByPlayer = new Map(players.map((player) => [player.player_id, 0]));
+
+  for (const round of getNormalRounds(rounds)) {
+    const damage = round.scores
+      .filter((score) => score.penalty_points >= 2)
+      .reduce((sum, score) => sum + score.penalty_points, 0);
+
+    if (damage === 0) continue;
+
+    for (const score of round.scores) {
+      if (score.penalty_points === 0 && damageByPlayer.has(score.player_id)) {
+        damageByPlayer.set(
+          score.player_id,
+          (damageByPlayer.get(score.player_id) ?? 0) + damage
+        );
+      }
+    }
+  }
+
+  const points = Math.max(0, ...damageByPlayer.values());
+
+  return {
+    points,
+    playerNames: namesForTopPlayers(damageByPlayer, playerNames, points),
+  };
+}
+
+export function getSnurkerStat(
+  rounds: Round[],
+  players: GamePlayer[]
+): PlayerRoundCountStat {
+  const playerNames = getPlayerNameMap(players);
+  const roundsByPlayer = new Map(players.map((player) => [player.player_id, 0]));
+
+  for (const round of getNormalRounds(rounds)) {
+    for (const score of round.scores) {
+      if (score.penalty_points === 1 && roundsByPlayer.has(score.player_id)) {
+        roundsByPlayer.set(
+          score.player_id,
+          (roundsByPlayer.get(score.player_id) ?? 0) + 1
+        );
+      }
+    }
+  }
+
+  const roundCount = Math.max(0, ...roundsByPlayer.values());
+
+  return {
+    rounds: roundCount,
+    playerNames: namesForTopPlayers(roundsByPlayer, playerNames, roundCount),
   };
 }

@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import type { GamePlayer, Round } from "../api/game";
-import { getMostPenaltyStat, getNormalRounds } from "./celebrationStats";
+import {
+  getMostPenaltyStat,
+  getNormalRounds,
+  getSloperStat,
+  getSnurkerStat,
+} from "./celebrationStats";
 
 function makePlayer(id: string, name: string): GamePlayer {
   return {
@@ -63,6 +68,60 @@ describe("celebration stats", () => {
 
     expect(getMostPenaltyStat(rounds, players)).toEqual({
       points: 4,
+      playerNames: ["Alice", "Bob", "Charlie"],
+    });
+  });
+});
+
+describe("sloper", () => {
+  it("awards damage to the zero-point player and ignores one-point penalties", () => {
+    const rounds = [
+      makeRound(1, { a: 0, b: 2, c: 1 }, "normal"),
+      makeRound(2, { a: 1, b: 0, c: 3 }, "normal"),
+      makeRound(3, { a: -2 }, "buy_in"),
+    ];
+
+    expect(getSloperStat(rounds, players)).toEqual({
+      points: 3,
+      playerNames: ["Bob"],
+    });
+  });
+
+  it("returns all players tied for most damage", () => {
+    const rounds = [
+      makeRound(1, { a: 0, b: 2, c: 1 }, "normal"),
+      makeRound(2, { a: 1, b: 0, c: 2 }, "normal"),
+    ];
+
+    expect(getSloperStat(rounds, players)).toEqual({
+      points: 2,
+      playerNames: ["Alice", "Bob"],
+    });
+  });
+});
+
+describe("snurker", () => {
+  it("returns the player with exactly one point in the most normal rounds", () => {
+    const rounds = [
+      makeRound(1, { a: 1, b: 0, c: 2 }, "normal"),
+      makeRound(2, { a: 1, b: 2, c: 0 }, "normal"),
+      makeRound(3, { a: -2 }, "buy_in"),
+    ];
+
+    expect(getSnurkerStat(rounds, players)).toEqual({
+      rounds: 2,
+      playerNames: ["Alice"],
+    });
+  });
+
+  it("returns all players tied for most one-point rounds", () => {
+    const rounds = [
+      makeRound(1, { a: 1, b: 1, c: 0 }, "normal"),
+      makeRound(2, { a: 0, b: 2, c: 1 }, "normal"),
+    ];
+
+    expect(getSnurkerStat(rounds, players)).toEqual({
+      rounds: 1,
       playerNames: ["Alice", "Bob", "Charlie"],
     });
   });

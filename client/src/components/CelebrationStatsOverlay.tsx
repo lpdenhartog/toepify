@@ -1,7 +1,12 @@
 import { useMemo } from "react";
 import type { GameState } from "../api/game";
 import GameDramaGrid from "./GameDramaGrid";
-import { getMostPenaltyStat, getNormalRounds } from "./celebrationStats";
+import {
+  getMostPenaltyStat,
+  getNormalRounds,
+  getSloperStat,
+  getSnurkerStat,
+} from "./celebrationStats";
 import "./CelebrationStatsOverlay.css";
 
 interface GameEndCelebrationProps {
@@ -32,6 +37,14 @@ export default function CelebrationStatsOverlay({
     () => getMostPenaltyStat(rounds, players),
     [rounds, players]
   );
+  const sloper = useMemo(
+    () => getSloperStat(rounds, players),
+    [rounds, players]
+  );
+  const snurker = useMemo(
+    () => getSnurkerStat(rounds, players),
+    [rounds, players]
+  );
 
   const sortedBalances = useMemo(
     () => [...balances].sort((a, b) => b.balance - a.balance),
@@ -46,6 +59,9 @@ export default function CelebrationStatsOverlay({
 
   const formatPot = (amount: number) =>
     `\u20AC${amount.toFixed(2).replace(".", ",")}`;
+
+  const formatNames = (names: string[]) =>
+    names.length > 0 ? names.join(", ") : "-";
 
   // Generate deterministic confetti pieces so rendering remains pure.
   const confettiPieces = useMemo(() => {
@@ -111,6 +127,20 @@ export default function CelebrationStatsOverlay({
         <div className="celebration-stat-row">
           <span className="celebration-stat-label">Aantal ronden</span>
           <span className="celebration-stat-value">{roundCount}</span>
+        </div>
+        <div className="celebration-stat-row">
+          <span className="celebration-stat-label">Sloper</span>
+          <span className="celebration-stat-value">
+            {sloper.points > 0
+              ? `${formatNames(sloper.playerNames)} (${sloper.points} punten)`
+              : "-"}
+          </span>
+        </div>
+        <div className="celebration-stat-row">
+          <span className="celebration-stat-label">Snurker</span>
+          <span className="celebration-stat-value">
+            {snurker.rounds > 0 ? formatNames(snurker.playerNames) : "-"}
+          </span>
         </div>
       </div>
 
