@@ -20,8 +20,8 @@ import {
 } from "../api/socket";
 import Scoreboard from "../components/Scoreboard";
 import TournamentClosed from "../components/TournamentClosed";
-import { saveRecentTournament, getRecentTournaments } from "./LandingPage";
-import { useAuth } from "../contexts/AuthContext";
+import { saveRecentTournament, getRecentTournaments } from "../utils/recentTournaments";
+import { useAuth } from "../contexts/useAuth";
 import { visitTournament, closeTournament, fetchSettlement, type SettlementData } from "../api/tournaments";
 
 export default function TournamentPage() {
@@ -101,7 +101,7 @@ export default function TournamentPage() {
 
     return () => {
       cancelled = true;
-      leaveGame("");
+      leaveGame();
       disconnectSocket();
     };
   }, [tournamentId]);
@@ -246,13 +246,15 @@ export default function TournamentPage() {
     }
   }, [tournamentId]);
 
+  const tournamentStatus = gameState?.tournament.status;
+
   // Fetch settlement data when tournament is closed
   useEffect(() => {
-    if (!gameState || gameState.tournament.status !== "closed" || !tournamentId) return;
+    if (tournamentStatus !== "closed" || !tournamentId) return;
     fetchSettlement(tournamentId)
       .then(setSettlementData)
       .catch(() => {});
-  }, [gameState?.tournament.status, tournamentId]);
+  }, [tournamentStatus, tournamentId]);
 
   const isCreator = !!(user && gameState && gameState.tournament.created_by === user.username);
 

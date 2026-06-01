@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Link, useNavigate } from "react-router-dom";
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { AuthProvider } from "./contexts/AuthContext";
+import { useAuth } from "./contexts/useAuth";
 import AdminPage from "./pages/AdminPage";
 import TournamentPage from "./pages/TournamentPage";
 import LandingPage from "./pages/LandingPage";

@@ -16,6 +16,7 @@ export interface RoundScore {
 
 export interface Round {
   round_number: number;
+  round_type: "normal" | "buy_in";
   scores: RoundScore[];
 }
 
@@ -199,7 +200,7 @@ export async function getFullGameState(
 
   // Get rounds with scores
   const roundsRes = await pool.query(
-    `SELECT r.round_number, rs.player_id, rs.penalty_points
+    `SELECT r.round_number, r.round_type, rs.player_id, rs.penalty_points
      FROM rounds r
      JOIN round_scores rs ON rs.round_id = r.id
      WHERE r.game_id = $1
@@ -207,19 +208,26 @@ export async function getFullGameState(
     [gameId]
   );
 
-  const roundsMap = new Map<number, RoundScore[]>();
+  const roundsMap = new Map<number, { round_type: "normal" | "buy_in"; scores: RoundScore[] }>();
   for (const row of roundsRes.rows) {
     if (!roundsMap.has(row.round_number)) {
-      roundsMap.set(row.round_number, []);
+      roundsMap.set(row.round_number, {
+        round_type: row.round_type === "buy_in" ? "buy_in" : "normal",
+        scores: [],
+      });
     }
-    roundsMap.get(row.round_number)!.push({
+    roundsMap.get(row.round_number)!.scores.push({
       player_id: row.player_id,
       penalty_points: row.penalty_points,
     });
   }
   const rounds: Round[] = Array.from(roundsMap.entries())
     .sort(([a], [b]) => a - b)
-    .map(([round_number, scores]) => ({ round_number, scores }));
+    .map(([round_number, round]) => ({
+      round_number,
+      round_type: round.round_type,
+      scores: round.scores,
+    }));
 
   // Compute pot
   const totalBuyIns = players.reduce((sum, p) => sum + p.buy_ins, 0);

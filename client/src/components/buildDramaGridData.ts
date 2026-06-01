@@ -1,4 +1,5 @@
 import type { GamePlayer, Round } from "../api/game";
+import { isBuyInRound } from "./celebrationStats";
 
 export type CellEvent = "none" | "pelt" | "eliminated" | "buyin" | "dead" | "winner";
 
@@ -54,9 +55,9 @@ export function buildDramaGridData(
     const scoresByPlayer = new Map(
       round.scores.map((s) => [s.player_id, s.penalty_points])
     );
-    const isBuyInRound = round.scores.some((s) => s.penalty_points < 0);
+    const isBuyIn = isBuyInRound(round);
 
-    if (isBuyInRound) {
+    if (isBuyIn) {
       // Don't create a column. Retroactively mark the buying-in player's last
       // non-dead cell with "buyin" and update their running total.
       for (const p of players) {
