@@ -21,7 +21,7 @@ import {
 import Scoreboard from "../components/Scoreboard";
 import TournamentClosed from "../components/TournamentClosed";
 import { saveRecentTournament, getRecentTournaments } from "../utils/recentTournaments";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../contexts/useAuth";
 import { visitTournament, closeTournament, fetchSettlement, type SettlementData } from "../api/tournaments";
 
 export default function TournamentPage() {

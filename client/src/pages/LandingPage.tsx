@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../contexts/useAuth";
 import CreateTournament from "../components/CreateTournament";
 import { fetchMyTournaments, deleteTournament, visitTournament, type MyTournament } from "../api/tournaments";
 import { getRecentTournaments, type RecentTournament } from "../utils/recentTournaments";
