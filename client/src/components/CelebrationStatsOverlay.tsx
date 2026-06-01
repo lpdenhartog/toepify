@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import type { GameState } from "../api/game";
 import GameDramaGrid from "./GameDramaGrid";
 import { getMostPenaltyStat, getNormalRounds } from "./celebrationStats";
+import "./CelebrationStatsOverlay.css";
 
 interface GameEndCelebrationProps {
   gameState: GameState;
@@ -11,7 +12,7 @@ interface GameEndCelebrationProps {
   excludedPlayers: Set<string>;
 }
 
-export default function GameEndCelebration({
+export default function CelebrationStatsOverlay({
   gameState,
   onNewGame,
   isCreator,
@@ -94,24 +95,24 @@ export default function GameEndCelebration({
       </div>
 
       {/* Stats */}
-      <dl className="celebration-stats" aria-label="Spelstatistieken">
+      <div className="celebration-stats" aria-label="Spelstatistieken">
         <div className="celebration-stat-row">
-          <dt>Aantal inkopen</dt>
-          <dd>{totalBuyIns}</dd>
+          <span className="celebration-stat-label">Aantal inkopen</span>
+          <span className="celebration-stat-value">{totalBuyIns}</span>
         </div>
         <div className="celebration-stat-row">
-          <dt>Meeste punten in 1 ronde</dt>
-          <dd>
+          <span className="celebration-stat-label">Meeste punten in 1 ronde</span>
+          <span className="celebration-stat-value">
             {mostPenalty.points > 0
               ? `${mostPenalty.points} (${mostPenalty.playerNames.join(", ")})`
               : "0"}
-          </dd>
+          </span>
         </div>
         <div className="celebration-stat-row">
-          <dt>Aantal ronden</dt>
-          <dd>{roundCount}</dd>
+          <span className="celebration-stat-label">Aantal ronden</span>
+          <span className="celebration-stat-value">{roundCount}</span>
         </div>
-      </dl>
+      </div>
 
       {/* Drama grid */}
       {normalRounds.length > 0 && (

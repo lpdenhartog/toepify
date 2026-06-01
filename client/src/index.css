@@ -937,7 +937,7 @@ fieldset legend {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   padding: 2rem 1rem;
   overflow-y: auto;
 }
@@ -1013,10 +1013,6 @@ fieldset legend {
   border: 1px solid var(--border);
   border-radius: 12px;
   overflow: hidden;
-  position: relative;
-  z-index: 1;
-  flex: 0 0 auto;
-  display: block;
   animation: scale-in 0.5s 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
 }
 
@@ -1033,17 +1029,17 @@ fieldset legend {
   border-bottom: 0;
 }
 
-.celebration-stat-label,
-.celebration-stat-value {
-  min-width: 0;
+.celebration-stat-row dt,
+.celebration-stat-row dd {
+  margin: 0;
 }
 
-.celebration-stat-label {
+.celebration-stat-row dt {
   color: var(--text-muted);
   font-weight: 600;
 }
 
-.celebration-stat-value {
+.celebration-stat-row dd {
   color: var(--text);
   font-weight: 700;
   font-variant-numeric: tabular-nums;

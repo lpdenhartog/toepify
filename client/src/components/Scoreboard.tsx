@@ -1,7 +1,7 @@
 import { useMemo, useEffect, useRef, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import type { GameState } from "../api/game";
-import GameEndCelebration from "./GameEndCelebration";
+import CelebrationStatsOverlay from "./CelebrationStatsOverlay";
 
 function getUniqueAbbreviations(names: string[]): Map<string, string> {
   const result = new Map<string, string>();
@@ -140,7 +140,7 @@ export default function Scoreboard({
     <div className="scoreboard">
       {/* Celebration overlay */}
       {game.status === "finished" && (
-        <GameEndCelebration
+        <CelebrationStatsOverlay
           gameState={gameState}
           onNewGame={onNewGame}
           isCreator={isCreator}
