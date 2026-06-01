@@ -1,22 +1,11 @@
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
+import { useState, useEffect, useCallback, type ReactNode } from "react";
 import {
   loginWithCredentials,
   loginWithPin as apiLoginWithPin,
   fetchMe,
   type AuthUser,
 } from "../api/auth";
-
-interface AuthContextValue {
-  user: AuthUser | null;
-  token: string | null;
-  login(username: string, password: string): Promise<void>;
-  loginWithPin(pin: string): Promise<void>;
-  logout(): void;
-  isAuthenticated: boolean;
-  loading: boolean;
-}
-
-const AuthContext = createContext<AuthContextValue | null>(null);
+import { AuthContext } from "./authContextValue";
 
 const TOKEN_KEY = "toepify_auth_token";
 
@@ -26,10 +15,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(!!localStorage.getItem(TOKEN_KEY));
 
   useEffect(() => {
-    if (!token) {
-      setLoading(false);
-      return;
-    }
+    if (!token) return;
 
     fetchMe(token)
       .then((u) => {
@@ -78,10 +64,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       {children}
     </AuthContext.Provider>
   );
-}
-
-export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
-  return ctx;
 }

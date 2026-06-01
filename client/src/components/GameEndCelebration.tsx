@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import type { GameState } from "../api/game";
 import GameDramaGrid from "./GameDramaGrid";
+import { getMostPenaltyStat, getNormalRounds } from "./celebrationStats";
 
 interface GameEndCelebrationProps {
   gameState: GameState;
@@ -24,22 +25,12 @@ export default function GameEndCelebration({
   );
 
   const totalBuyIns = players.reduce((sum, p) => sum + p.buy_ins, 0);
-  const roundCount = rounds.length;
-
-  const mostPenalty = useMemo(() => {
-    let maxPoints = 0;
-    let maxPlayerName = "";
-    for (const round of rounds) {
-      for (const score of round.scores) {
-        if (score.penalty_points > maxPoints) {
-          maxPoints = score.penalty_points;
-          const player = players.find((p) => p.player_id === score.player_id);
-          maxPlayerName = player?.player_name ?? "";
-        }
-      }
-    }
-    return { name: maxPlayerName, points: maxPoints };
-  }, [rounds, players]);
+  const normalRounds = useMemo(() => getNormalRounds(rounds), [rounds]);
+  const roundCount = normalRounds.length;
+  const mostPenalty = useMemo(
+    () => getMostPenaltyStat(rounds, players),
+    [rounds, players]
+  );
 
   const sortedBalances = useMemo(
     () => [...balances].sort((a, b) => b.balance - a.balance),
@@ -52,17 +43,25 @@ export default function GameEndCelebration({
     return `-\u20AC${formatted}`;
   };
 
-  // Generate confetti pieces
+  const formatPot = (amount: number) =>
+    `\u20AC${amount.toFixed(2).replace(".", ",")}`;
+
+  // Generate deterministic confetti pieces so rendering remains pure.
   const confettiPieces = useMemo(() => {
     const colors = ["#e8a817", "#e74c3c", "#2ecc71", "#3498db", "#9b59b6", "#f39c12"];
+    const pseudoRandom = (seed: number) => {
+      const value = Math.sin(seed) * 10000;
+      return value - Math.floor(value);
+    };
+
     return Array.from({ length: 50 }, (_, i) => ({
       id: i,
-      left: `${Math.random() * 100}%`,
-      delay: `${Math.random() * 3}s`,
-      duration: `${2 + Math.random() * 3}s`,
+      left: `${pseudoRandom(i + 1) * 100}%`,
+      delay: `${pseudoRandom(i + 101) * 3}s`,
+      duration: `${2 + pseudoRandom(i + 201) * 3}s`,
       color: colors[i % colors.length],
-      size: 6 + Math.random() * 6,
-      isCircle: Math.random() > 0.5,
+      size: 6 + pseudoRandom(i + 301) * 6,
+      isCircle: pseudoRandom(i + 401) > 0.5,
     }));
   }, []);
 
@@ -90,37 +89,32 @@ export default function GameEndCelebration({
       <div className="celebration-winner">
         {winner?.player_name ?? "Winnaar"}
       </div>
-      <div className="celebration-subtitle">wint de pot!</div>
-
-      {/* Stats */}
-      <div className="celebration-stats">
-        <div className="stat-card">
-          <div className="stat-value">
-            {"\u20AC"}
-            {pot.toFixed(2).replace(".", ",")}
-          </div>
-          <div className="stat-label">Pot</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-value">{totalBuyIns}</div>
-          <div className="stat-label">Inkopen</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-value">{roundCount}</div>
-          <div className="stat-label">Rondes</div>
-        </div>
-        {mostPenalty.points > 0 && (
-          <div className="stat-card">
-            <div className="stat-value">{mostPenalty.name}</div>
-            <div className="stat-label">
-              Meeste punten in een ronde ({mostPenalty.points})
-            </div>
-          </div>
-        )}
+      <div className="celebration-subtitle">
+        wint de pot: <span>{formatPot(pot)}</span>
       </div>
 
+      {/* Stats */}
+      <dl className="celebration-stats" aria-label="Spelstatistieken">
+        <div className="celebration-stat-row">
+          <dt>Aantal inkopen</dt>
+          <dd>{totalBuyIns}</dd>
+        </div>
+        <div className="celebration-stat-row">
+          <dt>Meeste punten in 1 ronde</dt>
+          <dd>
+            {mostPenalty.points > 0
+              ? `${mostPenalty.points} (${mostPenalty.playerNames.join(", ")})`
+              : "0"}
+          </dd>
+        </div>
+        <div className="celebration-stat-row">
+          <dt>Aantal ronden</dt>
+          <dd>{roundCount}</dd>
+        </div>
+      </dl>
+
       {/* Drama grid */}
-      {rounds.length > 0 && (
+      {normalRounds.length > 0 && (
         <GameDramaGrid gameState={gameState} excludedPlayers={excludedPlayers} />
       )}
 

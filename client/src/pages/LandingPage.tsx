@@ -1,33 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../contexts/useAuth";
 import CreateTournament from "../components/CreateTournament";
 import { fetchMyTournaments, deleteTournament, visitTournament, type MyTournament } from "../api/tournaments";
-
-interface RecentTournament {
-  id: string;
-  name: string;
-  players: string[];
-  lastVisited: number;
-}
-
-const STORAGE_KEY = "toepify_recent_tournaments";
-
-export function getRecentTournaments(): RecentTournament[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    return JSON.parse(raw) as RecentTournament[];
-  } catch {
-    return [];
-  }
-}
-
-export function saveRecentTournament(id: string, name: string, players: string[]) {
-  const existing = getRecentTournaments().filter((t) => t.id !== id);
-  const updated = [{ id, name, players, lastVisited: Date.now() }, ...existing].slice(0, 10);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-}
+import { getRecentTournaments, type RecentTournament } from "../utils/recentTournaments";
 
 function parseTournamentId(input: string): string {
   const trimmed = input.trim();
