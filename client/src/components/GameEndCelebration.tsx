@@ -1,7 +1,11 @@
 import { useMemo } from "react";
 import type { GameState } from "../api/game";
 import GameDramaGrid from "./GameDramaGrid";
-import { getMostPenaltyStat, getNormalRounds } from "./celebrationStats";
+import {
+  formatMostPenaltyStat,
+  getMostPenaltyStat,
+  getNormalRounds,
+} from "./celebrationStats";
 
 interface GameEndCelebrationProps {
   gameState: GameState;
@@ -102,9 +106,7 @@ export default function GameEndCelebration({
         <div className="celebration-stat-row">
           <dt>Meeste punten in 1 ronde</dt>
           <dd>
-            {mostPenalty.points > 0
-              ? `${mostPenalty.points} (${mostPenalty.playerNames.join(", ")})`
-              : "0"}
+            {formatMostPenaltyStat(mostPenalty)}
           </dd>
         </div>
         <div className="celebration-stat-row">
