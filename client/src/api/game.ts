@@ -14,6 +14,7 @@ export interface RoundScore {
 
 export interface Round {
   round_number: number;
+  round_type?: "normal" | "buy_in";
   scores: RoundScore[];
 }
 
