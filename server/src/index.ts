@@ -30,6 +30,10 @@ app.use("/api/auth", authRoutes);
 app.use("/api/tournaments", tournamentRoutes);
 app.use("/api", gameRoutes);
 
+app.get("/api/config", (_req, res) => {
+  res.json({ environment: process.env.ENV ?? null });
+});
+
 // Test-only: reset database endpoint (truncate game data, keep users)
 if (process.env.NODE_ENV === "test") {
   app.post("/__test__/reset", async (_req, res) => {

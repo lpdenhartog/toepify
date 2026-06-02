@@ -104,17 +104,47 @@ function AppContent() {
   const tournamentMatch = matchPath("/t/:tournamentId", location.pathname);
   const tournamentId = tournamentMatch?.params.tournamentId;
   const [mode, setMode] = useState<TournamentMode>("viewer");
+  const [isStaging, setIsStaging] = useState(false);
 
   useEffect(() => {
     setMode("viewer");
   }, [tournamentId]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    fetch("/api/config")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to load app config");
+        }
+        return response.json() as Promise<{ environment?: string | null }>;
+      })
+      .then((config) => {
+        if (isMounted) {
+          setIsStaging(config.environment === "staging");
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setIsStaging(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <div className="app-container">
       <header className="app-header">
         <Link to="/" className="header-link">
           <img src={headerIcon} alt="Four 10s" className="header-icon" />
-          <h1>toepify</h1>
+          <h1>
+            toepify
+            {isStaging && <span className="staging-label"> - STAGING</span>}
+          </h1>
         </Link>
         <div className="header-actions">
           <HeaderActions
