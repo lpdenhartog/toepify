@@ -88,6 +88,10 @@ body {
   color: var(--accent);
 }
 
+.staging-label {
+  text-transform: uppercase;
+}
+
 .app-header .header-icon {
   height: 36px;
 }
