@@ -33,20 +33,23 @@
 ## Player flow: join tournament
 1. Open join link `/t/{tournamentId}`
 2. App loads latest game and scoreboard (player names, balances, current game stake)
-3. App connects to WebSocket and subscribes to updates
+3. Page opens in viewer mode by default
+4. Viewer mode polls for persisted updates every 10 seconds
 
 ## Player flow: play a round
-1. During the round, use +/− buttons per player column to enter penalty points
-2. Tap "Finish Round" button/icon
-3. Server adds round penalties to cumulative scores, persists, broadcasts
-4. New cumulative scores appear on a new line below previous round
-5. If any player reaches ≥ 15 points:
+1. Switch from viewer mode to writer mode
+2. During the round, use score buttons per player column to enter penalty points
+3. Tap "Finish Round" button/icon
+4. Server adds round penalties to cumulative scores and persists them
+5. Writer UI updates from the HTTP response
+6. New cumulative scores appear on a new line below previous round
+7. If any player reaches ≥ 15 points:
    - Player is marked as **out**
    - Buy-in icon appears (only for this round)
-6. If a player taps buy-in:
+8. If a player taps buy-in:
    - Player is re-activated at 14 points (on Pelt)
    - Game pot increases by one stake
-   - Stake display updates for all clients
+   - Stake display updates for the writer immediately and viewers on their next poll
 
 ## Player flow: finish game
 1. When only one active player remains, game can be finished
@@ -57,4 +60,4 @@
 ## Player flow: reconnect
 1. Player reloads page or loses connection
 2. Client fetches latest state from server (rounds, scores, active/out status, pot)
-3. Client reconnects to WebSocket room
+3. Tournament page starts in viewer mode and resumes polling

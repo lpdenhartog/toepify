@@ -16,6 +16,7 @@ interface GameEndCelebrationProps {
   isCreator: boolean;
   onCloseTournament: () => void;
   excludedPlayers: Set<string>;
+  canWrite: boolean;
 }
 
 export default function CelebrationStatsOverlay({
@@ -24,6 +25,7 @@ export default function CelebrationStatsOverlay({
   isCreator,
   onCloseTournament,
   excludedPlayers,
+  canWrite,
 }: GameEndCelebrationProps) {
   const { players, rounds, pot, balances, tournament } = gameState;
 
@@ -202,9 +204,11 @@ export default function CelebrationStatsOverlay({
       </div>
 
       {/* New game button */}
-      <button className="btn-primary celebration-new-game" onClick={onNewGame}>
-        Nieuw spel
-      </button>
+      {canWrite && (
+        <button className="btn-primary celebration-new-game" onClick={onNewGame}>
+          Nieuw spel
+        </button>
+      )}
 
       {/* Close tournament button (creator only) */}
       {isCreator && (

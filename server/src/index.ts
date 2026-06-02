@@ -9,29 +9,18 @@ dotenv.config({ path: path.resolve(process.cwd(), "../.env") });
 dotenv.config(); // also try cwd/.env as fallback
 import express from "express";
 import cors from "cors";
-import { createServer } from "http";
-import { Server } from "socket.io";
 import adminRoutes from "./routes/admin.js";
 import authRoutes from "./routes/auth.js";
 import tournamentRoutes from "./routes/tournaments.js";
 import gameRoutes from "./routes/games.js";
-import { setupSocket } from "./socket.js";
 import getPool from "./db/connection.js";
 import { generalLimiter } from "./middleware/rateLimiter.js";
 
 const app = express();
-const httpServer = createServer(app);
-const io = new Server(httpServer, {
-  cors: { origin: "*" },
-});
-
 const port = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
-
-// Make io accessible in route handlers
-app.set("io", io);
 
 // Global rate limit for all API endpoints
 app.use("/api", generalLimiter);
@@ -57,9 +46,6 @@ if (process.env.NODE_ENV === "test") {
   });
 }
 
-// Socket.IO event handlers
-setupSocket(io);
-
 // Serve frontend static files in production
 const clientDist = path.resolve(__dirname, "../../client/dist");
 app.use(express.static(clientDist));
@@ -75,7 +61,7 @@ async function initDb() {
 }
 
 initDb().then(() => {
-  httpServer.listen(port, () => {
+  app.listen(port, () => {
     console.log(`Server running on http://localhost:${port}`);
   });
 }).catch((err) => {

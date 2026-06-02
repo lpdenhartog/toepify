@@ -1,13 +1,13 @@
 # Non-functional requirements
 
-## Realtime performance
-- Score changes should propagate to connected clients within ~1 second under normal conditions.
-- WebSocket connection should reconnect automatically after transient failures.
+## Sync performance
+- Writers should see their own saved score changes immediately from the HTTP response.
+- Viewers should receive persisted score changes within about 10 seconds through automatic polling.
 
 ## Consistency and conflict handling
 - Server is source of truth.
-- If two edits happen quickly, the server determines final state and broadcasts it.
-- Clients reconcile to the server state.
+- If two edits happen quickly, the server determines final state.
+- Clients reconcile to the server state through mutation responses or viewer polling.
 
 ## Security
 - Tournament IDs are unguessable secrets (capability access).
@@ -31,4 +31,3 @@
 ## Cost
 - Prefer managed hosting with minimal always-on infrastructure.
 - Target small-group usage (friends/tournaments).
-

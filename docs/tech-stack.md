@@ -1,7 +1,7 @@
 # Tech stack
 
 ## Chosen approach (MVP)
-**Railway-hosted Node.js backend + WebSockets + Railway Postgres + React PWA frontend**
+**Railway-hosted Node.js backend + HTTP polling + Railway Postgres + React PWA frontend**
 
 ### Frontend
 - React + TypeScript
@@ -11,13 +11,12 @@
 
 ### Backend (Railway)
 - Node.js (recommended: Fastify or Express)
-- WebSockets:
-  - Socket.IO (recommended for rooms and reconnection handling)
 - API endpoints:
   - Admin login (PIN)
   - Create tournament
   - Get latest game state
-  - Update scores (can be via WebSocket only, or HTTP + broadcast)
+  - Update scores through HTTP mutations
+  - Viewer refresh through 10-second polling
 
 ### Database
 - Postgres (Railway managed Postgres)
@@ -34,7 +33,7 @@
 - GitHub Actions CI runs both unit and E2E tests (with PostgreSQL service container)
 
 ## Why this stack
-- Supports strict realtime requirements with low latency
+- Avoids fragile mobile WebSocket connections while keeping viewer sync simple
 - Keeps DB credentials server-side
 - Simple security model for MVP (admin PIN + secret tournament ID)
 - Easy to evolve into full user accounts later

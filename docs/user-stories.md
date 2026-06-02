@@ -43,7 +43,7 @@ Acceptance criteria:
 - If the tournament does not exist, show a friendly error.
 - If a current game exists, show the latest game.
 
-### P2 — View scores (realtime)
+### P2 — View scores
 **As a player**, I want to see the current scores update automatically, **so that** everyone stays in sync.
 
 Acceptance criteria:
@@ -53,7 +53,9 @@ Acceptance criteria:
 - Players on ≥ 15 points are shown as **out** (with buy-in icon if eligible).
 - The scoreboard shows the **current game pot** (base stakes + buy-ins).
 - **Tournament balance** per player is visible (updated only after game finishes).
-- When any participant updates a score, all connected clients update within ~1 second.
+- Game pages open in viewer mode by default.
+- Viewer mode hides score editing controls.
+- Viewer mode refreshes persisted score state automatically within about 10 seconds.
 - Reconnecting refreshes to the authoritative score state.
 
 ### P3 — Enter round penalties
@@ -62,7 +64,8 @@ Acceptance criteria:
 Acceptance criteria:
 - Each player column has a penalty button (tap to increment) to set that player's round penalty.
 - Round winner gets 0 penalty points.
-- Changes are reflected in realtime for all clients.
+- Score entry controls are available in writer mode.
+- Saved changes are reflected immediately for the writer and appear for viewers after the next refresh.
 
 ### P4 — Finish round
 **As a player**, I want to finish the current round, **so that** round penalties are committed to the game.
@@ -143,7 +146,7 @@ Acceptance criteria:
 - An "Undo" button is available when at least one round has been played.
 - Undoing deletes the last round and recalculates all scores from scratch.
 - If the game was finished (only one player left), undoing reopens the game.
-- All connected clients receive the updated state in realtime.
+- Viewers receive the updated state on their next automatic refresh.
 
 ### P9 — Close tournament
 **As the tournament creator**, I want to close a tournament, **so that** final balances and settlements are calculated.

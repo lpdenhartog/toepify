@@ -39,6 +39,7 @@ test.describe("Undo Round", () => {
     // Navigate to tournament page — Alice at 8, Bob at 0
     await authPage.goto(`/t/${tournament.id}`);
     await expect(authPage.locator(".scoreboard")).toBeVisible();
+    await authPage.getByLabel("Schakel naar schrijver modus").click();
 
     // Current scores should show 8 and 0
     const currentScores = authPage.locator(".score-row-current td");

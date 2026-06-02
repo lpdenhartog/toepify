@@ -44,6 +44,8 @@ body {
 
 /* Header */
 .app-header {
+  position: relative;
+  z-index: 150;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -56,6 +58,7 @@ body {
 .header-actions {
   display: flex;
   align-items: center;
+  gap: 0.25rem;
 }
 
 .auth-icon-btn {

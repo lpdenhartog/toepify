@@ -2,6 +2,7 @@ import { useMemo, useEffect, useRef, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import type { GameState } from "../api/game";
 import CelebrationStatsOverlay from "./CelebrationStatsOverlay";
+import type { TournamentMode } from "../App";
 
 function getUniqueAbbreviations(names: string[]): Map<string, string> {
   const result = new Map<string, string>();
@@ -58,6 +59,7 @@ interface ScoreboardProps {
   undoingRound: boolean;
   isCreator: boolean;
   onCloseTournament: () => void;
+  mode: TournamentMode;
 }
 
 export default function Scoreboard({
@@ -76,6 +78,7 @@ export default function Scoreboard({
   undoingRound,
   isCreator,
   onCloseTournament,
+  mode,
 }: ScoreboardProps) {
   const { tournament, game, players, rounds, pot, balances } = gameState;
   const abbreviations = useMemo(
@@ -83,7 +86,8 @@ export default function Scoreboard({
     [players]
   );
   const isActive = game.status === "active";
-  const showPlayerSelection = isActive && rounds.length === 0;
+  const canWrite = mode === "writer";
+  const showPlayerSelection = canWrite && isActive && rounds.length === 0;
   const activePlayers = players.filter((p) => p.is_active && !excludedPlayers.has(p.player_id));
   const zeroCount = activePlayers.filter(
     (p) => !pendingPenalties[p.player_id]
@@ -143,9 +147,10 @@ export default function Scoreboard({
         <CelebrationStatsOverlay
           gameState={gameState}
           onNewGame={onNewGame}
-          isCreator={isCreator}
+          isCreator={canWrite && isCreator}
           onCloseTournament={onCloseTournament}
           excludedPlayers={excludedPlayers}
+          canWrite={canWrite}
         />
       )}
 
@@ -243,7 +248,7 @@ export default function Scoreboard({
       </div>
 
       {/* Buy-in buttons */}
-      {isActive && players.some((p) => canBuyIn(p.player_id)) && (
+      {canWrite && isActive && players.some((p) => canBuyIn(p.player_id)) && (
         <div className="buyin-section">
           {players
             .filter((p) => canBuyIn(p.player_id))
@@ -267,7 +272,7 @@ export default function Scoreboard({
       )}
 
       {/* Penalty input for current round */}
-      {isActive && (
+      {canWrite && isActive && (
         <div className="penalty-section">
           <div className="penalty-grid">
             {players.map((p) => {
@@ -329,7 +334,7 @@ export default function Scoreboard({
       )}
 
       {/* Undo button for finished games (active games show it in round-actions) */}
-      {!isActive && game.status === "finished" && rounds.length > 0 && (
+      {canWrite && !isActive && game.status === "finished" && rounds.length > 0 && (
         <div className="round-actions">
           <button
             className="round-action-btn undo-btn"
@@ -427,7 +432,7 @@ export default function Scoreboard({
       </div>
 
       {/* Close tournament button on scoreboard (creator, active game, no rounds played) */}
-      {isCreator && isActive && rounds.length === 0 && (
+      {canWrite && isCreator && isActive && rounds.length === 0 && (
         <div className="btn-share-wrapper" style={{ marginTop: "0.75rem" }}>
           <button
             className="btn-primary btn-buyin btn-share"

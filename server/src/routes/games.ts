@@ -2,7 +2,6 @@ import { Router, Request, Response } from "express";
 import getPool from "../db/connection.js";
 import { getFullGameState } from "../services/game.js";
 import { gameActionLimiter } from "../middleware/rateLimiter.js";
-import type { Server } from "socket.io";
 
 const router = Router();
 
@@ -144,10 +143,6 @@ router.post("/games/:gameId/finish-round", gameActionLimiter, async (req: Reques
 
     const state = await getFullGameState(getPool(), gameId);
 
-    // Broadcast via Socket.IO
-    const io = req.app.get("io") as Server | undefined;
-    if (io) io.to(`game:${gameId}`).emit("game_state", state);
-
     res.json(state);
   } catch (err) {
     await client.query("ROLLBACK");
@@ -258,9 +253,6 @@ router.post("/games/:gameId/buy-in", gameActionLimiter, async (req: Request, res
 
     const state = await getFullGameState(getPool(), gameId);
 
-    const io = req.app.get("io") as Server | undefined;
-    if (io) io.to(`game:${gameId}`).emit("game_state", state);
-
     res.json(state);
   } catch (err) {
     await client.query("ROLLBACK");
@@ -304,9 +296,6 @@ router.post("/games/:gameId/finish", gameActionLimiter, async (req: Request, res
 
     const state = await getFullGameState(pool, gameId);
 
-    const io = req.app.get("io") as Server | undefined;
-    if (io) io.to(`game:${gameId}`).emit("game_state", state);
-
     res.json(state);
   } catch (err) {
     console.error("Failed to finish game:", err);
@@ -344,8 +333,6 @@ router.post("/tournaments/:tournamentId/games", gameActionLimiter, async (req: R
       return;
     }
 
-    const oldGameId = latestRes.rows[0]?.id;
-
     // Get all tournament players
     const playersRes = await client.query(
       "SELECT id FROM players WHERE tournament_id = $1 ORDER BY created_at, name, id",
@@ -370,12 +357,6 @@ router.post("/tournaments/:tournamentId/games", gameActionLimiter, async (req: R
     await client.query("COMMIT");
 
     const state = await getFullGameState(getPool(), newGameId);
-
-    // Broadcast to old game room so clients can switch
-    const io = req.app.get("io") as Server | undefined;
-    if (io && oldGameId) {
-      io.to(`game:${oldGameId}`).emit("new_game_started", { gameId: newGameId, tournamentId });
-    }
 
     res.status(201).json(state);
   } catch (err) {
@@ -470,10 +451,6 @@ router.post("/games/:gameId/undo-round", gameActionLimiter, async (req: Request,
     await client.query("COMMIT");
 
     const state = await getFullGameState(getPool(), gameId);
-
-    // Broadcast via Socket.IO
-    const io = req.app.get("io") as Server | undefined;
-    if (io) io.to(`game:${gameId}`).emit("game_state", state);
 
     res.json(state);
   } catch (err) {

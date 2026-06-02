@@ -48,9 +48,12 @@
   - **Tournament balance** per player — running total across completed games (updated only when a game finishes).
 
 ## Score updates
-- Any connected player can edit round penalties (MVP).
+- Game pages open in viewer mode by default.
+- Viewer mode is read-only and hides all game/tournament mutation controls.
+- Players can switch to writer mode to edit round penalties.
 - Updates are persisted immediately.
-- All clients receive updates in realtime.
+- Writers see their own saved updates immediately from HTTP responses.
+- Viewers refresh persisted state automatically every 10 seconds.
 
 ## Authentication
 - Users log in with username and password (JWT, 24h expiry).
@@ -76,4 +79,3 @@
 - Join link includes the secret tournamentId.
 - Join link can be copied and shared via messaging/email.
 - QR code overlay available for easy sharing.
-

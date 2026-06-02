@@ -47,6 +47,7 @@ test.describe("Buy-in", () => {
     // Navigate to tournament page
     await authPage.goto(`/t/${tournament.id}`);
     await expect(authPage.locator(".scoreboard")).toBeVisible();
+    await authPage.getByLabel("Schakel naar schrijver modus").click();
 
     // Alice should be eliminated
     await expect(authPage.locator(".status-out")).toBeVisible();

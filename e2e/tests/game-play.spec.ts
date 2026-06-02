@@ -26,6 +26,7 @@ test.describe("Game Play", () => {
 
     // Wait for scoreboard to load
     await expect(authPage.locator(".scoreboard")).toBeVisible();
+    await authPage.getByLabel("Schakel naar schrijver modus").click();
 
     // Click penalty buttons to add penalties
     // Each player has a penalty-btn; find them in order
@@ -93,6 +94,7 @@ test.describe("Game Play", () => {
     // Navigate to tournament page — Alice at 14 (Pelt), Charlie at 13
     await authPage.goto(`/t/${tournament.id}`);
     await expect(authPage.locator(".scoreboard")).toBeVisible();
+    await authPage.getByLabel("Schakel naar schrijver modus").click();
 
     // Should show "Pelt!" for Alice (score 14)
     await expect(authPage.locator(".status-pelt")).toBeVisible();

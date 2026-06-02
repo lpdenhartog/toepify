@@ -44,6 +44,7 @@ test.describe("Close Tournament", () => {
     // Navigate to tournament — should show celebration
     await authPage.goto(`/t/${tournament.id}`);
     await expect(authPage.locator(".celebration-overlay")).toBeVisible();
+    await authPage.getByLabel("Schakel naar schrijver modus").click();
 
     // Accept the confirmation dialog when closing tournament
     authPage.on("dialog", (d) => d.accept());

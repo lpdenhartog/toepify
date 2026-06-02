@@ -1,52 +1,43 @@
-# Realtime design
+# Sync design
 
 ## Goals
-- Any score update is broadcast immediately to all connected clients viewing the same game.
-- Clients can join using only the tournamentId.
-- Server is the authority and persists updates to Postgres.
+- Game pages open in read-only viewer mode by default.
+- Viewers see persisted score changes shortly after they are saved.
+- Writers can enter scores quickly and see their own saved changes immediately.
+- The app avoids mobile WebSocket disconnect issues by using plain HTTP.
 
 ## Transport
-- Socket.IO (provides rooms, reconnection, and fallback to long-polling).
-
-## Room model
-- Room name: `game:{gameId}`
-- When a new game starts, clients are notified and join the new room.
-
-## Architecture: Hybrid HTTP + WebSocket
-
-All authoritative game mutations go through **HTTP POST** endpoints. After each mutation, the server fetches the full updated game state from the database and **broadcasts** it to the Socket.IO room. This is simpler and less error-prone than fine-grained per-event messages.
-
-The one exception is **pending penalty inputs**: these are relayed via WebSocket only (not persisted to the database) so all connected players see each other's in-progress inputs in real time.
+- HTTP only.
+- Authoritative game mutations use existing `POST` endpoints.
+- Viewer refresh uses polling against `GET /api/tournaments/{tournamentId}/latest`.
 
 ## Client lifecycle
-1. HTTP fetch: `GET /api/tournaments/{tournamentId}/latest`
-   - returns full game state: tournament info, game, players, rounds, scores, pot, balances
-2. WebSocket connect (Socket.IO, same origin)
-3. Emit `join_game { gameId }` to join the room
-4. Listen for `game_state` broadcasts after any mutation
-5. On `new_game_started`: re-fetch latest state and join new game room
+1. Load the latest game with `GET /api/tournaments/{tournamentId}/latest`.
+2. Default the tournament page to `viewer` mode.
+3. In viewer mode, poll the latest game every 10 seconds.
+4. In writer mode, stop viewer polling and update local state from mutation responses.
+5. When returning to viewer mode, resume 10-second polling.
 
-## Events
+## Modes
 
-### Client -> Server (WebSocket)
-- `join_game` `{ gameId }` — join the Socket.IO room for this game
-- `round_penalty_update` `{ gameId, playerId, penalty }` — relay pending penalty to other clients (not persisted)
+### Viewer mode
+- Shows the same scoreboard, pot, balances, pelt/out indicators, settlement, QR sharing, and celebration stats.
+- Hides all mutation controls: penalty buttons, finish/cancel/undo round, buy-in, sit-out selection, new game, and close tournament.
+- Does not show in-progress penalty inputs from other clients because those values are not persisted.
 
-### Server -> Client (WebSocket broadcast)
-- `game_state` `{ ...fullGameState }` — broadcast after every HTTP mutation (finish round, buy-in, finish game, undo round, etc.)
-- `round_penalty_updated` `{ gameId, playerId, penalty }` — relayed from another client's `round_penalty_update`
-- `new_game_started` `{ gameId }` — new game created in the tournament
+### Writer mode
+- Shows the existing score entry controls.
+- Sends mutations through HTTP.
+- Uses the returned game state from each mutation as the immediate UI update.
+- Multiple writers are allowed; no locking or conflict prevention is required.
 
-### HTTP mutations that trigger `game_state` broadcast
-- `POST /api/games/:gameId/finish-round` — commit round penalties, handle eliminations
-- `POST /api/games/:gameId/buy-in` — player buys back in
-- `POST /api/games/:gameId/finish` — set winner, close game
-- `POST /api/games/:gameId/undo-round` — delete last round, recalculate scores
-- `POST /api/tournaments/:tournamentId/games` — create new game (broadcasts `new_game_started` to old game room)
+## Mutation endpoints
+- `POST /api/games/:gameId/finish-round`
+- `POST /api/games/:gameId/buy-in`
+- `POST /api/games/:gameId/finish`
+- `POST /api/games/:gameId/undo-round`
+- `POST /api/tournaments/:tournamentId/games`
 
 ## Reconnect behavior
-- On reconnect, client re-fetches full game state via HTTP and re-joins the Socket.IO room.
-
-## Security notes (MVP)
-- TournamentId is treated as a secret.
-- Consider rate limiting score_update per client/IP.
+- A browser reload or reconnect performs a fresh HTTP load of the latest game.
+- Viewer polling also detects newly started games and closed tournaments within the polling interval.

@@ -9,22 +9,18 @@ import {
   undoRound,
   type GameState,
 } from "../api/game";
-import {
-  joinGame,
-  onGameState,
-  onPenaltyUpdated,
-  onNewGameStarted,
-  sendPenaltyUpdate,
-  leaveGame,
-  disconnectSocket,
-} from "../api/socket";
 import Scoreboard from "../components/Scoreboard";
 import TournamentClosed from "../components/TournamentClosed";
 import { saveRecentTournament, getRecentTournaments } from "../utils/recentTournaments";
 import { useAuth } from "../contexts/useAuth";
 import { visitTournament, closeTournament, fetchSettlement, type SettlementData } from "../api/tournaments";
+import type { TournamentMode } from "../App";
 
-export default function TournamentPage() {
+interface TournamentPageProps {
+  mode: TournamentMode;
+}
+
+export default function TournamentPage({ mode }: TournamentPageProps) {
   const { tournamentId } = useParams<{ tournamentId: string }>();
   const { token, user } = useAuth();
   const [gameState, setGameState] = useState<GameState | null>(null);
@@ -38,7 +34,16 @@ export default function TournamentPage() {
   const [undoingRound, setUndoingRound] = useState(false);
   const [settlementData, setSettlementData] = useState<SettlementData | null>(null);
 
-  // Load initial state and set up socket
+  const resetLocalRoundState = useCallback((state: GameState) => {
+    const initial: Record<string, number> = {};
+    for (const p of state.players) {
+      initial[p.player_id] = 0;
+    }
+    setPendingPenalties(initial);
+    setExcludedPlayers(new Set());
+  }, []);
+
+  // Load initial state.
   useEffect(() => {
     if (!tournamentId) return;
 
@@ -58,38 +63,7 @@ export default function TournamentPage() {
           state.players.map((p) => p.player_name)
         );
 
-        // Initialize pending penalties to 0 for all active players
-        const initial: Record<string, number> = {};
-        for (const p of state.players) {
-          initial[p.player_id] = 0;
-        }
-        setPendingPenalties(initial);
-
-        // Join socket room
-        joinGame(state.game.id);
-
-        // Listen for server state updates
-        onGameState((newState) => {
-          setGameState(newState);
-        });
-
-        // Listen for optimistic penalty updates from other clients
-        onPenaltyUpdated(({ playerId, penalty }) => {
-          setPendingPenalties((prev) => ({ ...prev, [playerId]: penalty }));
-        });
-
-        // Listen for new game started
-        onNewGameStarted(async ({ gameId }) => {
-          const newState = await fetchLatestGame(tournamentId!);
-          setGameState(newState);
-          const initial: Record<string, number> = {};
-          for (const p of newState.players) {
-            initial[p.player_id] = 0;
-          }
-          setPendingPenalties(initial);
-          setExcludedPlayers(new Set());
-          joinGame(gameId);
-        });
+        resetLocalRoundState(state);
       } catch (err: unknown) {
         if (cancelled) return;
         setError(err instanceof Error ? err.message : "Fout bij laden");
@@ -101,10 +75,33 @@ export default function TournamentPage() {
 
     return () => {
       cancelled = true;
-      leaveGame();
-      disconnectSocket();
     };
-  }, [tournamentId]);
+  }, [resetLocalRoundState, tournamentId]);
+
+  // Viewer mode refreshes persisted state periodically. Writer mode only updates from its own HTTP actions.
+  useEffect(() => {
+    if (!tournamentId || mode !== "viewer" || !gameState) return;
+
+    let cancelled = false;
+    const refresh = async () => {
+      try {
+        const state = await fetchLatestGame(tournamentId);
+        if (cancelled) return;
+        if (gameState.game.id !== state.game.id) {
+          resetLocalRoundState(state);
+        }
+        setGameState(state);
+      } catch {
+        // Keep the last visible state; the next poll may recover.
+      }
+    };
+
+    const intervalId = window.setInterval(refresh, 10_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [gameState, mode, resetLocalRoundState, tournamentId]);
 
   // Save visit to account when logged in (separate effect so it runs once auth is ready)
   useEffect(() => {
@@ -129,7 +126,6 @@ export default function TournamentPage() {
       if (!gameState) return;
       setPendingPenalties((prev) => {
         const newVal = Math.max(0, (prev[playerId] || 0) + delta);
-        sendPenaltyUpdate(gameState.game.id, playerId, newVal);
         return { ...prev, [playerId]: newVal };
       });
     },
@@ -206,7 +202,6 @@ export default function TournamentPage() {
     const reset: Record<string, number> = {};
     for (const p of gameState.players) {
       reset[p.player_id] = 0;
-      sendPenaltyUpdate(gameState.game.id, p.player_id, 0);
     }
     setPendingPenalties(reset);
   }, [gameState]);
@@ -240,7 +235,6 @@ export default function TournamentPage() {
       }
       setPendingPenalties(initial);
       setExcludedPlayers(new Set());
-      joinGame(newState.game.id);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Fout bij starten nieuw spel");
     }
@@ -299,6 +293,7 @@ export default function TournamentPage() {
       undoingRound={undoingRound}
       isCreator={isCreator}
       onCloseTournament={handleCloseTournament}
+      mode={mode}
     />
   );
 }

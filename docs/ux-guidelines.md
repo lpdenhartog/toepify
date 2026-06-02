@@ -7,11 +7,13 @@
 - **Optimistic UI with server authority:** reflect taps immediately, then reconcile to server state if needed.
 - **Clear game state:** Pelt warnings and elimination status must be immediately visible.
 - **UI language:** All user interface elements must be in Dutch language.
+- **Read-only by default:** tournament pages open in viewer mode; users switch to writer mode before editing scores.
 
 
 ## Key screens
 - Tournament join / loading screen (landing page)
 - Scoreboard (main screen) — columns per player, round history rows, +/− buttons, finish round button, game pot, tournament balances
+- Viewer/writer mode toggle in the header on tournament pages
 - Login page (username/password, optional PIN toggle for bootstrap)
 - Account activation page (set password for new account)
 - Landing page (logged in) — "Nieuw Toernooi" form, "Mijn Toernooien" list, admin panel link
