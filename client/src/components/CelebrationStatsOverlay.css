@@ -1,5 +1,13 @@
 .celebration-overlay {
   justify-content: flex-start;
+  padding-top: calc(6rem + env(safe-area-inset-top));
+}
+
+.celebration-winner {
+  max-width: 100%;
+  line-height: 1;
+  overflow-wrap: anywhere;
+  text-align: center;
 }
 
 .celebration-subtitle span {

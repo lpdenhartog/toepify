@@ -1349,3 +1349,101 @@ fieldset legend {
   margin-top: 0.75rem;
   animation: scale-in 0.5s 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
 }
+
+@media (max-width: 480px) and (orientation: portrait) {
+  .app-container {
+    padding: 0.75rem 0.75rem;
+  }
+
+  .app-header {
+    margin-bottom: 0.6rem;
+    padding-bottom: 0.45rem;
+  }
+
+  .app-header h1 {
+    font-size: 1.45rem;
+  }
+
+  .app-header .header-icon {
+    height: 30px;
+  }
+
+  .auth-icon-btn {
+    padding: 0.25rem;
+  }
+
+  .score-table th,
+  .score-table td {
+    padding: 0.32rem 0.2rem;
+  }
+
+  .score-table thead th {
+    font-size: 0.68rem;
+  }
+
+  .player-header {
+    gap: 0.15rem;
+  }
+
+  .player-header-name {
+    font-size: 0.86rem;
+  }
+
+  .player-checkbox {
+    width: 16px;
+    height: 16px;
+  }
+
+  .score-row-current .score-cell {
+    font-size: 1.45rem;
+  }
+
+  .penalty-section {
+    margin-top: 0.75rem;
+    margin-bottom: 0.65rem;
+  }
+
+  .penalty-grid {
+    margin-bottom: 0.5rem;
+  }
+
+  .penalty-btn,
+  .round-action-btn,
+  .round-actions .scoreboard-action {
+    width: 38px;
+    height: 38px;
+    font-size: 1.1rem;
+  }
+
+  .scoreboard-header {
+    margin-bottom: 0.6rem;
+    padding-bottom: 0.45rem;
+  }
+
+  .scoreboard-title,
+  .pot-display {
+    font-size: 0.95rem;
+  }
+
+  .player-summary-wrapper {
+    margin-top: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .player-summary-table {
+    font-size: 0.78rem;
+  }
+
+  .player-summary-table th {
+    font-size: 0.64rem;
+    padding: 0.22rem 0.35rem;
+  }
+
+  .player-summary-table td {
+    padding: 0.26rem 0.35rem;
+  }
+
+  .btn-buyin {
+    padding: 0.45rem 0.5rem;
+  }
+}
