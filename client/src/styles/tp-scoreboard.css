@@ -5,27 +5,12 @@
    Palette-scoped tokens (.pal-*) + .tp-* component classes.
    ============================================================ */
 
-/* ---- palette directions ---------------------------------- */
-/* Krijt & Klaver — warm chalk paper, pine-green accent (light, default) */
-.pal-chalk {
-  --bg: #ece5d6;
-  --bg-glow: #f6f1e6;
-  --surface: #fbf7ee;
-  --surface-hi: #f1e9d8;
-  --line: rgba(48, 40, 28, 0.13);
-  --line-strong: rgba(48, 40, 28, 0.24);
-  --text: #2c2418;
-  --muted: #786b58;
-  --faint: #a4977f;
-  --accent: #1f6b4a;
-  --accent-ink: #f3fbf5;
-  --pelt: #b07e16;
-  --pelt-bg: rgba(176, 126, 22, 0.16);
-  --out: #b23a2c;
-  --out-bg: rgba(178, 58, 44, 0.14);
-  --pos: #1f6b4a;
-  --neg: #b23a2c;
-}
+/* ---- palette directions ----------------------------------
+   Krijt & Klaver (light) is the default, defined on :root in index.css so the
+   whole page reads it. The `pal-chalk` class on components is therefore a no-op
+   marker — kept so a future dark mode can be toggled app-wide via .pal-petrol
+   (or [data-theme="petrol"]) on <html>/<body> without the scoreboard pinning
+   itself back to light. */
 /* Petrol & Koraal — deep teal + coral (future opt-in dark mode) */
 .pal-petrol {
   --bg: #07181c;
@@ -53,13 +38,13 @@
   color: var(--text);
   -webkit-font-smoothing: antialiased;
 }
+/* The scoreboard is not a panel: its cards (board, pot, balances) float
+   directly on the page's chalk background, which the body provides. */
 .tp.scoreboard {
-  background:
-    radial-gradient(120% 80% at 50% -10%, var(--bg-glow), transparent 55%),
-    var(--bg);
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  padding: 14px 16px 18px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
 }
 
 .tp .tp-brand {

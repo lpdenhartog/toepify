@@ -229,6 +229,13 @@ export default function Scoreboard({
     if (popTimer.current) window.clearTimeout(popTimer.current);
     popTimer.current = window.setTimeout(() => setPopped(null), 260);
   };
+  // Clear the pop timer on unmount so it can't setState after teardown.
+  useEffect(
+    () => () => {
+      if (popTimer.current) window.clearTimeout(popTimer.current);
+    },
+    [],
+  );
 
   const [bumped, setBumped] = useState<Record<string, boolean>>({});
   const prevScoresRef = useRef<Record<string, number>>(currentScores);
@@ -328,6 +335,7 @@ export default function Scoreboard({
           p.total_score === 14 ? " is-pelt" : ""
         }${popped === p.player_id ? " tp-pop" : ""}`}
         onClick={() => handleTap(p.player_id)}
+        aria-label={`Strafpunten ${p.player_name}: ${val}`}
       >
         {val}
       </button>
