@@ -20,6 +20,12 @@ Toepify is a realtime scorekeeping app for the Dutch card game "Toepen". It trac
 - **Hosting**: Railway (backend + DB, frontend served as static files from the same Express server)
 - **Testing**: Vitest (server-side unit tests), Playwright (browser E2E tests), GitHub Actions CI
 
+## Development
+
+- Run the built app for manual testing: `npm run build`, then `NODE_ENV=test DATABASE_URL=postgresql://localhost:5432/toepify_test JWT_SECRET=dev node server/dist/index.js` — serves `client/dist` on :3000. The `/__test__/reset` endpoint and rate-limit bypass exist **only** under `NODE_ENV=test`.
+- E2E (Playwright): create the test DB once (`createdb toepify_test && psql postgresql://localhost:5432/toepify_test -f server/src/db/schema.sql`), then from the repo root `TEST_DATABASE_URL=postgresql://localhost:5432/toepify_test JWT_SECRET=e2e-test-jwt-secret npx playwright test`. globalSetup throws without `TEST_DATABASE_URL`/`DATABASE_URL`; `reuseExistingServer` reuses a server already on :3000.
+- ⚠️ E2E `globalTeardown` truncates all game tables **and** deletes the `e2e_admin` user (`/__test__/reset` keeps users). Don't run E2E against a DB holding manual/demo data.
+
 ## Architecture
 
 ### Data Model (8 tables)
@@ -51,6 +57,12 @@ Balances and pot are computed, not stored.
 - **User accounts**: Username/password login with JWT (ADR 004). Admin users manage other accounts.
 - **PIN bootstrap**: When no activated users exist, `ADMIN_PIN` env var enables initial admin login (ADR 003, superseded by accounts).
 - **Tournament access**: Possession of secret tournamentId URL grants access (ADR 002).
+
+## Frontend conventions
+
+- Plain CSS (no Tailwind). Theme tokens (Krijt & Klaver light palette) live on `:root` in `client/src/index.css`; the scoreboard `.tp-*` system + `.pal-petrol` dark opt-in live in `client/src/styles/tp-scoreboard.css`.
+- Component files must export **only** components (eslint `react-refresh/only-export-components`) — put hooks, pure helpers, and types in separate `.ts` files.
+- Don't rename the class/label hooks Playwright specs depend on: `.scoreboard`, `.penalty-btn`, `.score-row-current td`, `.status-pelt`/`.status-out`, `.buyin-section`/`.btn-buyin`, `.celebration-overlay`, `[aria-label="Ronde afsluiten"]`, text "Nieuw spel".
 
 ## Key Documentation
 
