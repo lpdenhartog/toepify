@@ -1,0 +1,1136 @@
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap");
+
+/* ============================================================
+   TOEPIFY — Scoreboard refresh design system ("Krijt & Klaver")
+   Palette-scoped tokens (.pal-*) + .tp-* component classes.
+   ============================================================ */
+
+/* ---- palette directions ----------------------------------
+   Krijt & Klaver (light) is the default, defined on :root in index.css so the
+   whole page reads it. The `pal-chalk` class on components is therefore a no-op
+   marker — kept so a future dark mode can be toggled app-wide via .pal-petrol
+   (or [data-theme="petrol"]) on <html>/<body> without the scoreboard pinning
+   itself back to light. */
+/* Petrol & Koraal — deep teal + coral (future opt-in dark mode) */
+.pal-petrol {
+  --bg: #07181c;
+  --bg-glow: #0f343c;
+  --surface: #0d2329;
+  --surface-hi: #112c33;
+  --line: rgba(210, 238, 238, 0.11);
+  --line-strong: rgba(210, 238, 238, 0.2);
+  --text: #e9f4f3;
+  --muted: #84aab0;
+  --faint: #527279;
+  --accent: #f47b5c;
+  --accent-ink: #2a0d05;
+  --pelt: #f2945a;
+  --pelt-bg: rgba(242, 148, 90, 0.16);
+  --out: #ff6f6f;
+  --out-bg: rgba(255, 111, 111, 0.16);
+  --pos: #43c9a8;
+  --neg: #ff6f6f;
+}
+
+/* ---- base ------------------------------------------------- */
+.tp {
+  font-family: "Hanken Grotesk", system-ui, sans-serif;
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+/* The scoreboard is not a panel: its cards (board, pot, balances) float
+   directly on the page's chalk background, which the body provides. */
+.tp.scoreboard {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+}
+
+.tp .tp-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tp .tp-wordmark {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 700;
+  font-size: 19px;
+  letter-spacing: -0.01em;
+  color: var(--accent);
+  margin: 0;
+  line-height: 1;
+}
+.tp .tp-suits {
+  display: flex;
+  gap: 3px;
+  font-size: 12px;
+  line-height: 1;
+}
+.tp .tp-suits .s-red {
+  color: var(--out);
+}
+.tp .tp-suits .s-dark {
+  color: var(--muted);
+}
+
+/* ---- tournament + pot ------------------------------------ */
+.tp .tp-tourney {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 2px 0 12px;
+}
+.tp .tp-tourney-name {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+.tp .tp-tourney-meta {
+  font-size: 11px;
+  color: var(--faint);
+  margin-top: 2px;
+  letter-spacing: 0.03em;
+}
+.tp .tp-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  color: var(--muted);
+}
+.tp .tp-mode-viewer {
+  color: var(--pos);
+  border-color: color-mix(in oklab, var(--pos) 40%, transparent);
+}
+.tp .tp-livedot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--pos);
+  animation: tp-live 1.8s ease-out infinite;
+}
+.tp .tp-pot {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 7px 13px;
+  flex-shrink: 0;
+}
+.tp .tp-pot-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--faint);
+  line-height: 1;
+}
+.tp .tp-pot-value {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 700;
+  font-size: 19px;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  margin-top: 2px;
+}
+
+/* ---- score board card + tables --------------------------- */
+.tp .tp-board {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 12px 12px 14px;
+}
+.tp .tp-board .score-table-wrapper {
+  overflow: visible;
+}
+.tp .score-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+.tp .score-table th,
+.tp .score-table td {
+  border: none;
+  padding: 3px 4px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.tp .score-table thead th {
+  background: transparent;
+  position: static;
+  text-transform: none;
+  letter-spacing: normal;
+  font-size: inherit;
+  color: var(--text);
+}
+.tp .tp-head-table th {
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+.tp .tp-phead {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.tp .tp-pname {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  text-transform: none;
+}
+.tp .tp-chip {
+  font-family: "Hanken Grotesk", sans-serif;
+  font-size: 8.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  padding: 1px 5px;
+  border-radius: 5px;
+  line-height: 1.35;
+  background: transparent;
+}
+.tp .tp-chip-pelt {
+  color: var(--pelt);
+  background: var(--pelt-bg);
+}
+.tp .tp-chip-out {
+  color: var(--out);
+  background: var(--out-bg);
+}
+
+.tp .tp-history {
+  max-height: 64px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin-top: 6px;
+}
+.tp .tp-hist-table td {
+  font-family: "Hanken Grotesk", sans-serif;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--faint);
+  padding: 2.5px 4px;
+}
+.tp .tp-hist-table td.score-pelt {
+  color: var(--pelt);
+  font-weight: 700;
+}
+.tp .tp-hist-table td.score-out {
+  color: var(--out);
+  font-weight: 700;
+}
+
+.tp .tp-current-table td {
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+  vertical-align: bottom;
+}
+.tp .tp-bignum {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 700;
+  font-size: 40px;
+  line-height: 0.92;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  display: inline-block;
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.3, 1.4);
+}
+.tp .tp-bignum.is-pelt {
+  color: var(--pelt);
+  animation: tp-peltpulse 1.6s ease-in-out infinite;
+}
+.tp .tp-bignum.is-out {
+  color: var(--out);
+  font-size: 30px;
+}
+.tp .tp-bignum.is-dead {
+  color: var(--faint);
+  opacity: 0.35;
+  font-size: 30px;
+}
+.tp .tp-bump {
+  animation: tp-bump 0.34s cubic-bezier(0.2, 0.8, 0.3, 1.4);
+}
+
+/* ---- penalty entry --------------------------------------- */
+.tp .tp-penalty {
+  margin-top: 16px;
+}
+.tp .tp-section-label {
+  font-size: 9.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--faint);
+  margin-bottom: 9px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.tp .tp-section-label::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+.tp .tp-penalty-row {
+  display: grid;
+  grid-template-columns: var(--cols);
+  align-items: start;
+  margin-bottom: 14px;
+}
+.tp .tp-pcol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+.tp .tp-pkey {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--faint);
+  letter-spacing: 0.04em;
+}
+.tp .tp-tapbtn {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1.5px solid var(--line-strong);
+  background: var(--surface-hi);
+  color: var(--text);
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 700;
+  font-size: 19px;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition:
+    transform 0.1s,
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+}
+.tp .tp-tapbtn:hover {
+  border-color: var(--accent);
+}
+.tp .tp-tapbtn:active {
+  transform: scale(0.88);
+}
+.tp .tp-tapbtn.has-val {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+.tp .tp-tapbtn.is-pelt {
+  border-color: var(--pelt);
+  box-shadow: 0 0 0 3px var(--pelt-bg);
+}
+.tp .tp-tapbtn:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+.tp .tp-pop {
+  animation: tp-pop 0.26s cubic-bezier(0.2, 0.8, 0.3, 1.4);
+}
+.tp .tp-gutter-dead {
+  color: var(--faint);
+  opacity: 0.4;
+  font-size: 19px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tp .tp-hint {
+  text-align: center;
+  font-size: 10.5px;
+  color: var(--faint);
+  margin: -4px 0 12px;
+}
+.tp .tp-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+.tp .tp-act {
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    transform 0.1s,
+    filter 0.15s,
+    opacity 0.15s;
+  padding: 0;
+}
+.tp .tp-act:active {
+  transform: scale(0.9);
+}
+.tp .tp-act-cancel {
+  width: 42px;
+  height: 42px;
+  background: transparent;
+  border: 1.5px solid var(--line-strong);
+  color: var(--muted);
+}
+.tp .tp-act-cancel:hover {
+  border-color: var(--out);
+  color: var(--out);
+}
+.tp .tp-act-finish {
+  width: 50px;
+  height: 50px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  box-shadow: 0 6px 18px -6px var(--accent);
+}
+.tp .tp-act-finish:disabled {
+  opacity: 0.35;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+.tp .tp-act-undo {
+  width: 42px;
+  height: 42px;
+  background: transparent;
+  border: 1.5px solid var(--line-strong);
+  color: var(--muted);
+}
+.tp .tp-act-undo:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ---- viewer note ----------------------------------------- */
+.tp .tp-viewnote {
+  margin: 14px 2px 4px;
+  padding: 13px 14px;
+  border: 1px dashed var(--line-strong);
+  border-radius: 12px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+.tp .tp-viewnote b {
+  color: var(--text);
+  font-weight: 700;
+}
+
+/* ---- buy-in ---------------------------------------------- */
+.tp .buyin-section {
+  margin: 12px 0 0;
+  gap: 7px;
+}
+.tp .tp-buyin {
+  flex: 1;
+  min-width: 0;
+  font-family: "Hanken Grotesk", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 9px 8px;
+  border-radius: 11px;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+.tp .tp-buyin:hover {
+  filter: brightness(1.05);
+}
+.tp .tp-buyin:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ---- balances -------------------------------------------- */
+.tp .tp-balances {
+  margin-top: 18px;
+}
+.tp .tp-bal-grid {
+  display: flex;
+  gap: 7px;
+}
+.tp .tp-bal {
+  flex: 1;
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  padding: 8px 4px 7px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+.tp .tp-bal-name {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+.tp .tp-bal-val {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.tp .tp-bal-val.pos {
+  color: var(--pos);
+}
+.tp .tp-bal-val.neg {
+  color: var(--neg);
+}
+.tp .tp-bal-val.zero {
+  color: var(--faint);
+}
+
+/* ---- share / close --------------------------------------- */
+.tp .tp-share {
+  margin-top: 14px;
+  width: 100%;
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  font-family: "Hanken Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition:
+    border-color 0.15s,
+    color 0.15s;
+}
+.tp .tp-share:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.tp .tp-close-tournament {
+  margin-top: 10px;
+}
+
+/* ============================================================
+   CELEBRATION
+   ============================================================ */
+.celebration-overlay.tp-cele {
+  background:
+    radial-gradient(110% 70% at 50% 8%, var(--bg-glow), transparent 55%),
+    var(--bg);
+  justify-content: flex-start;
+  align-items: center;
+  padding: 0 22px;
+  overflow-y: auto;
+  color: var(--text);
+  font-family: "Hanken Grotesk", sans-serif;
+}
+.tp-confetti {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.tp-confetti i {
+  position: absolute;
+  top: -16px;
+  width: 8px;
+  height: 13px;
+  border-radius: 2px;
+  opacity: 0;
+  animation: tp-fall linear infinite;
+}
+.tp-confetti i.round {
+  border-radius: 50%;
+  width: 9px;
+  height: 9px;
+}
+
+.tp-cele-body {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-top: 34px;
+  width: 100%;
+  max-width: 460px;
+}
+.tp-cele-eyebrow {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.4em;
+  color: var(--accent);
+  margin-bottom: 18px;
+  opacity: 0;
+  animation: tp-rise 0.55s 0.05s cubic-bezier(0.2, 0.8, 0.3, 1.2) forwards;
+}
+.tp-medal {
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 38% 32%,
+    var(--surface-hi),
+    var(--surface)
+  );
+  border: 2.5px solid var(--accent);
+  box-shadow:
+    0 0 0 8px var(--pelt-bg),
+    0 18px 40px -12px var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  color: var(--accent);
+  margin-bottom: 18px;
+  opacity: 0;
+  animation: tp-pop-in 0.65s 0.15s cubic-bezier(0.2, 0.9, 0.3, 1.5) forwards;
+}
+.tp-cele-name {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 700;
+  font-size: 46px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  margin: 0;
+  color: var(--text);
+  overflow-wrap: anywhere;
+  opacity: 0;
+  animation: tp-rise 0.6s 0.28s cubic-bezier(0.2, 0.8, 0.3, 1.2) forwards;
+}
+.tp-cele-sub {
+  font-size: 15px;
+  color: var(--muted);
+  margin-top: 12px;
+  opacity: 0;
+  animation: tp-rise 0.6s 0.4s cubic-bezier(0.2, 0.8, 0.3, 1.2) forwards;
+}
+.tp-cele-sub b {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.tp-drama {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px;
+  margin-top: 18px;
+  opacity: 0;
+  animation: tp-rise 0.6s 0.55s cubic-bezier(0.2, 0.8, 0.3, 1.2) forwards;
+}
+.tp-drama-title {
+  font-size: 9.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--faint);
+  margin-bottom: 9px;
+  text-align: left;
+}
+.tp-drow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+.tp-drow:last-child {
+  margin-bottom: 0;
+}
+.tp-dname {
+  width: 54px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-align: left;
+  flex-shrink: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tp-dcells {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+.tp-dcell {
+  flex: 1;
+  min-width: 0;
+  height: 22px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.tp-d0 {
+  background: color-mix(in oklab, var(--text) 7%, transparent);
+  color: var(--faint);
+}
+.tp-d1 {
+  background: var(--pelt-bg);
+}
+.tp-d2 {
+  background: color-mix(in oklab, var(--pelt) 32%, transparent);
+}
+.tp-d3 {
+  background: var(--out-bg);
+}
+.tp-d4 {
+  background: color-mix(in oklab, var(--out) 42%, transparent);
+}
+.tp-dwin {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+.tp-ddead {
+  background: color-mix(in oklab, var(--text) 3%, transparent);
+  color: transparent;
+}
+
+.tp-cele-stats {
+  width: 100%;
+  margin: 14px 0 0;
+  opacity: 0;
+  animation: tp-rise 0.6s 0.7s cubic-bezier(0.2, 0.8, 0.3, 1.2) forwards;
+}
+.tp-stat {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 7px 2px;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+}
+.tp-stat:last-child {
+  border-bottom: none;
+}
+.tp-stat dt {
+  color: var(--muted);
+  font-weight: 500;
+}
+.tp-stat dd {
+  margin: 0;
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 700;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.tp-cele-cta {
+  width: 100%;
+  max-width: 460px;
+  margin-top: auto;
+  margin-bottom: 16px;
+  padding-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: relative;
+  z-index: 2;
+}
+.tp-btn-accent {
+  width: 100%;
+  height: 50px;
+  border-radius: 14px;
+  border: none;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 12px 28px -10px var(--accent);
+  transition:
+    transform 0.12s,
+    filter 0.15s;
+}
+.tp-btn-accent:hover {
+  filter: brightness(1.05);
+}
+.tp-btn-accent:active {
+  transform: scale(0.97);
+}
+.tp-cele-secondary {
+  width: 100%;
+  height: 46px;
+  border-radius: 14px;
+  border: 1px solid var(--line-strong);
+  background: transparent;
+  color: var(--muted);
+  font-family: "Hanken Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    color 0.15s;
+}
+.tp-cele-secondary:hover {
+  border-color: var(--out);
+  color: var(--out);
+}
+
+/* ============================================================
+   LANDSCAPE phone layout (scores + pot always visible)
+   ============================================================ */
+.tp .tp-cell {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.tp.tp-land-wrap {
+  padding: 0;
+  border: none;
+  background: none;
+  border-radius: 0;
+}
+.tp .tp-land {
+  height: 100%;
+  width: 100%;
+  background:
+    radial-gradient(110% 120% at 50% -20%, var(--bg-glow), transparent 55%),
+    var(--bg);
+  display: flex;
+  flex-direction: column;
+  padding: 0 22px 14px;
+  overflow: hidden;
+}
+.tp .tp-land-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 38px;
+  flex-shrink: 0;
+  border-bottom: 1.5px solid var(--accent);
+}
+.tp .tp-land-topmeta {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.tp .tp-land-tname {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text);
+}
+.tp .tp-land-tmeta {
+  font-size: 11px;
+  color: var(--faint);
+  letter-spacing: 0.03em;
+}
+.tp .tp-land-topmeta .tp-mode {
+  margin-top: 0;
+}
+.tp .tp-land-main {
+  flex: 1;
+  display: flex;
+  gap: 16px;
+  min-height: 0;
+  padding-top: 12px;
+}
+.tp .tp-land-board {
+  flex: 1 1 auto;
+  min-width: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 10px 14px 12px;
+  display: flex;
+  flex-direction: column;
+}
+.tp .tp-lrow {
+  display: grid;
+  grid-template-columns: var(--cols);
+  align-items: center;
+}
+.tp .tp-lhead {
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+}
+.tp .tp-lhead .tp-phead {
+  flex-direction: row;
+  gap: 6px;
+  justify-content: center;
+}
+.tp .tp-lhist {
+  padding-top: 5px;
+  overflow: hidden;
+}
+.tp .tp-lhist .tp-lrow {
+  padding: 1px 0;
+}
+.tp .tp-lhist .tp-cell {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--faint);
+}
+.tp .tp-lhist .tp-cell.score-pelt {
+  color: var(--pelt);
+  font-weight: 700;
+}
+.tp .tp-lhist .tp-cell.score-out {
+  color: var(--out);
+  font-weight: 700;
+}
+.tp .tp-lcurrent {
+  margin-top: auto;
+  padding-top: 6px;
+  border-top: 1px solid var(--line);
+  align-items: end;
+}
+.tp .tp-lcurrent .tp-bignum {
+  font-size: 38px;
+}
+.tp .tp-lcurrent .tp-bignum.is-out,
+.tp .tp-lcurrent .tp-bignum.is-dead {
+  font-size: 28px;
+}
+.tp .tp-ltap {
+  display: grid;
+  grid-template-columns: var(--cols);
+  align-items: center;
+  margin-top: 9px;
+  padding-top: 9px;
+  border-top: 1px dashed var(--line);
+}
+.tp .tp-ltap .tp-tapbtn {
+  width: 40px;
+  height: 40px;
+  font-size: 17px;
+  margin: 0 auto;
+}
+.tp .tp-ltap .tp-gutter-dead {
+  height: 40px;
+  font-size: 17px;
+}
+.tp .tp-land-rail {
+  width: 184px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  min-height: 0;
+}
+.tp .tp-land-pot {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 9px 14px 11px;
+  display: flex;
+  flex-direction: column;
+}
+.tp .tp-land-pot .tp-pot-value {
+  font-size: 30px;
+  margin-top: 3px;
+}
+.tp .tp-land-bal {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+.tp .tp-land-bal .tp-section-label {
+  margin-bottom: 6px;
+}
+.tp .tp-lbal-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 3px 0;
+  font-size: 12.5px;
+}
+.tp .tp-lbal-name {
+  color: var(--muted);
+  font-weight: 600;
+}
+.tp .tp-lbal-val {
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.tp .tp-lbal-val.pos {
+  color: var(--pos);
+}
+.tp .tp-lbal-val.neg {
+  color: var(--neg);
+}
+.tp .tp-lbal-val.zero {
+  color: var(--faint);
+}
+.tp .tp-land-acts {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+}
+.tp .tp-land-acts .tp-act-finish {
+  flex: 1;
+  border-radius: 13px;
+  width: auto;
+  height: 42px;
+}
+.tp .tp-land-rail .buyin-section {
+  flex-wrap: wrap;
+  margin: 0;
+}
+.tp .tp-land-rail .tp-buyin {
+  padding: 7px 6px;
+  font-size: 11px;
+}
+
+/* ---- animations ------------------------------------------ */
+@keyframes tp-peltpulse {
+  0%,
+  100% {
+    text-shadow: 0 0 0 transparent;
+    transform: translateY(0);
+  }
+  50% {
+    text-shadow: 0 0 16px var(--pelt-bg);
+    transform: translateY(-1px);
+  }
+}
+@keyframes tp-bump {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.22);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes tp-pop {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.28);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes tp-live {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--pos) 60%, transparent);
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 6px transparent;
+  }
+}
+@keyframes tp-fall {
+  0% {
+    transform: translateY(-16px) rotate(0deg);
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(860px) rotate(640deg);
+    opacity: 0.9;
+  }
+}
+@keyframes tp-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes tp-pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) rotate(-12deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+
+/* ---- landscape phone: reclaim vertical space ------------- */
+@media (orientation: landscape) and (max-height: 540px) {
+  #root {
+    height: 100vh;
+  }
+  .app-header {
+    display: none;
+  }
+  .app-container {
+    padding: 0;
+    max-width: none;
+    height: 100vh;
+  }
+  .scoreboard.tp-land-wrap {
+    height: 100vh;
+  }
+}
+
+/* ---- reduced motion -------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .tp *,
+  .tp-confetti i {
+    animation: none !important;
+    transition: none !important;
+  }
+  .tp-cele-eyebrow,
+  .tp-medal,
+  .tp-cele-name,
+  .tp-cele-sub,
+  .tp-drama,
+  .tp-cele-stats,
+  .tp-cele-cta {
+    opacity: 1 !important;
+  }
+}
