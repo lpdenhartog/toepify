@@ -96,6 +96,50 @@ test.describe("Scoreboard states (refresh)", () => {
     ).toBeVisible();
   });
 
+  test("drama heatmap colours cells green->red by points gained that round", async ({
+    authPage,
+  }) => {
+    const tournament = await createTournament("Heatmap", [
+      "Alice",
+      "Bob",
+      "Charlie",
+    ]);
+    const game = await getLatestGame(tournament.id);
+    const id = Object.fromEntries(
+      game.players.map((p: ApiPlayer) => [p.player_name, p.player_id]),
+    );
+    const round = (pts: Record<string, number>) =>
+      finishRound(
+        game.game.id,
+        Object.entries(pts).map(([name, points]) => ({
+          playerId: id[name],
+          points,
+        })),
+      );
+    // Alice keeps 0 each round (low → green); Bob/Charlie pick up high points
+    // (→ red). Charlie then Bob get eliminated, Alice wins.
+    await round({ Alice: 0, Bob: 4, Charlie: 7 });
+    await round({ Alice: 0, Bob: 6, Charlie: 8 }); // Charlie -> 15 out
+    await round({ Alice: 0, Bob: 5 }); // Bob -> 15 out
+    await finishGame(game.game.id);
+
+    await authPage.goto(`/t/${tournament.id}`);
+    await expect(authPage.locator(".tp-drama")).toBeVisible();
+    // Low (0-point) rounds get the green tier; high (4+) rounds get the red tier.
+    await expect(authPage.locator(".tp-dcell.tp-d0").first()).toBeVisible();
+    await expect(authPage.locator(".tp-dcell.tp-d4").first()).toBeVisible();
+    // The two tiers must render with different background colours.
+    const d0bg = await authPage
+      .locator(".tp-dcell.tp-d0")
+      .first()
+      .evaluate((el) => getComputedStyle(el).backgroundColor);
+    const d4bg = await authPage
+      .locator(".tp-dcell.tp-d4")
+      .first()
+      .evaluate((el) => getComputedStyle(el).backgroundColor);
+    expect(d0bg).not.toBe(d4bg);
+  });
+
   test("reduced motion keeps the celebration winner visible", async ({
     authPage,
   }) => {
