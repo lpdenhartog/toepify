@@ -554,6 +554,9 @@
   overflow-y: auto;
   color: var(--text);
   font-family: "Hanken Grotesk", sans-serif;
+  /* Full-screen takeover: sit above the app header (z-index 150) so the
+     celebration background/confetti don't bleed through the header. */
+  z-index: 200;
 }
 .tp-confetti {
   position: absolute;
