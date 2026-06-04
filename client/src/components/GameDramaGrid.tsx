@@ -7,15 +7,17 @@ interface GameDramaGridProps {
   excludedPlayers: Set<string>;
 }
 
+// Colour by points gained THIS round (cell.penalty = the increase vs the
+// player's previous cell): 0 = green … 4+ = red — an absolute per-round scale,
+// matching production. (Winner/dead cells are marked separately.)
 function tierClass(cell: GridCell): string {
   if (cell.event === "dead") return "tp-ddead";
   if (cell.event === "winner") return "tp-dwin";
-  if (cell.event === "pelt") return "tp-d1";
   const p = cell.penalty ?? 0;
-  if (p === 0) return "tp-d0";
-  if (p <= 2) return "tp-d1";
-  if (p <= 4) return "tp-d2";
-  if (p <= 6) return "tp-d3";
+  if (p <= 0) return "tp-d0";
+  if (p === 1) return "tp-d1";
+  if (p === 2) return "tp-d2";
+  if (p === 3) return "tp-d3";
   return "tp-d4";
 }
 
