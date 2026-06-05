@@ -14,6 +14,8 @@ interface GameDramaGridProps {
 function tierClass(cell: GridCell): string {
   if (cell.event === "dead") return "tp-ddead";
   if (cell.event === "winner") return "tp-dwin";
+  if (cell.event === "buyin") return "tp-dbuyin";
+  if (cell.event === "eliminated") return "tp-deliminated";
   const p = cell.penalty ?? 0;
   if (p <= 0) return "tp-d0";
   if (p === 1) return "tp-d1";
@@ -27,6 +29,20 @@ function tierClass(cell: GridCell): string {
 function cellText(cell: GridCell): string {
   if (cell.event === "dead") return "";
   return String(displayScore(cell.totalAfter));
+}
+
+function cellBadge(cell: GridCell): string | null {
+  if (cell.event === "buyin") return "€";
+  if (cell.event === "eliminated") return "×";
+  if (cell.event === "winner") return "✓";
+  return null;
+}
+
+function cellBadgeLabel(cell: GridCell): string | undefined {
+  if (cell.event === "buyin") return "Inkoop";
+  if (cell.event === "eliminated") return "Uitgeschakeld";
+  if (cell.event === "winner") return "Winnaar";
+  return undefined;
 }
 
 function cellTooltip(playerName: string, cell: GridCell): string {
@@ -90,7 +106,12 @@ export default function GameDramaGrid({
                   className={`tp-dcell ${tierClass(cell)}`}
                   title={cellTooltip(row.playerName, cell)}
                 >
-                  {cellText(cell)}
+                  <span>{cellText(cell)}</span>
+                  {cellBadge(cell) && (
+                    <span className="tp-dbadge" aria-label={cellBadgeLabel(cell)}>
+                      {cellBadge(cell)}
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
