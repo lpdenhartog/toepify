@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import type { GameState } from "../api/game";
 import { buildDramaGridData, type GridCell } from "./buildDramaGridData";
+import { displayScore } from "./scoreboard/scoreboardHelpers";
 
 interface GameDramaGridProps {
   gameState: GameState;
@@ -25,7 +26,7 @@ function tierClass(cell: GridCell): string {
 // (cell.totalAfter); the cell's colour conveys the points gained that round.
 function cellText(cell: GridCell): string {
   if (cell.event === "dead") return "";
-  return String(cell.totalAfter);
+  return String(displayScore(cell.totalAfter));
 }
 
 function cellTooltip(playerName: string, cell: GridCell): string {
@@ -39,7 +40,9 @@ function cellTooltip(playerName: string, cell: GridCell): string {
   if (cell.event === "pelt") return `${base} — Pelt!`;
   if (cell.event === "eliminated") return `${base} — Uitgeschakeld`;
   if (cell.event === "buyin")
-    return `${playerName}: ${delta} — Inkoop naar ${cell.buyInTotal}`;
+    return `${playerName}: ${delta} — Inkoop naar ${
+      cell.buyInTotal === undefined ? "" : displayScore(cell.buyInTotal)
+    }`;
   if (cell.event === "winner") return `${base} — Winnaar`;
   if (cell.event === "dead") return `${playerName} — Uit`;
   return base;
