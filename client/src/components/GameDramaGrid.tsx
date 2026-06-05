@@ -21,11 +21,11 @@ function tierClass(cell: GridCell): string {
   return "tp-d4";
 }
 
+// The number shows the player's cumulative score AFTER that round
+// (cell.totalAfter); the cell's colour conveys the points gained that round.
 function cellText(cell: GridCell): string {
-  if (cell.event === "winner") return "★"; // ★
   if (cell.event === "dead") return "";
-  if (cell.event === "pelt") return "P";
-  return String(cell.penalty ?? 0);
+  return String(cell.totalAfter);
 }
 
 function cellTooltip(playerName: string, cell: GridCell): string {

@@ -138,6 +138,13 @@ test.describe("Scoreboard states (refresh)", () => {
       .first()
       .evaluate((el) => getComputedStyle(el).backgroundColor);
     expect(d0bg).not.toBe(d4bg);
+
+    // The cell NUMBER is the cumulative score after that round (totalAfter),
+    // not the per-round penalty. Bob is at 10 after round 2 — a value that no
+    // single round's penalty reaches, so it proves score (not penalty) is shown.
+    await expect(
+      authPage.locator(".tp-dcell").filter({ hasText: /^10$/ }).first(),
+    ).toBeVisible();
   });
 
   test("reduced motion keeps the celebration winner visible", async ({
