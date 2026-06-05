@@ -10,6 +10,7 @@ import {
   type GameState,
 } from "../api/game";
 import Scoreboard from "../components/Scoreboard";
+import BuyInRainOverlay from "../components/BuyInRainOverlay";
 import TournamentClosed from "../components/TournamentClosed";
 import { saveRecentTournament, getRecentTournaments } from "../utils/recentTournaments";
 import { useAuth } from "../contexts/useAuth";
@@ -33,6 +34,49 @@ export default function TournamentPage({ mode }: TournamentPageProps) {
   const [excludedPlayers, setExcludedPlayers] = useState<Set<string>>(new Set());
   const [undoingRound, setUndoingRound] = useState(false);
   const [settlementData, setSettlementData] = useState<SettlementData | null>(null);
+  const [showBuyInRain, setShowBuyInRain] = useState(false);
+  const [buyInRainKey, setBuyInRainKey] = useState(0);
+  const observedBuyInsRef = useRef<Set<string>>(new Set());
+  const buyInRainTimerRef = useRef<number | null>(null);
+
+  const getBuyInKeys = useCallback((state: GameState) => {
+    return state.rounds
+      .filter((round) => round.round_type === "buy_in")
+      .map((round) => {
+        const scores = round.scores
+          .map((score) => `${score.player_id}:${score.penalty_points}`)
+          .sort()
+          .join(",");
+        return `${state.game.id}:${round.round_number}:${scores}`;
+      });
+  }, []);
+
+  const showBuyInAnimation = useCallback(() => {
+    if (buyInRainTimerRef.current) {
+      window.clearTimeout(buyInRainTimerRef.current);
+    }
+    setBuyInRainKey((key) => key + 1);
+    setShowBuyInRain(true);
+    buyInRainTimerRef.current = window.setTimeout(() => {
+      setShowBuyInRain(false);
+      buyInRainTimerRef.current = null;
+    }, 6_800);
+  }, []);
+
+  const syncGameState = useCallback(
+    (state: GameState, options?: { animateNewBuyIns?: boolean }) => {
+      const buyInKeys = getBuyInKeys(state);
+      const hasNewBuyIn = buyInKeys.some((key) => !observedBuyInsRef.current.has(key));
+      observedBuyInsRef.current = new Set(buyInKeys);
+
+      if (options?.animateNewBuyIns && hasNewBuyIn) {
+        showBuyInAnimation();
+      }
+
+      setGameState(state);
+    },
+    [getBuyInKeys, showBuyInAnimation],
+  );
 
   const resetLocalRoundState = useCallback((state: GameState) => {
     const initial: Record<string, number> = {};
@@ -53,7 +97,7 @@ export default function TournamentPage({ mode }: TournamentPageProps) {
       try {
         const state = await fetchLatestGame(tournamentId!);
         if (cancelled) return;
-        setGameState(state);
+        syncGameState(state);
         setLoading(false);
 
         // Save to recent tournaments
@@ -76,7 +120,7 @@ export default function TournamentPage({ mode }: TournamentPageProps) {
     return () => {
       cancelled = true;
     };
-  }, [resetLocalRoundState, tournamentId]);
+  }, [resetLocalRoundState, syncGameState, tournamentId]);
 
   // Viewer mode refreshes persisted state periodically. Writer mode only updates from its own HTTP actions.
   useEffect(() => {
@@ -90,7 +134,7 @@ export default function TournamentPage({ mode }: TournamentPageProps) {
         if (gameState.game.id !== state.game.id) {
           resetLocalRoundState(state);
         }
-        setGameState(state);
+        syncGameState(state, { animateNewBuyIns: true });
       } catch {
         // Keep the last visible state; the next poll may recover.
       }
@@ -101,7 +145,7 @@ export default function TournamentPage({ mode }: TournamentPageProps) {
       cancelled = true;
       window.clearInterval(intervalId);
     };
-  }, [gameState, mode, resetLocalRoundState, tournamentId]);
+  }, [gameState, mode, resetLocalRoundState, syncGameState, tournamentId]);
 
   // Save visit to account when logged in (separate effect so it runs once auth is ready)
   useEffect(() => {
@@ -145,7 +189,7 @@ export default function TournamentPage({ mode }: TournamentPageProps) {
     try {
       const excludedArr = excludedPlayers.size > 0 ? Array.from(excludedPlayers) : undefined;
       const newState = await finishRound(gameState.game.id, penalties, excludedArr);
-      setGameState(newState);
+      syncGameState(newState);
       // Reset pending penalties
       const initial: Record<string, number> = {};
       for (const p of newState.players) {
@@ -158,14 +202,14 @@ export default function TournamentPage({ mode }: TournamentPageProps) {
       if (activePlayers.length === 1 && newState.game.status === "active") {
         const excludedIds = excludedPlayers.size > 0 ? Array.from(excludedPlayers) : undefined;
         const finishedState = await finishGame(newState.game.id, excludedIds);
-        setGameState(finishedState);
+        syncGameState(finishedState);
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Fout bij afsluiten ronde");
     } finally {
       setFinishingRound(false);
     }
-  }, [gameState, pendingPenalties, excludedPlayers]);
+  }, [gameState, pendingPenalties, excludedPlayers, syncGameState]);
 
   const handleBuyIn = useCallback(
     async (playerId: string) => {
@@ -174,7 +218,7 @@ export default function TournamentPage({ mode }: TournamentPageProps) {
       setBuyingIn(true);
       try {
         const newState = await buyIn(gameState.game.id, playerId);
-        setGameState(newState);
+        syncGameState(newState, { animateNewBuyIns: true });
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : "Fout bij inkopen");
       } finally {
@@ -182,7 +226,7 @@ export default function TournamentPage({ mode }: TournamentPageProps) {
         setBuyingIn(false);
       }
     },
-    [gameState]
+    [gameState, syncGameState]
   );
 
   const handleTogglePlayer = useCallback((playerId: string) => {
@@ -204,14 +248,14 @@ export default function TournamentPage({ mode }: TournamentPageProps) {
       reset[p.player_id] = 0;
     }
     setPendingPenalties(reset);
-  }, [gameState]);
+  }, [gameState, syncGameState]);
 
   const handleUndoRound = useCallback(async () => {
     if (!gameState) return;
     setUndoingRound(true);
     try {
       const newState = await undoRound(gameState.game.id);
-      setGameState(newState);
+      syncGameState(newState);
       const initial: Record<string, number> = {};
       for (const p of newState.players) {
         initial[p.player_id] = 0;
@@ -228,7 +272,7 @@ export default function TournamentPage({ mode }: TournamentPageProps) {
     if (!tournamentId) return;
     try {
       const newState = await startNewGame(tournamentId);
-      setGameState(newState);
+      syncGameState(newState);
       const initial: Record<string, number> = {};
       for (const p of newState.players) {
         initial[p.player_id] = 0;
@@ -238,7 +282,7 @@ export default function TournamentPage({ mode }: TournamentPageProps) {
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Fout bij starten nieuw spel");
     }
-  }, [tournamentId]);
+  }, [syncGameState, tournamentId]);
 
   const tournamentStatus = gameState?.tournament.status;
 
@@ -267,33 +311,50 @@ export default function TournamentPage({ mode }: TournamentPageProps) {
     }
   }, [tournamentId, token, gameState?.tournament.name]);
 
+  useEffect(
+    () => () => {
+      if (buyInRainTimerRef.current) {
+        window.clearTimeout(buyInRainTimerRef.current);
+      }
+    },
+    [],
+  );
+
   if (loading) return <p className="loading-text">Laden...</p>;
   if (error) return <p className="error-msg">{error}</p>;
   if (!gameState) return null;
 
   // Show closed tournament view
   if (gameState.tournament.status === "closed" && settlementData) {
-    return <TournamentClosed settlementData={settlementData} />;
+    return (
+      <>
+        <TournamentClosed settlementData={settlementData} />
+        {showBuyInRain && <BuyInRainOverlay key={buyInRainKey} />}
+      </>
+    );
   }
 
   return (
-    <Scoreboard
-      gameState={gameState}
-      pendingPenalties={pendingPenalties}
-      onPenaltyChange={handlePenaltyChange}
-      onFinishRound={handleFinishRound}
-      finishingRound={finishingRound}
-      onCancelRound={handleCancelRound}
-      onBuyIn={handleBuyIn}
-      buyingIn={buyingIn}
-      onNewGame={handleNewGame}
-      excludedPlayers={excludedPlayers}
-      onTogglePlayer={handleTogglePlayer}
-      onUndoRound={handleUndoRound}
-      undoingRound={undoingRound}
-      isCreator={isCreator}
-      onCloseTournament={handleCloseTournament}
-      mode={mode}
-    />
+    <>
+      <Scoreboard
+        gameState={gameState}
+        pendingPenalties={pendingPenalties}
+        onPenaltyChange={handlePenaltyChange}
+        onFinishRound={handleFinishRound}
+        finishingRound={finishingRound}
+        onCancelRound={handleCancelRound}
+        onBuyIn={handleBuyIn}
+        buyingIn={buyingIn}
+        onNewGame={handleNewGame}
+        excludedPlayers={excludedPlayers}
+        onTogglePlayer={handleTogglePlayer}
+        onUndoRound={handleUndoRound}
+        undoingRound={undoingRound}
+        isCreator={isCreator}
+        onCloseTournament={handleCloseTournament}
+        mode={mode}
+      />
+      {showBuyInRain && <BuyInRainOverlay key={buyInRainKey} />}
+    </>
   );
 }
