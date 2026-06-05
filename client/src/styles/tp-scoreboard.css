@@ -579,6 +579,59 @@
   height: 9px;
 }
 
+.buyin-rain-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 130;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.buyin-rain-glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(90% 60% at 50% 18%, rgba(31, 107, 74, 0.18), transparent 58%),
+    radial-gradient(70% 45% at 50% 40%, rgba(176, 126, 22, 0.14), transparent 62%);
+  animation: buyin-rain-fade 4.8s ease forwards;
+}
+
+.buyin-rain-bill {
+  position: absolute;
+  top: -64px;
+  left: var(--bill-left);
+  display: inline-block;
+  font-size: var(--bill-size);
+  filter: drop-shadow(0 12px 10px rgba(44, 36, 24, 0.24));
+  animation: buyin-bill-fall var(--bill-duration) linear var(--bill-delay) both;
+  will-change: transform, opacity;
+}
+
+@keyframes buyin-bill-fall {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, -10vh, 0) rotate(0deg);
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.85;
+    transform: translate3d(var(--bill-drift), 112vh, 0)
+      rotate(calc(var(--bill-spin) * 340deg));
+  }
+}
+
+@keyframes buyin-rain-fade {
+  0%,
+  62% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
 .tp-cele-body {
   position: relative;
   z-index: 2;
