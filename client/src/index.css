@@ -126,12 +126,13 @@ body {
 }
 
 .app-header h1 {
-  font-size: 1.75rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
+  font-size: 1.78rem;
+  font-weight: 850;
+  letter-spacing: 0.015em;
   text-transform: lowercase;
   margin: 0;
   color: var(--accent);
+  line-height: 1;
 }
 
 .staging-label {
@@ -139,7 +140,9 @@ body {
 }
 
 .app-header .header-icon {
-  height: 36px;
+  height: 40px;
+  width: 40px;
+  flex: 0 0 auto;
 }
 
 /* Cards */
@@ -445,7 +448,7 @@ fieldset legend {
 .header-link {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.55rem;
   text-decoration: none;
   color: inherit;
 }
@@ -1155,11 +1158,12 @@ fieldset legend {
   }
 
   .app-header h1 {
-    font-size: 1.45rem;
+    font-size: 1.48rem;
   }
 
   .app-header .header-icon {
-    height: 30px;
+    height: 34px;
+    width: 34px;
   }
 
   .auth-icon-btn {

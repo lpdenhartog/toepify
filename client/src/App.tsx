@@ -8,7 +8,6 @@ import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import ActivatePage from "./pages/ActivatePage";
 import { useScreenWakeLock } from "./hooks/useScreenWakeLock";
-import headerIcon from "./assets/header-icon.svg";
 
 export type TournamentMode = "viewer" | "writer";
 
@@ -182,7 +181,7 @@ function AppContent() {
     <div className="app-container">
       <header className="app-header">
         <Link to="/" className="header-link">
-          <img src={headerIcon} alt="Four 10s" className="header-icon" />
+          <img src="/logo.svg" alt="toepify logo" className="header-icon" />
           <h1>
             toepify
             {isStaging && <span className="staging-label"> - STAGING</span>}
