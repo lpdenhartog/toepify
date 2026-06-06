@@ -75,7 +75,29 @@ function HeaderActions({
       aria-pressed={screenWakeLock.isActive}
       title="Scherm"
     >
-      Scherm
+      <svg
+        width="22"
+        height="22"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <rect x="6" y="2" width="12" height="20" rx="2" />
+        <path d="M10 18h4" />
+        <circle cx="14" cy="8" r="2" />
+        <path d="M14 3.5v1" />
+        <path d="M14 11.5v1" />
+        <path d="M9.5 8h1" />
+        <path d="M17.5 8h1" />
+        <path d="m11.2 5.2.7.7" />
+        <path d="m16.1 10.1.7.7" />
+        <path d="m16.8 5.2-.7.7" />
+        <path d="m11.9 10.1-.7.7" />
+      </svg>
     </button>
   ) : null;
 
