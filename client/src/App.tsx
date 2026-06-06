@@ -7,7 +7,7 @@ import TournamentPage from "./pages/TournamentPage";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import ActivatePage from "./pages/ActivatePage";
-import headerIcon from "./assets/header-icon.svg";
+import { useScreenWakeLock } from "./hooks/useScreenWakeLock";
 
 export type TournamentMode = "viewer" | "writer";
 
@@ -47,23 +47,63 @@ function HeaderActions({
   mode,
   onToggleMode,
   showModeToggle,
+  showScreenToggle,
 }: {
   mode: TournamentMode;
   onToggleMode: () => void;
   showModeToggle: boolean;
+  showScreenToggle: boolean;
 }) {
   const { isAuthenticated, logout, loading } = useAuth();
   const navigate = useNavigate();
+  const screenWakeLock = useScreenWakeLock();
 
   if (loading) return null;
 
   const modeToggle = showModeToggle ? (
     <ModeToggle mode={mode} onToggle={onToggleMode} />
   ) : null;
+  const screenToggle = showScreenToggle ? (
+    <button
+      className={`auth-icon-btn screen-toggle-btn${
+        screenWakeLock.isActive ? " is-active" : ""
+      }${screenWakeLock.isUnavailable ? " is-unavailable" : ""}`}
+      onClick={() => void screenWakeLock.toggle()}
+      disabled={!screenWakeLock.isSupported || screenWakeLock.isUnavailable}
+      aria-label="Scherm"
+      aria-pressed={screenWakeLock.isActive}
+      title="Scherm"
+    >
+      <svg
+        width="22"
+        height="22"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <rect x="6" y="2" width="12" height="20" rx="2" />
+        <path d="M10 18h4" />
+        <circle cx="14" cy="8" r="2" />
+        <path d="M14 3.5v1" />
+        <path d="M14 11.5v1" />
+        <path d="M9.5 8h1" />
+        <path d="M17.5 8h1" />
+        <path d="m11.2 5.2.7.7" />
+        <path d="m16.1 10.1.7.7" />
+        <path d="m16.8 5.2-.7.7" />
+        <path d="m11.9 10.1-.7.7" />
+      </svg>
+    </button>
+  ) : null;
 
   if (isAuthenticated) {
     return (
       <>
+        {screenToggle}
         {modeToggle}
         <button
           className="auth-icon-btn"
@@ -83,6 +123,7 @@ function HeaderActions({
 
   return (
     <>
+      {screenToggle}
       {modeToggle}
       <button
         className="auth-icon-btn"
@@ -140,7 +181,7 @@ function AppContent() {
     <div className="app-container">
       <header className="app-header">
         <Link to="/" className="header-link">
-          <img src={headerIcon} alt="Four 10s" className="header-icon" />
+          <img src="/logo.svg" alt="toepify logo" className="header-icon" />
           <h1>
             toepify
             {isStaging && <span className="staging-label"> - STAGING</span>}
@@ -153,6 +194,7 @@ function AppContent() {
               setMode((current) => (current === "viewer" ? "writer" : "viewer"))
             }
             showModeToggle={!!tournamentId}
+            showScreenToggle={!!tournamentId}
           />
         </div>
       </header>
