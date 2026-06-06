@@ -112,19 +112,17 @@ body {
 }
 
 .screen-toggle-btn {
-  border: 1px solid var(--line-strong);
   color: var(--text-muted);
   padding: 0.35rem;
 }
 
 .screen-toggle-btn.is-active {
   background: var(--accent);
-  border-color: var(--accent);
   color: var(--accent-ink);
 }
 
 .screen-toggle-btn.is-unavailable {
-  border-style: dashed;
+  opacity: 0.36;
 }
 
 .app-header h1 {
