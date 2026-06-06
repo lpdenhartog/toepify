@@ -6,8 +6,10 @@
 ### Frontend
 - React + TypeScript
 - Vite for build tooling
-- PWA support (manifest + service worker)
+- PWA support (web app manifest, service worker, mobile install metadata)
 - Deployed as a web app (works on desktop and can be installed on mobile)
+- Tournament pages include a `Scherm` toggle that uses the Screen Wake Lock API
+  where the browser supports it.
 
 ### Backend (Railway)
 - Node.js (recommended: Fastify or Express)

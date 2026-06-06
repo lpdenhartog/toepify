@@ -7,6 +7,7 @@ import TournamentPage from "./pages/TournamentPage";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import ActivatePage from "./pages/ActivatePage";
+import { useScreenWakeLock } from "./hooks/useScreenWakeLock";
 import headerIcon from "./assets/header-icon.svg";
 
 export type TournamentMode = "viewer" | "writer";
@@ -47,23 +48,41 @@ function HeaderActions({
   mode,
   onToggleMode,
   showModeToggle,
+  showScreenToggle,
 }: {
   mode: TournamentMode;
   onToggleMode: () => void;
   showModeToggle: boolean;
+  showScreenToggle: boolean;
 }) {
   const { isAuthenticated, logout, loading } = useAuth();
   const navigate = useNavigate();
+  const screenWakeLock = useScreenWakeLock();
 
   if (loading) return null;
 
   const modeToggle = showModeToggle ? (
     <ModeToggle mode={mode} onToggle={onToggleMode} />
   ) : null;
+  const screenToggle = showScreenToggle ? (
+    <button
+      className={`auth-icon-btn screen-toggle-btn${
+        screenWakeLock.isActive ? " is-active" : ""
+      }${screenWakeLock.isUnavailable ? " is-unavailable" : ""}`}
+      onClick={() => void screenWakeLock.toggle()}
+      disabled={!screenWakeLock.isSupported || screenWakeLock.isUnavailable}
+      aria-label="Scherm"
+      aria-pressed={screenWakeLock.isActive}
+      title="Scherm"
+    >
+      Scherm
+    </button>
+  ) : null;
 
   if (isAuthenticated) {
     return (
       <>
+        {screenToggle}
         {modeToggle}
         <button
           className="auth-icon-btn"
@@ -83,6 +102,7 @@ function HeaderActions({
 
   return (
     <>
+      {screenToggle}
       {modeToggle}
       <button
         className="auth-icon-btn"
@@ -153,6 +173,7 @@ function AppContent() {
               setMode((current) => (current === "viewer" ? "writer" : "viewer"))
             }
             showModeToggle={!!tournamentId}
+            showScreenToggle={!!tournamentId}
           />
         </div>
       </header>
