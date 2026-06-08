@@ -28,6 +28,9 @@ function tierClass(cell: GridCell): string {
 // (cell.totalAfter); the cell's colour conveys the points gained that round.
 function cellText(cell: GridCell): string {
   if (cell.event === "dead") return "";
+  if (cell.event === "buyin" && cell.buyInTotal !== undefined) {
+    return String(displayScore(cell.buyInTotal));
+  }
   return String(displayScore(cell.totalAfter));
 }
 
