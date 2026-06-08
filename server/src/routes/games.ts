@@ -36,6 +36,34 @@ router.get("/tournaments/:tournamentId/latest", async (req: Request, res: Respon
   }
 });
 
+// GET /api/tournaments/:tournamentId/history
+router.get("/tournaments/:tournamentId/history", async (req: Request, res: Response) => {
+  const tournamentId = req.params.tournamentId as string;
+  const pool = getPool();
+
+  try {
+    const tRes = await pool.query("SELECT id FROM tournaments WHERE id = $1", [tournamentId]);
+    if (tRes.rows.length === 0) {
+      res.status(404).json({ error: "Toernooi niet gevonden" });
+      return;
+    }
+
+    const gamesRes = await pool.query(
+      "SELECT id FROM games WHERE tournament_id = $1 ORDER BY created_at ASC, id ASC",
+      [tournamentId]
+    );
+
+    const games = await Promise.all(
+      gamesRes.rows.map((row: { id: string }) => getFullGameState(pool, row.id))
+    );
+
+    res.json({ games });
+  } catch (err) {
+    console.error("Failed to fetch tournament history:", err);
+    res.status(500).json({ error: "Serverfout" });
+  }
+});
+
 // POST /api/games/:gameId/finish-round
 router.post("/games/:gameId/finish-round", gameActionLimiter, async (req: Request, res: Response) => {
   const gameId = req.params.gameId as string;

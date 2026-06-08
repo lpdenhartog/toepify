@@ -42,6 +42,16 @@ export async function fetchLatestGame(tournamentId: string): Promise<GameState> 
   return res.json();
 }
 
+export async function fetchTournamentHistory(tournamentId: string): Promise<GameState[]> {
+  const res = await fetch(`/api/tournaments/${tournamentId}/history`);
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error || "Fout bij laden geschiedenis");
+  }
+  const data = await res.json() as { games: GameState[] };
+  return data.games;
+}
+
 export async function finishRound(
   gameId: string,
   penalties: Array<{ playerId: string; points: number }>,

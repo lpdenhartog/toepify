@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import {
   BuyInSection,
   HeroNumber,
@@ -50,7 +51,12 @@ export default function ScoreboardPortrait({ view }: { view: ScoreboardView }) {
       {/* tournament + pot */}
       <div className="tp-tourney">
         <div className="tp-tourney-info">
-          <div className="tp-tourney-name">{tournament.name}</div>
+          <Link
+            className="tp-tourney-name tp-tourney-link"
+            to={`/t/${tournament.id}/history`}
+          >
+            {tournament.name}
+          </Link>
           <div className="tp-tourney-meta">{meta}</div>
           <ModeBadge canWrite={canWrite} />
         </div>
