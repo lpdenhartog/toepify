@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import {
   BuyInSection,
   HeroNumber,
@@ -56,7 +57,12 @@ export default function ScoreboardLandscape({
             <Suits />
           </div>
           <div className="tp-land-topmeta">
-            <span className="tp-land-tname">{tournament.name}</span>
+            <Link
+              className="tp-land-tname tp-tourney-link"
+              to={`/t/${tournament.id}/history`}
+            >
+              {tournament.name}
+            </Link>
             <span className="tp-land-tmeta">{meta}</span>
             <ModeBadge canWrite={canWrite} />
           </div>

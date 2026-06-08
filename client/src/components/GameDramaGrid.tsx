@@ -6,6 +6,7 @@ import { displayScore } from "./scoreboard/scoreboardHelpers";
 interface GameDramaGridProps {
   gameState: GameState;
   excludedPlayers: Set<string>;
+  title?: string | null;
 }
 
 // Colour by points gained THIS round (cell.penalty = the increase vs the
@@ -70,6 +71,7 @@ function cellTooltip(playerName: string, cell: GridCell): string {
 export default function GameDramaGrid({
   gameState,
   excludedPlayers,
+  title = "Het verloop",
 }: GameDramaGridProps) {
   const { players, rounds } = gameState;
   const winnerPlayerId = gameState.game.winner_player_id;
@@ -86,7 +88,7 @@ export default function GameDramaGrid({
 
   return (
     <div className="tp-drama">
-      <div className="tp-drama-title">Het verloop</div>
+      {title && <div className="tp-drama-title">{title}</div>}
       {rows.map((row) => {
         const isWinner = row.playerId === winnerPlayerId;
         return (

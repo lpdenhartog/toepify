@@ -4,6 +4,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { useAuth } from "./contexts/useAuth";
 import AdminPage from "./pages/AdminPage";
 import TournamentPage from "./pages/TournamentPage";
+import TournamentHistoryPage from "./pages/TournamentHistoryPage";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import ActivatePage from "./pages/ActivatePage";
@@ -203,6 +204,7 @@ function AppContent() {
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/activate/:token" element={<ActivatePage />} />
+        <Route path="/t/:tournamentId/history" element={<TournamentHistoryPage />} />
         <Route path="/t/:tournamentId" element={<TournamentPage mode={mode} />} />
         <Route path="*" element={<p>Not found</p>} />
       </Routes>

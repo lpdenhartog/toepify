@@ -328,7 +328,10 @@ export default function TournamentPage({ mode }: TournamentPageProps) {
   if (gameState.tournament.status === "closed" && settlementData) {
     return (
       <>
-        <TournamentClosed settlementData={settlementData} />
+        <TournamentClosed
+          settlementData={settlementData}
+          tournamentId={gameState.tournament.id}
+        />
         {showBuyInRain && <BuyInRainOverlay key={buyInRainKey} />}
       </>
     );
