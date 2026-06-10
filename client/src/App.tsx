@@ -9,6 +9,12 @@ import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import ActivatePage from "./pages/ActivatePage";
 import { useScreenWakeLock } from "./hooks/useScreenWakeLock";
+import { fetchLatestGame } from "./api/game";
+import {
+  buildScoreSpeechText,
+  canUseScoreSpeech,
+  speakScoreText,
+} from "./components/scoreboard/scoreSpeech";
 
 export type TournamentMode = "viewer" | "writer";
 
@@ -44,14 +50,67 @@ function ModeToggle({
   );
 }
 
+function ScoreReadButton({ tournamentId }: { tournamentId: string }) {
+  const [isReading, setIsReading] = useState(false);
+  const isSupported = canUseScoreSpeech();
+  const label = isSupported
+    ? "Stand voorlezen"
+    : "Stand voorlezen niet ondersteund";
+
+  const readScore = async () => {
+    if (!isSupported || isReading) return;
+
+    setIsReading(true);
+    try {
+      const state = await fetchLatestGame(tournamentId);
+      const currentScores = Object.fromEntries(
+        state.players.map((player) => [player.player_id, player.total_score]),
+      );
+      speakScoreText(buildScoreSpeechText(state.players, currentScores));
+    } catch {
+      // Keep the header quiet if the latest score cannot be loaded.
+    } finally {
+      setIsReading(false);
+    }
+  };
+
+  return (
+    <button
+      className="auth-icon-btn"
+      onClick={() => void readScore()}
+      disabled={!isSupported || isReading}
+      title={label}
+      aria-label={label}
+    >
+      <svg
+        width="22"
+        height="22"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M4 9v6h4l5 4V5L8 9H4z" />
+        <path d="M16 8.5a5 5 0 0 1 0 7" />
+        <path d="M18.5 6a8 8 0 0 1 0 12" />
+      </svg>
+    </button>
+  );
+}
+
 function HeaderActions({
   mode,
   onToggleMode,
+  tournamentId,
   showModeToggle,
   showScreenToggle,
 }: {
   mode: TournamentMode;
   onToggleMode: () => void;
+  tournamentId: string | undefined;
   showModeToggle: boolean;
   showScreenToggle: boolean;
 }) {
@@ -63,6 +122,9 @@ function HeaderActions({
 
   const modeToggle = showModeToggle ? (
     <ModeToggle mode={mode} onToggle={onToggleMode} />
+  ) : null;
+  const scoreReadButton = tournamentId ? (
+    <ScoreReadButton tournamentId={tournamentId} />
   ) : null;
   const screenToggle = showScreenToggle ? (
     <button
@@ -104,6 +166,7 @@ function HeaderActions({
   if (isAuthenticated) {
     return (
       <>
+        {scoreReadButton}
         {screenToggle}
         {modeToggle}
         <button
@@ -124,6 +187,7 @@ function HeaderActions({
 
   return (
     <>
+      {scoreReadButton}
       {screenToggle}
       {modeToggle}
       <button
@@ -194,6 +258,7 @@ function AppContent() {
             onToggleMode={() =>
               setMode((current) => (current === "viewer" ? "writer" : "viewer"))
             }
+            tournamentId={tournamentId}
             showModeToggle={!!tournamentId}
             showScreenToggle={!!tournamentId}
           />

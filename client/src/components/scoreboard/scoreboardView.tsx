@@ -67,7 +67,6 @@ export const IconShare = () => (
     <path d="M9.5 9.5h2v2M14.5 9.5v5M9.5 14.5h2" strokeLinecap="round" />
   </svg>
 );
-
 export const Suits = () => (
   <span className="tp-suits" aria-hidden="true">
     <span className="s-dark">&#9824;</span>

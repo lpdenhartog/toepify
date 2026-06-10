@@ -56,6 +56,24 @@ test.describe("Tournament history", () => {
     await expect(authPage).toHaveURL(`/t/${tournament.id}/history`);
     await expect(authPage.getByRole("heading", { name: "Spel 1" })).toBeVisible();
     await expect(authPage.getByRole("heading", { name: "Spel 2" })).toBeVisible();
+
+    const gameRows = authPage.locator(".tournament-history-game");
+    await expect(gameRows).toHaveCount(2);
+    await expect(gameRows.nth(0)).toContainText("Bob won €5,00");
+    await expect(gameRows.nth(1)).toContainText("Nog geen winnaar");
+    await expect(gameRows.nth(0).locator(".tp-drama")).not.toBeVisible();
+
+    await gameRows.nth(0).locator("summary").click();
+    await expect(gameRows.nth(0).locator(".tp-drama")).toBeVisible();
+    await expect(gameRows.nth(0)).toContainText("Sloper");
+    await expect(gameRows.nth(0)).toContainText("Bob (15 punten)");
+    await expect(gameRows.nth(0)).toContainText("Meeste punten in 1 ronde");
+    await expect(gameRows.nth(0)).toContainText("Alice (10)");
+
+    await gameRows.nth(1).locator("summary").click();
+    await expect(gameRows.nth(1).locator(".tp-drama")).toBeVisible();
+    await expect(gameRows.nth(1)).toContainText("Snurker");
+    await expect(gameRows.nth(1)).toContainText("Bob (1 keer van 1 ronden)");
     await expect(authPage.locator(".tp-drama")).toHaveCount(2);
 
     await authPage.getByRole("link", { name: "Terug naar spel" }).click();
@@ -85,6 +103,12 @@ test.describe("Tournament history", () => {
     await authPage.getByRole("link", { name: "Gesloten Historie" }).click();
     await expect(authPage).toHaveURL(`/t/${tournament.id}/history`);
     await expect(authPage.getByRole("heading", { name: "Spel 1" })).toBeVisible();
+    await expect(authPage.locator(".tournament-history-game")).toContainText("Bob won €5,00");
+    await expect(authPage.locator(".tp-drama")).not.toBeVisible();
+
+    await authPage.locator(".tournament-history-game summary").click();
+    await expect(authPage.locator(".tp-drama")).toBeVisible();
+    await expect(authPage.locator(".tournament-history-game")).toContainText("Aantal ronden");
     await expect(authPage.locator(".tp-drama")).toHaveCount(1);
   });
 });
