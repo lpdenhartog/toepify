@@ -67,6 +67,23 @@ export const IconShare = () => (
     <path d="M9.5 9.5h2v2M14.5 9.5v5M9.5 14.5h2" strokeLinecap="round" />
   </svg>
 );
+export const IconVolume = () => (
+  <svg
+    width="15"
+    height="15"
+    viewBox="0 0 18 18"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.8"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M3 7v4h3l4 3.5v-11L6 7H3z" />
+    <path d="M13 6.5a4 4 0 010 5" />
+    <path d="M15 4a7 7 0 010 10" />
+  </svg>
+);
 
 export const Suits = () => (
   <span className="tp-suits" aria-hidden="true">
@@ -252,6 +269,41 @@ export function RoundActions({
           <IconUndo />
         </button>
       )}
+    </div>
+  );
+}
+
+export function ScoreSpeechControls({
+  supported,
+  enabled,
+  onToggle,
+  onRead,
+}: {
+  supported: boolean;
+  enabled: boolean;
+  onToggle: () => void;
+  onRead: () => void;
+}) {
+  return (
+    <div className="tp-speech" aria-label="Stand voorlezen">
+      <button
+        className="tp-speech-btn"
+        onClick={onRead}
+        disabled={!supported}
+        aria-label="Stand voorlezen"
+        title={supported ? "Stand voorlezen" : "Voorlezen niet ondersteund"}
+      >
+        <IconVolume />
+      </button>
+      <label className={`tp-speech-toggle${!supported ? " is-disabled" : ""}`}>
+        <input
+          type="checkbox"
+          checked={enabled}
+          disabled={!supported}
+          onChange={onToggle}
+        />
+        <span>Lees stand voor</span>
+      </label>
     </div>
   );
 }

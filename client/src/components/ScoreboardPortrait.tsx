@@ -6,6 +6,7 @@ import {
   ModeBadge,
   PlayerHead,
   RoundActions,
+  ScoreSpeechControls,
   TapButton,
 } from "./scoreboard/scoreboardView";
 import {
@@ -38,6 +39,8 @@ export default function ScoreboardPortrait({ view }: { view: ScoreboardView }) {
     finishingRound,
     undoingRound,
     buyingIn,
+    scoreSpeechSupported,
+    scoreSpeechEnabled,
     scrollRef,
     colStyle,
     celebration,
@@ -238,6 +241,15 @@ export default function ScoreboardPortrait({ view }: { view: ScoreboardView }) {
         <IconShare />
         Deel link
       </button>
+
+      {canWrite && (
+        <ScoreSpeechControls
+          supported={scoreSpeechSupported}
+          enabled={scoreSpeechEnabled}
+          onToggle={view.onToggleScoreSpeech}
+          onRead={view.onReadScore}
+        />
+      )}
 
       {/* close tournament (creator, active game, no rounds played) */}
       {canWrite && isCreator && isActive && rounds.length === 0 && (
