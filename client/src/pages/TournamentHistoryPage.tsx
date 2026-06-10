@@ -129,9 +129,9 @@ export default function TournamentHistoryPage() {
             return (
               <details className="tournament-history-game" key={game.game.id}>
                 <summary className="tournament-history-game-summary">
-                  <span className="tournament-history-game-number">
+                  <h3 className="tournament-history-game-number">
                     Spel {index + 1}
-                  </span>
+                  </h3>
                   <span className="tournament-history-game-winner">
                     {getWinnerSummary(game)}
                   </span>

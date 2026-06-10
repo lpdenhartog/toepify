@@ -1270,6 +1270,7 @@ fieldset legend {
   font-size: 0.8rem;
   font-weight: 800;
   letter-spacing: 0.08em;
+  margin: 0;
   text-transform: uppercase;
   color: var(--text-muted);
 }
