@@ -9,7 +9,6 @@ import {
   useIsLandscapePhone,
   type ScoreboardView,
 } from "./scoreboard/scoreboardHelpers";
-import { useScoreSpeech } from "./scoreboard/scoreSpeech";
 import type { TournamentMode } from "../App";
 
 interface ScoreboardProps {
@@ -152,12 +151,6 @@ export default function Scoreboard({
   } as React.CSSProperties;
   const meta = `${players.length} spelers`;
   const sortedBalances = [...balances].sort((a, b) => b.balance - a.balance);
-  const scoreSpeech = useScoreSpeech({
-    players,
-    currentScores,
-    roundsLength: rounds.length,
-    canWrite,
-  });
 
   const undoConfirm = () => {
     if (window.confirm("Laatste ronde ongedaan maken?")) onUndoRound();
@@ -218,8 +211,6 @@ export default function Scoreboard({
     finishingRound,
     undoingRound,
     buyingIn,
-    scoreSpeechSupported: scoreSpeech.supported,
-    scoreSpeechEnabled: scoreSpeech.enabled,
     scrollRef,
     colStyle,
     celebration,
@@ -231,8 +222,6 @@ export default function Scoreboard({
     onUndo: undoConfirm,
     onBuyIn,
     canBuyIn,
-    onToggleScoreSpeech: () => scoreSpeech.setEnabled(!scoreSpeech.enabled),
-    onReadScore: scoreSpeech.speakCurrentScore,
     onOpenShare: () => setShowQR(true),
     onCloseTournament,
   };

@@ -60,8 +60,6 @@ export interface ScoreboardView {
   finishingRound: boolean;
   undoingRound: boolean;
   buyingIn: boolean;
-  scoreSpeechSupported: boolean;
-  scoreSpeechEnabled: boolean;
   scrollRef: React.RefObject<HTMLDivElement | null>;
   colStyle: React.CSSProperties;
   celebration: React.ReactNode;
@@ -73,8 +71,6 @@ export interface ScoreboardView {
   onUndo: () => void;
   onBuyIn: (id: string) => void;
   canBuyIn: (id: string) => boolean;
-  onToggleScoreSpeech: () => void;
-  onReadScore: () => void;
   onOpenShare: () => void;
   onCloseTournament: () => void;
 }

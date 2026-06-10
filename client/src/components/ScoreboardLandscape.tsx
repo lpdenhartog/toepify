@@ -5,7 +5,6 @@ import {
   ModeBadge,
   PlayerHead,
   RoundActions,
-  ScoreSpeechControls,
   Suits,
   TapButton,
 } from "./scoreboard/scoreboardView";
@@ -42,8 +41,6 @@ export default function ScoreboardLandscape({
     finishingRound,
     undoingRound,
     buyingIn,
-    scoreSpeechSupported,
-    scoreSpeechEnabled,
     scrollRef,
     colStyle,
     celebration,
@@ -186,15 +183,6 @@ export default function ScoreboardLandscape({
                 finishDisabled={finishingRound || !penaltiesValid}
                 undoing={undoingRound}
                 onUndo={view.onUndo}
-              />
-            )}
-
-            {canWrite && (
-              <ScoreSpeechControls
-                supported={scoreSpeechSupported}
-                enabled={scoreSpeechEnabled}
-                onToggle={view.onToggleScoreSpeech}
-                onRead={view.onReadScore}
               />
             )}
           </div>
