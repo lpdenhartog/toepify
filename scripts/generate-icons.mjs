@@ -45,7 +45,9 @@ const mark = `
 // any → rounded squircle tile with a slightly larger mark.
 function tileSvg(size, { maskable }) {
   const radius = maskable ? 0 : 50;
-  const scale = maskable ? 0.58 : 0.66;
+  // Fill most of the tile (the mark read too small at 0.66). Maskable stays a
+  // touch smaller so the fan corners survive a launcher's ~80% safe-zone crop.
+  const scale = maskable ? 0.78 : 0.9;
   const tx = (240 - 240 * scale) / 2;
   const ty = (240 - 250 * scale) / 2;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="${size}" height="${size}">
