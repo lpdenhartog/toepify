@@ -47,7 +47,22 @@ test.describe("New Game", () => {
     // Navigate to tournament page — should show celebration overlay
     await authPage.goto(`/t/${tournament.id}`);
     await expect(authPage.locator(".celebration-overlay")).toBeVisible();
-    await authPage.getByLabel("Schakel naar schrijver modus").click();
+    const modeToggle = authPage.getByLabel("Schakel naar schrijver modus");
+    await expect(modeToggle).toBeVisible();
+    await expect(modeToggle).toBeInViewport();
+    await expect
+      .poll(async () =>
+        modeToggle.evaluate((el) => {
+          const rect = el.getBoundingClientRect();
+          const topElement = document.elementFromPoint(
+            rect.left + rect.width / 2,
+            rect.top + rect.height / 2,
+          );
+          return topElement === el || el.contains(topElement);
+        }),
+      )
+      .toBe(true);
+    await modeToggle.click();
 
     // Click "Nieuw spel"
     await authPage.click("text=Nieuw spel");

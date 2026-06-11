@@ -1,10 +1,12 @@
+import { Link } from "react-router-dom";
 import type { SettlementData } from "../api/tournaments";
 
 interface TournamentClosedProps {
   settlementData: SettlementData;
+  tournamentId: string;
 }
 
-export default function TournamentClosed({ settlementData }: TournamentClosedProps) {
+export default function TournamentClosed({ settlementData, tournamentId }: TournamentClosedProps) {
   const { name, balances, settlements } = settlementData;
 
   const sortedBalances = [...balances].sort((a, b) => b.balance - a.balance);
@@ -18,7 +20,9 @@ export default function TournamentClosed({ settlementData }: TournamentClosedPro
   return (
     <div className="tournament-closed">
       <div className="tournament-closed-header">
-        <h1>{name}</h1>
+        <h1>
+          <Link to={`/t/${tournamentId}/history`}>{name}</Link>
+        </h1>
         <span className="tournament-closed-badge">Afgesloten</span>
       </div>
 

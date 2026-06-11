@@ -12,10 +12,18 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { useAuth } from "./contexts/useAuth";
 import AdminPage from "./pages/AdminPage";
 import TournamentPage from "./pages/TournamentPage";
+import TournamentHistoryPage from "./pages/TournamentHistoryPage";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import ActivatePage from "./pages/ActivatePage";
 import LogoMark from "./components/logo/LogoMark";
+import { useScreenWakeLock } from "./hooks/useScreenWakeLock";
+import { fetchLatestGame } from "./api/game";
+import {
+  buildScoreSpeechText,
+  canUseScoreSpeech,
+  speakScoreText,
+} from "./components/scoreboard/scoreSpeech";
 
 export type TournamentMode = "viewer" | "writer";
 
@@ -71,27 +79,124 @@ function ModeToggle({
   );
 }
 
+function ScoreReadButton({ tournamentId }: { tournamentId: string }) {
+  const [isReading, setIsReading] = useState(false);
+  const isSupported = canUseScoreSpeech();
+  const label = isSupported
+    ? "Stand voorlezen"
+    : "Stand voorlezen niet ondersteund";
+
+  const readScore = async () => {
+    if (!isSupported || isReading) return;
+
+    setIsReading(true);
+    try {
+      const state = await fetchLatestGame(tournamentId);
+      const currentScores = Object.fromEntries(
+        state.players.map((player) => [player.player_id, player.total_score]),
+      );
+      speakScoreText(buildScoreSpeechText(state.players, currentScores));
+    } catch {
+      // Keep the header quiet if the latest score cannot be loaded.
+    } finally {
+      setIsReading(false);
+    }
+  };
+
+  return (
+    <button
+      className="auth-icon-btn"
+      onClick={() => void readScore()}
+      disabled={!isSupported || isReading}
+      title={label}
+      aria-label={label}
+    >
+      <svg
+        width="22"
+        height="22"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M4 9v6h4l5 4V5L8 9H4z" />
+        <path d="M16 8.5a5 5 0 0 1 0 7" />
+        <path d="M18.5 6a8 8 0 0 1 0 12" />
+      </svg>
+    </button>
+  );
+}
+
 function HeaderActions({
   mode,
   onToggleMode,
+  tournamentId,
   showModeToggle,
+  showScreenToggle,
 }: {
   mode: TournamentMode;
   onToggleMode: () => void;
+  tournamentId: string | undefined;
   showModeToggle: boolean;
+  showScreenToggle: boolean;
 }) {
   const { isAuthenticated, logout, loading } = useAuth();
   const navigate = useNavigate();
+  const screenWakeLock = useScreenWakeLock();
 
   if (loading) return null;
 
   const modeToggle = showModeToggle ? (
     <ModeToggle mode={mode} onToggle={onToggleMode} />
   ) : null;
+  const scoreReadButton = tournamentId ? (
+    <ScoreReadButton tournamentId={tournamentId} />
+  ) : null;
+  const screenToggle = showScreenToggle ? (
+    <button
+      className={`auth-icon-btn screen-toggle-btn${
+        screenWakeLock.isActive ? " is-active" : ""
+      }${screenWakeLock.isUnavailable ? " is-unavailable" : ""}`}
+      onClick={() => void screenWakeLock.toggle()}
+      disabled={!screenWakeLock.isSupported || screenWakeLock.isUnavailable}
+      aria-label="Scherm"
+      aria-pressed={screenWakeLock.isActive}
+      title="Scherm"
+    >
+      <svg
+        width="22"
+        height="22"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <rect x="6" y="2" width="12" height="20" rx="2" />
+        <path d="M10 18h4" />
+        <circle cx="14" cy="8" r="2" />
+        <path d="M14 3.5v1" />
+        <path d="M14 11.5v1" />
+        <path d="M9.5 8h1" />
+        <path d="M17.5 8h1" />
+        <path d="m11.2 5.2.7.7" />
+        <path d="m16.1 10.1.7.7" />
+        <path d="m16.8 5.2-.7.7" />
+        <path d="m11.9 10.1-.7.7" />
+      </svg>
+    </button>
+  ) : null;
 
   if (isAuthenticated) {
     return (
       <>
+        {scoreReadButton}
+        {screenToggle}
         {modeToggle}
         <button
           className="auth-icon-btn"
@@ -120,6 +225,8 @@ function HeaderActions({
 
   return (
     <>
+      {scoreReadButton}
+      {screenToggle}
       {modeToggle}
       <button
         className="auth-icon-btn"
@@ -198,7 +305,9 @@ function AppContent() {
             onToggleMode={() =>
               setMode((current) => (current === "viewer" ? "writer" : "viewer"))
             }
+            tournamentId={tournamentId}
             showModeToggle={!!tournamentId}
+            showScreenToggle={!!tournamentId}
           />
         </div>
       </header>
@@ -207,6 +316,10 @@ function AppContent() {
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/activate/:token" element={<ActivatePage />} />
+        <Route
+          path="/t/:tournamentId/history"
+          element={<TournamentHistoryPage />}
+        />
         <Route
           path="/t/:tournamentId"
           element={<TournamentPage mode={mode} />}

@@ -91,6 +91,12 @@
   letter-spacing: -0.01em;
   color: var(--text);
 }
+.tp .tp-tourney-link {
+  text-decoration: none;
+}
+.tp .tp-tourney-link:hover {
+  color: var(--accent);
+}
 .tp .tp-tourney-meta {
   font-size: 11px;
   color: var(--faint);
@@ -556,9 +562,9 @@
   overflow-y: auto;
   color: var(--text);
   font-family: "Hanken Grotesk", sans-serif;
-  /* Full-screen takeover: sit above the app header (z-index 150) so the
-     celebration background/confetti don't bleed through the header. */
-  z-index: 200;
+  /* Keep the global header above the celebration so tournament mode remains
+     switchable when a finished game opens in viewer mode. */
+  z-index: 120;
 }
 .tp-confetti {
   position: absolute;
@@ -579,6 +585,59 @@
   border-radius: 50%;
   width: 9px;
   height: 9px;
+}
+
+.buyin-rain-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 130;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.buyin-rain-glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(90% 60% at 50% 18%, rgba(31, 107, 74, 0.18), transparent 58%),
+    radial-gradient(70% 45% at 50% 40%, rgba(176, 126, 22, 0.14), transparent 62%);
+  animation: buyin-rain-fade 4.8s ease forwards;
+}
+
+.buyin-rain-bill {
+  position: absolute;
+  top: -64px;
+  left: var(--bill-left);
+  display: inline-block;
+  font-size: var(--bill-size);
+  filter: drop-shadow(0 12px 10px rgba(44, 36, 24, 0.24));
+  animation: buyin-bill-fall var(--bill-duration) linear var(--bill-delay) both;
+  will-change: transform, opacity;
+}
+
+@keyframes buyin-bill-fall {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, -10vh, 0) rotate(0deg);
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.85;
+    transform: translate3d(var(--bill-drift), 112vh, 0)
+      rotate(calc(var(--bill-spin) * 340deg));
+  }
+}
+
+@keyframes buyin-rain-fade {
+  0%,
+  62% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
 .tp-cele-body {
@@ -693,6 +752,7 @@
   flex: 1;
 }
 .tp-dcell {
+  position: relative;
   flex: 1;
   min-width: 0;
   height: 22px;
@@ -704,6 +764,27 @@
   font-weight: 600;
   color: var(--text);
   font-variant-numeric: tabular-nums;
+}
+.tp-dbadge {
+  position: absolute;
+  top: -4px;
+  right: -3px;
+  display: grid;
+  place-items: center;
+  width: 11px;
+  height: 11px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 8px;
+  font-weight: 900;
+  line-height: 1;
+  box-shadow: 0 0 0 1px var(--surface);
+}
+.tp-dwin .tp-dbadge {
+  background: var(--surface);
+  color: var(--accent);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--accent) 52%, var(--surface));
 }
 /* Heatmap intensity by points gained that round: 0 = green … 4+ = red.
    A clear, monotonic low→high ramp (production behaviour), tuned to read on
@@ -722,6 +803,14 @@
 }
 .tp-d4 {
   background: rgba(196, 60, 46, 0.5);
+}
+.tp-dbuyin {
+  background: rgba(232, 178, 36, 0.46);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--accent) 62%, transparent);
+}
+.tp-deliminated {
+  background: rgba(196, 60, 46, 0.5);
+  box-shadow: inset 0 0 0 1px rgba(196, 60, 46, 0.38);
 }
 .tp-dwin {
   background: var(--accent);

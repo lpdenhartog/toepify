@@ -42,6 +42,7 @@ Acceptance criteria:
 - Visiting `/t/{tournamentId}` loads the tournament if it exists.
 - If the tournament does not exist, show a friendly error.
 - If a current game exists, show the latest game.
+- Players can install Toepify on a phone and start it from the home screen.
 
 ### P2 — View scores
 **As a player**, I want to see the current scores update automatically, **so that** everyone stays in sync.
@@ -57,6 +58,8 @@ Acceptance criteria:
 - Viewer mode hides score editing controls.
 - Viewer mode refreshes persisted score state automatically within about 10 seconds.
 - Reconnecting refreshes to the authoritative score state.
+- Tournament pages show a `Scherm` toggle that keeps the screen awake when the
+  browser supports it.
 
 ### P3 — Enter round penalties
 **As a player**, I want to enter penalty points per player for the current round, **so that** we can record each round's results.

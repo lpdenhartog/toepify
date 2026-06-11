@@ -72,6 +72,7 @@ body {
 .app-header {
   position: relative;
   z-index: 150;
+  background: var(--bg);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -107,6 +108,25 @@ body {
   background: color-mix(in oklab, var(--accent) 10%, transparent);
 }
 
+.auth-icon-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.screen-toggle-btn {
+  color: var(--text-muted);
+  padding: 0.35rem;
+}
+
+.screen-toggle-btn.is-active {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.screen-toggle-btn.is-unavailable {
+  opacity: 0.36;
+}
+
 .app-header h1 {
   font-family: "Fredoka", system-ui, sans-serif;
   font-size: 1.5rem; /* ~24px, was 1.75rem Inter */
@@ -127,6 +147,7 @@ body {
   height: 36px;
   width: auto;
   display: block;
+  flex: 0 0 auto;
 }
 
 /* Cards */
@@ -432,7 +453,7 @@ fieldset legend {
 .header-link {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.55rem;
   text-decoration: none;
   color: inherit;
 }
@@ -1106,6 +1127,15 @@ fieldset legend {
   margin: 0 0 0.5rem 0;
 }
 
+.tournament-closed-header h1 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.tournament-closed-header h1 a:hover {
+  color: var(--accent);
+}
+
 .tournament-closed-badge {
   display: inline-block;
   font-size: 0.7rem;
@@ -1153,6 +1183,236 @@ fieldset legend {
   font-variant-numeric: tabular-nums;
 }
 
+/* ======== Tournament History ======== */
+
+.tournament-history {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  color: var(--text);
+}
+
+.tournament-history-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.tournament-history-header h2 {
+  margin: 0;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1.55rem;
+  line-height: 1.1;
+  text-align: right;
+}
+
+.tournament-history-eyebrow {
+  margin: 0 0 0.25rem;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-align: right;
+  text-transform: uppercase;
+}
+
+.tournament-history-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.35rem;
+  height: 2.35rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  flex-shrink: 0;
+  text-decoration: none;
+  transition:
+    border-color 0.15s,
+    color 0.15s,
+    transform 0.15s,
+    background 0.15s;
+}
+
+.tournament-history-back:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: color-mix(in oklab, var(--accent) 8%, var(--surface));
+}
+
+.tournament-history-back:active {
+  transform: scale(0.96);
+}
+
+.tournament-history-back svg {
+  width: 1.35rem;
+  height: 1.35rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.25;
+}
+
+.tournament-history-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.tournament-history-game {
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.tournament-history-game[open] {
+  border-color: color-mix(in oklab, var(--accent) 45%, var(--border));
+}
+
+.tournament-history-game-summary {
+  display: grid;
+  grid-template-columns: minmax(4.5rem, auto) minmax(0, 1fr) 2rem;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 3.4rem;
+  padding: 0.75rem 0.8rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.tournament-history-game-summary::-webkit-details-marker {
+  display: none;
+}
+
+.tournament-history-game-summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.tournament-history-game-number {
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  margin: 0;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.tournament-history-game-winner {
+  min-width: 0;
+  color: var(--text);
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.tournament-history-game-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  justify-self: end;
+  color: var(--text-muted);
+  transition:
+    color 0.15s,
+    transform 0.15s;
+}
+
+.tournament-history-game-arrow svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.3;
+}
+
+.tournament-history-game[open] .tournament-history-game-arrow {
+  color: var(--accent);
+  transform: rotate(180deg);
+}
+
+.tournament-history-game-body {
+  padding: 0 0.85rem 0.85rem;
+}
+
+.tournament-history-game .tp-drama {
+  margin-top: 0;
+  opacity: 1;
+  animation: none;
+}
+
+.tournament-history-stats {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0.85rem 0 0;
+}
+
+.tournament-history-stat {
+  display: grid;
+  grid-template-columns: minmax(7.5rem, 0.85fr) minmax(0, 1.15fr);
+  gap: 0.75rem;
+  padding: 0.65rem 0;
+  border-top: 1px solid var(--border);
+}
+
+.tournament-history-stat dt {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.tournament-history-stat dd {
+  color: var(--text);
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 0;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+.tournament-history-empty {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+@media (max-width: 480px) {
+  .tournament-history-game-summary {
+    grid-template-columns: 1fr 2rem;
+    gap: 0.35rem 0.65rem;
+  }
+
+  .tournament-history-game-winner {
+    grid-column: 1;
+  }
+
+  .tournament-history-game-arrow {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+
+  .tournament-history-stat {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+
+  .tournament-history-stat dd {
+    text-align: left;
+  }
+}
+
 @media (max-width: 480px) and (orientation: portrait) {
   .app-container {
     padding: 0.75rem 0.75rem;
@@ -1168,7 +1428,8 @@ fieldset legend {
   }
 
   .app-header .header-icon {
-    height: 30px;
+    height: 34px;
+    width: 34px;
   }
 
   .landing-hero {
@@ -1185,6 +1446,10 @@ fieldset legend {
   }
 
   .auth-icon-btn {
+    padding: 0.25rem;
+  }
+
+  .screen-toggle-btn {
     padding: 0.25rem;
   }
 

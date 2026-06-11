@@ -1,10 +1,12 @@
 import { useMemo } from "react";
 import type { GameState } from "../api/game";
 import { buildDramaGridData, type GridCell } from "./buildDramaGridData";
+import { displayScore } from "./scoreboard/scoreboardHelpers";
 
 interface GameDramaGridProps {
   gameState: GameState;
   excludedPlayers: Set<string>;
+  title?: string | null;
 }
 
 // Colour by points gained THIS round (cell.penalty = the increase vs the
@@ -13,6 +15,8 @@ interface GameDramaGridProps {
 function tierClass(cell: GridCell): string {
   if (cell.event === "dead") return "tp-ddead";
   if (cell.event === "winner") return "tp-dwin";
+  if (cell.event === "buyin") return "tp-dbuyin";
+  if (cell.event === "eliminated") return "tp-deliminated";
   const p = cell.penalty ?? 0;
   if (p <= 0) return "tp-d0";
   if (p === 1) return "tp-d1";
@@ -25,7 +29,24 @@ function tierClass(cell: GridCell): string {
 // (cell.totalAfter); the cell's colour conveys the points gained that round.
 function cellText(cell: GridCell): string {
   if (cell.event === "dead") return "";
-  return String(cell.totalAfter);
+  if (cell.event === "buyin" && cell.buyInTotal !== undefined) {
+    return String(displayScore(cell.buyInTotal));
+  }
+  return String(displayScore(cell.totalAfter));
+}
+
+function cellBadge(cell: GridCell): string | null {
+  if (cell.event === "buyin") return "€";
+  if (cell.event === "eliminated") return "×";
+  if (cell.event === "winner") return "✓";
+  return null;
+}
+
+function cellBadgeLabel(cell: GridCell): string | undefined {
+  if (cell.event === "buyin") return "Inkoop";
+  if (cell.event === "eliminated") return "Uitgeschakeld";
+  if (cell.event === "winner") return "Winnaar";
+  return undefined;
 }
 
 function cellTooltip(playerName: string, cell: GridCell): string {
@@ -39,7 +60,9 @@ function cellTooltip(playerName: string, cell: GridCell): string {
   if (cell.event === "pelt") return `${base} — Pelt!`;
   if (cell.event === "eliminated") return `${base} — Uitgeschakeld`;
   if (cell.event === "buyin")
-    return `${playerName}: ${delta} — Inkoop naar ${cell.buyInTotal}`;
+    return `${playerName}: ${delta} — Inkoop naar ${
+      cell.buyInTotal === undefined ? "" : displayScore(cell.buyInTotal)
+    }`;
   if (cell.event === "winner") return `${base} — Winnaar`;
   if (cell.event === "dead") return `${playerName} — Uit`;
   return base;
@@ -48,6 +71,7 @@ function cellTooltip(playerName: string, cell: GridCell): string {
 export default function GameDramaGrid({
   gameState,
   excludedPlayers,
+  title = "Het verloop",
 }: GameDramaGridProps) {
   const { players, rounds } = gameState;
   const winnerPlayerId = gameState.game.winner_player_id;
@@ -64,7 +88,7 @@ export default function GameDramaGrid({
 
   return (
     <div className="tp-drama">
-      <div className="tp-drama-title">Het verloop</div>
+      {title && <div className="tp-drama-title">{title}</div>}
       {rows.map((row) => {
         const isWinner = row.playerId === winnerPlayerId;
         return (
@@ -87,7 +111,12 @@ export default function GameDramaGrid({
                   className={`tp-dcell ${tierClass(cell)}`}
                   title={cellTooltip(row.playerName, cell)}
                 >
-                  {cellText(cell)}
+                  <span>{cellText(cell)}</span>
+                  {cellBadge(cell) && (
+                    <span className="tp-dbadge" aria-label={cellBadgeLabel(cell)}>
+                      {cellBadge(cell)}
+                    </span>
+                  )}
                 </div>
               ))}
             </div>

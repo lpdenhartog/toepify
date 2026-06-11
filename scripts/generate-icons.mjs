@@ -70,6 +70,8 @@ const targets = [
   { file: "icon-192.png", size: 192, maskable: false },
   { file: "icon-512.png", size: 512, maskable: false },
   { file: "icon-maskable-512.png", size: 512, maskable: true },
+  // apple-touch-icon: full-bleed square (iOS applies its own corner mask).
+  { file: "apple-touch-icon.png", size: 180, maskable: true },
 ];
 
 const browser = await chromium.launch();
