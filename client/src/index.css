@@ -125,6 +125,7 @@ body {
 
 .app-header .header-icon {
   height: 36px;
+  width: auto;
   display: block;
 }
 

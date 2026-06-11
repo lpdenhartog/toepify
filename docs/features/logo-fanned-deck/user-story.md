@@ -231,3 +231,30 @@ favicon, and home screen.
   `LogoTile.tsx` and the generator; the dead-code nit).
 - `manifest.webmanifest` is unchanged (same icon filenames/purposes;
   `theme_color #206848` retained).
+
+### A6. Unify ALL touchpoints to the green tile (post-delivery, 2026-06-11)
+
+The stakeholder then asked for the header, hero, and favicon to match the green
+tile too — so all four touchpoints show the **same** mark. `LogoMark` was
+refactored from the open outline mark (transparent cards, green linework, theme
+tokens) to the **green casino tile** (green `#206848` tile, cream `#f0eadd`
+cards, thin `5` green stroke, scaled 1.2), matching the favicon and PWA icon.
+
+Consequences:
+- **`LogoMark` is now theme-independent** (fixed brand hex via `BRAND_INK`/
+  `BRAND_PAPER`). The green tile is self-contained, so it reads identically in
+  light and dark — it no longer needs the `--logo-ink`/`--logo-paper` adaptation
+  that the old open mark required. This supersedes the *mark's* part of AC7/AC8.
+- **The wordmark still adapts** to the theme via `var(--logo-ink)` (it is text on
+  the page, so it must stay legible on the dark `.pal-petrol` background). The
+  `.pal-petrol` coral-trap override (`--logo-ink: #43c9a8`) therefore **still
+  applies** — to the wordmark, not the mark.
+- `--logo-paper` is now effectively unused (the mark uses `BRAND_PAPER`); kept in
+  the tokens for now, harmless, removable in a later cleanup.
+- `favicon.svg` is the same green-tile drawing (hardcoded hex). `MARK_VIEWBOX` is
+  now `0 0 240 240` (square) with `MARK_ASPECT = 1`; `.app-header .header-icon`
+  gained `width: auto` so the square tile sizes by height at every breakpoint.
+- The mark geometry now lives in three hand-synced copies (`LogoMark.tsx`,
+  `favicon.svg`, `scripts/generate-icons.mjs`) — the pre-existing duplication the
+  tech-lead flagged. Acceptable for now; a future cleanup could derive favicon +
+  PNGs from the component.
