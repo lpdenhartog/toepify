@@ -45,9 +45,12 @@ const mark = `
 // any → rounded squircle tile with a slightly larger mark.
 function tileSvg(size, { maskable }) {
   const radius = maskable ? 0 : 50;
-  // Fill most of the tile (the mark read too small at 0.66). Maskable stays a
-  // touch smaller so the fan corners survive a launcher's ~80% safe-zone crop.
-  const scale = maskable ? 0.78 : 0.9;
+  // Fill the tile to a small edge margin. The Option 1 viewBox (240x250) has
+  // ~30px built-in padding around the fanned cards, so we scale PAST 1.0 to push
+  // the card edges near the tile edge; the empty viewBox margins clip away.
+  // Maskable stays well under so the fan survives a launcher's ~80% safe crop
+  // (iOS uses the non-maskable apple-touch-icon anyway).
+  const scale = maskable ? 0.84 : 1.2;
   const tx = (240 - 240 * scale) / 2;
   const ty = (240 - 250 * scale) / 2;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="${size}" height="${size}">
