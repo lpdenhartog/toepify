@@ -1,5 +1,7 @@
-// Brand hex — used ONLY where CSS vars can't reach (favicon SVG, LogoTile for
-// PNG generation). In-app LogoMark uses var(--logo-ink)/var(--logo-paper).
+// Canonical brand hex — the source of truth for the literal colours used where
+// CSS vars can't reach: the static favicon.svg and scripts/generate-icons.mjs
+// (the PWA app-icon, rendered outside the app). In-app LogoMark uses
+// var(--logo-ink)/var(--logo-paper) so it tracks the active theme.
 export const BRAND_INK = "#206848"; // deep casino green
 export const BRAND_PAPER = "#F0EADD"; // warm cream
 
