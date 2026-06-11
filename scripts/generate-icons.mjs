@@ -18,21 +18,25 @@ import { dirname, join } from "node:path";
 
 const INK = "#206848";     // deep casino green linework / face
 const PAPER = "#F0EADD";   // card fill (matches --logo-paper)
-const TILE_BG = "#ece5d6"; // tile background = app page bg (--bg) → header look
+const TILE_BG = "#206848"; // casino-green tile — cream cards pop "on the felt"
+// Card stroke is thinner here (5) than the favicon/header mark (8): on the green
+// tile the green stroke only shows as the separator between overlapping cream
+// cards, so a thinner line reads as a tighter, cleaner fan (Option-3 feel).
+const SW = 5;
 
 // Option 1 fanned deck, viewBox 0 0 240 250 (each card x=72 y=53 w=96 h=134).
 const mark = `
   <g transform="rotate(-17 120 205)">
     <rect x="72" y="53" width="96" height="134" rx="12" ry="12"
-          fill="${PAPER}" stroke="${INK}" stroke-width="8" stroke-linejoin="round"/>
+          fill="${PAPER}" stroke="${INK}" stroke-width="${SW}" stroke-linejoin="round"/>
   </g>
   <g transform="rotate(17 120 205)">
     <rect x="72" y="53" width="96" height="134" rx="12" ry="12"
-          fill="${PAPER}" stroke="${INK}" stroke-width="8" stroke-linejoin="round"/>
+          fill="${PAPER}" stroke="${INK}" stroke-width="${SW}" stroke-linejoin="round"/>
   </g>
   <g>
     <rect x="72" y="53" width="96" height="134" rx="12" ry="12"
-          fill="${PAPER}" stroke="${INK}" stroke-width="8" stroke-linejoin="round"/>
+          fill="${PAPER}" stroke="${INK}" stroke-width="${SW}" stroke-linejoin="round"/>
     <text x="100" y="85" font-size="31.7" font-weight="700" text-anchor="middle"
           font-family="Fredoka, system-ui, sans-serif" fill="${INK}">10</text>
     <text x="100" y="111" font-size="22" text-anchor="middle"
