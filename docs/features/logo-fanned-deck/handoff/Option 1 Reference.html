@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Toepify — Option 1 Reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; background: #ffffff; font-family: 'Fredoka', sans-serif; color: #2c3a33; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 64px 48px 96px; }
+  h1 { font-size: 40px; font-weight: 600; color: #206848; margin: 0 0 4px; }
+  .sub { font-size: 17px; color: #7c8a82; margin: 0 0 48px; }
+  h2 { font-size: 14px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
+       color: #8a9489; margin: 0 0 18px; }
+  .panel { background: #F0EADD; border-radius: 22px; padding: 56px; display: flex;
+           align-items: center; justify-content: center; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px; }
+  .lockup { display: flex; align-items: center; gap: 26px; }
+  .word { font-weight: 600; letter-spacing: -0.01em; line-height: 1; color: #206848; display: inline-block; }
+  .small { display: flex; align-items: center; gap: 18px; }
+  section { margin-bottom: 56px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Option 1 · Corrected fanned deck</h1>
+  <p class="sub">Reference render — green #206848 on cream #F0EADD · wordmark Fredoka 600</p>
+
+  <section>
+    <h2>Lockup</h2>
+    <div class="panel">
+      <div class="lockup">
+        <span id="icon-lg"></span>
+        <span class="word" style="font-size:86px">toepify</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Icon alone &amp; small-size test</h2>
+    <div class="row">
+      <div class="panel"><span id="icon-md"></span></div>
+      <div class="panel">
+        <div class="small">
+          <span id="icon-sm"></span>
+          <span class="word" style="font-size:34px">toepify</span>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+// LogoFannedDeck (Option 1) as a framework-free SVG string. ink on paper.
+function fannedDeck(size, ink, paper, rank) {
+  ink = ink || '#206848'; paper = paper || '#F0EADD'; rank = rank || '10';
+  var sw = 8, back = 17;
+  function card(rot, pivot, face) {
+    var px = pivot ? pivot[0] : 120, py = pivot ? pivot[1] : 120;
+    return '<g transform="rotate(' + rot + ' ' + px + ' ' + py + ')">' +
+      '<rect x="' + (120-48) + '" y="' + (120-67) + '" width="96" height="134" rx="12" ry="12" ' +
+        'fill="' + paper + '" stroke="' + ink + '" stroke-width="' + sw + '" stroke-linejoin="round" />' +
+      (face || '') + '</g>';
+  }
+  var faceFront =
+    '<text x="100" y="85" font-size="31.7" font-weight="700" text-anchor="middle" ' +
+      'font-family="Fredoka, sans-serif" fill="' + ink + '">' + rank + '</text>' +
+    '<text x="100" y="111" font-size="22" text-anchor="middle" ' +
+      'font-family="Georgia, serif" fill="' + ink + '">\u2660</text>' +
+    '<text x="120" y="156" font-size="66" text-anchor="middle" ' +
+      'font-family="Georgia, serif" fill="' + ink + '">\u2660</text>';
+  return '<svg viewBox="0 0 240 250" width="' + size + '" height="' + (size*250/240) + '" ' +
+    'role="img" aria-label="Toepify deck">' +
+    card(-back, [120,205]) + card(back, [120,205]) + card(0, null, faceFront) +
+    '</svg>';
+}
+document.getElementById('icon-lg').innerHTML = fannedDeck(132);
+document.getElementById('icon-md').innerHTML = fannedDeck(160);
+document.getElementById('icon-sm').innerHTML = fannedDeck(52);
+</script>
+</body>
+</html>

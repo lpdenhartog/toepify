@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Hanken+Grotesk:wght@400;500;600;700;800&family=Fredoka:wght@600;700&display=swap");
 
 /* ============================================================
    TOEPIFY — Scoreboard refresh design system ("Krijt & Klaver")
@@ -30,6 +30,8 @@
   --out-bg: rgba(255, 111, 111, 0.16);
   --pos: #43c9a8;
   --neg: #ff6f6f;
+  --logo-ink: #43c9a8; /* dark-palette green (== --pos); NOT --accent (coral) */
+  --logo-paper: #e4ddcb; /* muted cream, reads as warm card on deep teal */
 }
 
 /* ---- base ------------------------------------------------- */

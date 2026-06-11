@@ -25,6 +25,8 @@
   --neg: #b23a2c;
   --danger: #b23a2c; /* legacy alias */
   --input-bg: #fbf7ee;
+  --logo-ink: var(--accent); /* light: resolves to #1f6b4a green */
+  --logo-paper: #f0eadd; /* brand cream; deeper than --surface by design */
 
   font-family:
     "Inter",
@@ -106,12 +108,15 @@ body {
 }
 
 .app-header h1 {
-  font-size: 1.75rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
+  font-family: "Fredoka", system-ui, sans-serif;
+  font-size: 1.5rem; /* ~24px, was 1.75rem Inter */
+  font-weight: 600; /* was 700 */
+  letter-spacing: -0.01em; /* was +0.05em */
+  line-height: 1;
   text-transform: lowercase;
+  white-space: nowrap; /* keep lockup on one line on mobile */
   margin: 0;
-  color: var(--accent);
+  color: var(--logo-ink); /* was --accent; tracks dark mode green */
 }
 
 .staging-label {
@@ -120,6 +125,7 @@ body {
 
 .app-header .header-icon {
   height: 36px;
+  display: block;
 }
 
 /* Cards */
@@ -428,6 +434,28 @@ fieldset legend {
   gap: 0.5rem;
   text-decoration: none;
   color: inherit;
+}
+
+/* Landing hero lockup */
+.landing-hero {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px; /* ~0.2 × 88px icon */
+  padding: 2rem 0 1.5rem;
+}
+.landing-hero-icon {
+  height: 88px;
+  width: auto;
+}
+.landing-hero-wordmark {
+  font-family: "Fredoka", system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 3.5rem; /* ~56px ≈ 0.65 × 88px icon */
+  letter-spacing: -0.01em;
+  line-height: 1;
+  color: var(--logo-ink);
+  white-space: nowrap;
 }
 
 /* Landing page */
@@ -1135,11 +1163,24 @@ fieldset legend {
   }
 
   .app-header h1 {
-    font-size: 1.45rem;
+    font-size: 1.25rem; /* ~20px Fredoka 600 */
   }
 
   .app-header .header-icon {
     height: 30px;
+  }
+
+  .landing-hero {
+    gap: 13px;
+    padding: 1.25rem 0 1rem;
+  }
+
+  .landing-hero-icon {
+    height: 64px;
+  }
+
+  .landing-hero-wordmark {
+    font-size: 2.5rem; /* ~40px */
   }
 
   .auth-icon-btn {
