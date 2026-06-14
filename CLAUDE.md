@@ -25,6 +25,8 @@ Toepify is a realtime scorekeeping app for the Dutch card game "Toepen". It trac
 - Run the built app for manual testing: `npm run build`, then `NODE_ENV=test DATABASE_URL=postgresql://localhost:5432/toepify_test JWT_SECRET=dev node server/dist/index.js` — serves `client/dist` on :3000. The `/__test__/reset` endpoint and rate-limit bypass exist **only** under `NODE_ENV=test`.
 - E2E (Playwright): create the test DB once (`createdb toepify_test && psql postgresql://localhost:5432/toepify_test -f server/src/db/schema.sql`), then from the repo root `TEST_DATABASE_URL=postgresql://localhost:5432/toepify_test JWT_SECRET=e2e-test-jwt-secret npx playwright test`. globalSetup throws without `TEST_DATABASE_URL`/`DATABASE_URL`; `reuseExistingServer` reuses a server already on :3000.
 - ⚠️ E2E `globalTeardown` truncates all game tables **and** deletes the `e2e_admin` user (`/__test__/reset` keeps users). Don't run E2E against a DB holding manual/demo data.
+- **No image tooling** (no sharp/resvg). Rasterize SVG→PNG (e.g. PWA icons) with the repo-root Playwright via a throwaway script like `scripts/generate-icons.mjs`; commit the PNGs, don't wire it into the build.
+- Quick test account: the `users` table uses `activation_token`/`activation_expires` (no `activated_at`). Insert an activated admin directly with bcryptjs, run from within `server/` so bare imports resolve. The built server binds `0.0.0.0` → reachable on the LAN at `http://<host-ip>:3000`.
 
 ## Architecture
 
@@ -63,6 +65,9 @@ Balances and pot are computed, not stored.
 - Plain CSS (no Tailwind). Theme tokens (Krijt & Klaver light palette) live on `:root` in `client/src/index.css`; the scoreboard `.tp-*` system + `.pal-petrol` dark opt-in live in `client/src/styles/tp-scoreboard.css`.
 - Component files must export **only** components (eslint `react-refresh/only-export-components`) — put hooks, pure helpers, and types in separate `.ts` files.
 - Don't rename the class/label hooks Playwright specs depend on: `.scoreboard`, `.penalty-btn`, `.score-row-current td`, `.status-pelt`/`.status-out`, `.buyin-section`/`.btn-buyin`, `.celebration-overlay`, `[aria-label="Ronde afsluiten"]`, text "Nieuw spel".
+- **Brand logo** lives in `client/src/components/logo/` (`LogoMark` = green casino tile with cream fanned 10♠ cards; `LogoLockup` = hero icon+wordmark). The mark geometry is **hand-synced across three files** — `LogoMark.tsx`, `client/public/favicon.svg`, `scripts/generate-icons.mjs` (PWA PNGs) — change one, change all three.
+- **Logo colour = fixed brand hex** (green `#206848` / cream `#F0EADD`), theme-independent; only the wordmark adapts via `var(--logo-ink)`. ⚠️ In the `.pal-petrol` dark palette `--accent` is **coral** `#f47b5c`, NOT green — never bind logo/wordmark colour to `--accent`; use `--logo-ink` (dark-overridden to `#43c9a8`). The header/hero/favicon/PWA icon are all the same green-tile mark.
+- **Fonts load via Google Fonts `@import`** at `client/src/styles/tp-scoreboard.css:1` (Space/Hanken Grotesk + Fredoka), NOT self-hosted. `:root` declares `"Inter"` but it is never actually loaded → falls back to system-ui (pre-existing quirk).
 
 ## Key Documentation
 

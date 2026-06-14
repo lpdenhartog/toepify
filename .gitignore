@@ -5,3 +5,5 @@ dist/
 e2e/.auth-state.json
 playwright-report/
 test-results/
+.claude/
+.idea/

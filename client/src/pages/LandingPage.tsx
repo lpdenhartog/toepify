@@ -2,8 +2,17 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../contexts/useAuth";
 import CreateTournament from "../components/CreateTournament";
-import { fetchMyTournaments, deleteTournament, visitTournament, type MyTournament } from "../api/tournaments";
-import { getRecentTournaments, type RecentTournament } from "../utils/recentTournaments";
+import {
+  fetchMyTournaments,
+  deleteTournament,
+  visitTournament,
+  type MyTournament,
+} from "../api/tournaments";
+import {
+  getRecentTournaments,
+  type RecentTournament,
+} from "../utils/recentTournaments";
+import LogoLockup from "../components/logo/LogoLockup";
 
 function parseTournamentId(input: string): string {
   const trimmed = input.trim();
@@ -28,11 +37,16 @@ export default function LandingPage() {
       const localTournaments = getRecentTournaments();
       if (!migrated && localTournaments.length > 0) {
         Promise.all(
-          localTournaments.map((t) => visitTournament(token, t.id).catch(() => {}))
-        ).then(() => {
-          localStorage.setItem(migratedKey, "true");
-          return fetchMyTournaments(token);
-        }).then(setMyTournaments).catch(() => {});
+          localTournaments.map((t) =>
+            visitTournament(token, t.id).catch(() => {}),
+          ),
+        )
+          .then(() => {
+            localStorage.setItem(migratedKey, "true");
+            return fetchMyTournaments(token);
+          })
+          .then(setMyTournaments)
+          .catch(() => {});
       } else {
         fetchMyTournaments(token)
           .then(setMyTournaments)
@@ -45,7 +59,9 @@ export default function LandingPage() {
 
   function refreshMyTournaments() {
     if (token) {
-      fetchMyTournaments(token).then(setMyTournaments).catch(() => {});
+      fetchMyTournaments(token)
+        .then(setMyTournaments)
+        .catch(() => {});
     }
   }
 
@@ -70,6 +86,7 @@ export default function LandingPage() {
 
   return (
     <div className="landing-page">
+      <LogoLockup iconSize={88} className="landing-hero" />
       <div className="card">
         <h2>Ga naar toernooi</h2>
         <form className="landing-input-group" onSubmit={handleSubmit}>
@@ -79,7 +96,11 @@ export default function LandingPage() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
           />
-          <button type="submit" className="btn-primary landing-go-btn" disabled={!input.trim()}>
+          <button
+            type="submit"
+            className="btn-primary landing-go-btn"
+            disabled={!input.trim()}
+          >
             Ga
           </button>
         </form>
@@ -92,9 +113,14 @@ export default function LandingPage() {
           <h2>Mijn Toernooien</h2>
           {myTournaments.map((t) => (
             <div key={t.id} className="tournament-row my-tournament-row">
-              <Link to={`/t/${t.id}`} style={{ flex: 1, textDecoration: "none", color: "inherit" }}>
+              <Link
+                to={`/t/${t.id}`}
+                style={{ flex: 1, textDecoration: "none", color: "inherit" }}
+              >
                 <div>{t.name}</div>
-                <div className="tournament-players">{t.players.map((p) => p.name).join(", ")}</div>
+                <div className="tournament-players">
+                  {t.players.map((p) => p.name).join(", ")}
+                </div>
               </Link>
               {t.isOwner && (
                 <button
@@ -111,7 +137,15 @@ export default function LandingPage() {
       )}
 
       {isAuthenticated && user?.isAdmin && (
-        <Link to="/admin" className="btn-primary" style={{ display: "block", textAlign: "center", textDecoration: "none" }}>
+        <Link
+          to="/admin"
+          className="btn-primary"
+          style={{
+            display: "block",
+            textAlign: "center",
+            textDecoration: "none",
+          }}
+        >
           Admin
         </Link>
       )}
@@ -120,7 +154,11 @@ export default function LandingPage() {
         <div className="card">
           <h2>Recente toernooien</h2>
           {recent.map((t) => (
-            <Link key={t.id} to={`/t/${t.id}`} className="tournament-row recent-tournament-row">
+            <Link
+              key={t.id}
+              to={`/t/${t.id}`}
+              className="tournament-row recent-tournament-row"
+            >
               <div style={{ flex: 1 }}>
                 <div>{t.name}</div>
                 <div className="tournament-players">{t.players.join(", ")}</div>

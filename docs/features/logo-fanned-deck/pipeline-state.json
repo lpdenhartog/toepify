@@ -1,0 +1,41 @@
+{
+  "phase": 8,
+  "status": "complete",
+  "feature": "Brand logo \u2014 fanned deck (Option 1) integration",
+  "feature_dir": "docs/features/logo-fanned-deck",
+  "timestamp": "2026-06-11",
+  "scope_decisions": {
+    "touchpoints": [
+      "header-icon+wordmark",
+      "favicon",
+      "pwa-app-icon-tile",
+      "landing-hero"
+    ],
+    "font_strategy": "google-fonts-import-fredoka-600-700",
+    "font_weights": [
+      "Fredoka-600",
+      "Fredoka-700"
+    ],
+    "color_strategy": "map-to-theme-tokens",
+    "dark_mode": "include-dark-variant",
+    "favicon": "svg-only",
+    "pwa_png": "pre-generated-committed",
+    "existing_grotesk_import": "left-as-is-followup"
+  },
+  "jira": {
+    "enabled": false,
+    "ticket_key": null,
+    "ticket_created_by_pipeline": false,
+    "last_sync": null,
+    "last_transition": null,
+    "sync_errors": []
+  },
+  "frontend": true,
+  "backend_skipped": "no backend/API/data changes per tech-spec",
+  "qa_scope": "verify-only (no new tests, per user)",
+  "verdicts": {
+    "code_review": "PASS",
+    "security": "PASS",
+    "qa": "PASS (11/11)"
+  }
+}

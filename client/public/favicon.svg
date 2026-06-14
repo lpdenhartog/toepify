@@ -1,12 +1,26 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
-  <title id="title">toepify logo</title>
-  <rect width="64" height="64" rx="14" fill="#ece5d6"/>
-  <g fill="#ece5d6" stroke="#1f6b4a" stroke-linejoin="round">
-    <rect x="8" y="20" width="24" height="34" rx="5" stroke-width="3" transform="rotate(-14 20 37)"/>
-    <rect x="15" y="7" width="28" height="40" rx="5" stroke-width="3" transform="rotate(-5 29 27)"/>
-    <rect x="31" y="14" width="25" height="38" rx="5" stroke-width="3" transform="rotate(11 43.5 33)"/>
-    <rect x="17" y="12" width="30" height="44" rx="6" stroke-width="3"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-label="Toepify">
+  <!-- Green casino tile + cream fanned cards. Hardcoded #206848 ink / #F0EADD
+       cream (browser chrome can't read CSS vars). Matches LogoMark + PWA icon.
+       Cards live in a 240x250 space scaled 1.2 and centred in the 240 tile. -->
+  <rect x="0" y="0" width="240" height="240" rx="50" ry="50" fill="#206848"/>
+  <g transform="translate(-24 -30) scale(1.2)">
+    <g transform="rotate(-17 120 205)">
+      <rect x="72" y="53" width="96" height="134" rx="12" ry="12"
+            fill="#F0EADD" stroke="#206848" stroke-width="5" stroke-linejoin="round"/>
+    </g>
+    <g transform="rotate(17 120 205)">
+      <rect x="72" y="53" width="96" height="134" rx="12" ry="12"
+            fill="#F0EADD" stroke="#206848" stroke-width="5" stroke-linejoin="round"/>
+    </g>
+    <g>
+      <rect x="72" y="53" width="96" height="134" rx="12" ry="12"
+            fill="#F0EADD" stroke="#206848" stroke-width="5" stroke-linejoin="round"/>
+      <text x="100" y="85" font-size="31.7" font-weight="700" text-anchor="middle"
+            font-family="Fredoka, system-ui, sans-serif" fill="#206848">10</text>
+      <text x="100" y="111" font-size="22" text-anchor="middle"
+            font-family="Georgia, 'Times New Roman', serif" fill="#206848">&#9824;</text>
+      <text x="120" y="156" font-size="66" text-anchor="middle"
+            font-family="Georgia, 'Times New Roman', serif" fill="#206848">&#9824;</text>
+    </g>
   </g>
-  <text x="32" y="38" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="21" font-weight="900" fill="#1f6b4a">10</text>
-  <path d="M25 46h14" stroke="#1f6b4a" stroke-width="4" stroke-linecap="round"/>
 </svg>
