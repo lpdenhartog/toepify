@@ -26,7 +26,7 @@ test.describe("PWA and Scherm toggle", () => {
       scope: "/",
       display: "standalone",
       background_color: "#ece5d6",
-      theme_color: "#ece5d6",
+      theme_color: "#206848",
     });
     expect(manifest.icons).toEqual(
       expect.arrayContaining([

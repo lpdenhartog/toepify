@@ -1,5 +1,13 @@
 import { useEffect, useState } from "react";
-import { BrowserRouter, Routes, Route, Link, matchPath, useLocation, useNavigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Link,
+  matchPath,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { useAuth } from "./contexts/useAuth";
 import AdminPage from "./pages/AdminPage";
@@ -8,6 +16,7 @@ import TournamentHistoryPage from "./pages/TournamentHistoryPage";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import ActivatePage from "./pages/ActivatePage";
+import LogoMark from "./components/logo/LogoMark";
 import { useScreenWakeLock } from "./hooks/useScreenWakeLock";
 import { fetchLatestGame } from "./api/game";
 import {
@@ -26,7 +35,9 @@ function ModeToggle({
   onToggle: () => void;
 }) {
   const isViewer = mode === "viewer";
-  const label = isViewer ? "Schakel naar schrijver modus" : "Schakel naar viewer modus";
+  const label = isViewer
+    ? "Schakel naar schrijver modus"
+    : "Schakel naar viewer modus";
 
   return (
     <button
@@ -36,12 +47,30 @@ function ModeToggle({
       aria-label={label}
     >
       {isViewer ? (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <path d="M12 20h9" />
           <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
         </svg>
       ) : (
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" />
           <circle cx="12" cy="12" r="3" />
         </svg>
@@ -175,7 +204,16 @@ function HeaderActions({
           title="Uitloggen"
           aria-label="Uitloggen"
         >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
             <polyline points="16 17 21 12 16 7" />
             <line x1="21" y1="12" x2="9" y2="12" />
@@ -196,7 +234,16 @@ function HeaderActions({
         title="Inloggen"
         aria-label="Inloggen"
       >
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
           <circle cx="12" cy="7" r="4" />
         </svg>
@@ -246,7 +293,7 @@ function AppContent() {
     <div className="app-container">
       <header className="app-header">
         <Link to="/" className="header-link">
-          <img src="/logo.svg" alt="toepify logo" className="header-icon" />
+          <LogoMark size={36} decorative className="header-icon" />
           <h1>
             toepify
             {isStaging && <span className="staging-label"> - STAGING</span>}
@@ -269,8 +316,14 @@ function AppContent() {
         <Route path="/admin" element={<AdminPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/activate/:token" element={<ActivatePage />} />
-        <Route path="/t/:tournamentId/history" element={<TournamentHistoryPage />} />
-        <Route path="/t/:tournamentId" element={<TournamentPage mode={mode} />} />
+        <Route
+          path="/t/:tournamentId/history"
+          element={<TournamentHistoryPage />}
+        />
+        <Route
+          path="/t/:tournamentId"
+          element={<TournamentPage mode={mode} />}
+        />
         <Route path="*" element={<p>Not found</p>} />
       </Routes>
     </div>
