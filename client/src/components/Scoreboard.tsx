@@ -21,6 +21,7 @@ interface ScoreboardProps {
   onBuyIn: (playerId: string) => void;
   buyingIn: boolean;
   onNewGame: () => void;
+  celebrationBusy: boolean;
   excludedPlayers: Set<string>;
   onTogglePlayer: (playerId: string) => void;
   onUndoRound: () => void;
@@ -40,6 +41,7 @@ export default function Scoreboard({
   onBuyIn,
   buyingIn,
   onNewGame,
+  celebrationBusy,
   excludedPlayers,
   onTogglePlayer,
   onUndoRound,
@@ -160,6 +162,7 @@ export default function Scoreboard({
     <CelebrationStatsOverlay
       gameState={gameState}
       onNewGame={onNewGame}
+      celebrationBusy={celebrationBusy}
       isCreator={canWrite && isCreator}
       onCloseTournament={onCloseTournament}
       excludedPlayers={excludedPlayers}

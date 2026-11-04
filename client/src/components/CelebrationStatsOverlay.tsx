@@ -13,6 +13,7 @@ import "./CelebrationStatsOverlay.css";
 interface GameEndCelebrationProps {
   gameState: GameState;
   onNewGame: () => void;
+  celebrationBusy: boolean;
   isCreator: boolean;
   onCloseTournament: () => void;
   excludedPlayers: Set<string>;
@@ -25,6 +26,7 @@ const CONFETTI_COLORS = ["#1f6b4a", "#b07e16", "#b23a2c", "#2c2418", "#3a8c63"];
 export default function CelebrationStatsOverlay({
   gameState,
   onNewGame,
+  celebrationBusy,
   isCreator,
   onCloseTournament,
   excludedPlayers,
@@ -151,13 +153,15 @@ export default function CelebrationStatsOverlay({
 
         <div className="tp-cele-cta">
           {canWrite && (
-            <button className="tp-btn-accent" onClick={onNewGame}>
+            <button className="tp-btn-accent" onClick={onNewGame} disabled={celebrationBusy} aria-busy={celebrationBusy}>
               Nieuw spel
             </button>
           )}
           {isCreator && (
             <button
               className="tp-cele-secondary"
+              disabled={celebrationBusy}
+              aria-busy={celebrationBusy}
               onClick={() => {
                 if (
                   window.confirm(

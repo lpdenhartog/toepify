@@ -37,6 +37,8 @@ export default function TournamentPage({ mode }: TournamentPageProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [finishingRound, setFinishingRound] = useState(false);
+  const [celebrationBusy, setCelebrationBusy] = useState(false);
+  const celebrationBusyRef = useRef(false);
   const pendingRoundRef = useRef<PendingRound | null>(null);
   const savingRoundRef = useRef(false);
   const [roundSaveError, setRoundSaveError] = useState("");
@@ -343,7 +345,10 @@ export default function TournamentPage({ mode }: TournamentPageProps) {
   }, [gameState, syncGameState]);
 
   const handleNewGame = useCallback(async () => {
-    if (!tournamentId || pendingRoundRef.current) return;
+    if (!tournamentId || pendingRoundRef.current || celebrationBusyRef.current) return;
+    celebrationBusyRef.current = true;
+    setCelebrationBusy(true);
+    setRoundSaveError("");
     try {
       const newState = await startNewGame(tournamentId);
       syncGameState(newState);
@@ -354,7 +359,10 @@ export default function TournamentPage({ mode }: TournamentPageProps) {
       setPendingPenalties(initial);
       setExcludedPlayers(new Set());
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Fout bij starten nieuw spel");
+      setRoundSaveError(err instanceof Error ? err.message : "Fout bij starten nieuw spel");
+    } finally {
+      celebrationBusyRef.current = false;
+      setCelebrationBusy(false);
     }
   }, [syncGameState, tournamentId]);
 
@@ -371,8 +379,11 @@ export default function TournamentPage({ mode }: TournamentPageProps) {
   const isCreator = !!(user && gameState && gameState.tournament.created_by === user.username);
 
   const handleCloseTournament = useCallback(async () => {
-    if (pendingRoundRef.current) return;
+    if (pendingRoundRef.current || celebrationBusyRef.current) return;
     if (!tournamentId || !token) return;
+    celebrationBusyRef.current = true;
+    setCelebrationBusy(true);
+    setRoundSaveError("");
     try {
       const data = await closeTournament(token, tournamentId);
       setSettlementData({ ...data, name: gameState?.tournament.name ?? "" });
@@ -382,7 +393,10 @@ export default function TournamentPage({ mode }: TournamentPageProps) {
         tournament: { ...prev.tournament, status: "closed" },
       } : prev);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Fout bij afsluiten toernooi");
+      setRoundSaveError(err instanceof Error ? err.message : "Fout bij afsluiten toernooi");
+    } finally {
+      celebrationBusyRef.current = false;
+      setCelebrationBusy(false);
     }
   }, [tournamentId, token, gameState?.tournament.name]);
 
@@ -434,6 +448,7 @@ export default function TournamentPage({ mode }: TournamentPageProps) {
           onBuyIn={handleBuyIn}
           buyingIn={buyingIn}
           onNewGame={handleNewGame}
+          celebrationBusy={celebrationBusy}
           excludedPlayers={excludedPlayers}
           onTogglePlayer={handleTogglePlayer}
           onUndoRound={handleUndoRound}
