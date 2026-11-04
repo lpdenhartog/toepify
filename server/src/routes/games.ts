@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import getPool from "../db/connection.js";
-import { getFullGameState } from "../services/game.js";
+import { getFullGameState, readFullGameState } from "../services/game.js";
 import { gameActionLimiter } from "../middleware/rateLimiter.js";
 
 const router = Router();
@@ -67,9 +67,12 @@ router.get("/tournaments/:tournamentId/history", async (req: Request, res: Respo
 // POST /api/games/:gameId/finish-round
 router.post("/games/:gameId/finish-round", gameActionLimiter, async (req: Request, res: Response) => {
   const gameId = req.params.gameId as string;
-  const { penalties, excludedPlayerIds } = req.body as {
+  const { penalties, excludedPlayerIds, requestId, expectedRevision, autoFinish } = req.body as {
     penalties: Array<{ playerId: string; points: number }>;
     excludedPlayerIds?: string[];
+    requestId?: string;
+    expectedRevision?: number;
+    autoFinish?: boolean;
   };
 
   if (!Array.isArray(penalties) || penalties.length === 0) {
@@ -77,12 +80,53 @@ router.post("/games/:gameId/finish-round", gameActionLimiter, async (req: Reques
     return;
   }
 
+  if ((requestId !== undefined && (typeof requestId !== "string" || !requestId || requestId.length > 100)) ||
+      (expectedRevision !== undefined && (!Number.isInteger(expectedRevision) || expectedRevision < 0)) ||
+      (autoFinish !== undefined && typeof autoFinish !== "boolean") ||
+      (requestId !== undefined && expectedRevision === undefined) ||
+      (expectedRevision !== undefined && requestId === undefined) ||
+      penalties.some((p) => !p || typeof p.playerId !== "string" || !Number.isInteger(p.points) || p.points < 0) ||
+      new Set(penalties.map((p) => p.playerId)).size !== penalties.length ||
+      (excludedPlayerIds !== undefined && (!Array.isArray(excludedPlayerIds) || excludedPlayerIds.some((id) => typeof id !== "string")))) {
+    res.status(400).json({ error: "Ongeldige ronde" });
+    return;
+  }
+  const payload = JSON.stringify({
+    penalties: [...penalties].sort((a, b) => a.playerId.localeCompare(b.playerId)),
+    excludedPlayerIds: [...new Set(excludedPlayerIds ?? [])].sort(),
+    expectedRevision, autoFinish: autoFinish === true,
+  });
+
   const client = await getPool().connect();
   try {
     await client.query("BEGIN");
+    // Serialize all game actions on the same game row.
+    const locked = await client.query("SELECT status, revision FROM games WHERE id = $1 FOR UPDATE", [gameId]);
+    if (requestId) {
+      const receipt = await client.query(
+        "SELECT payload = $3::jsonb AS matches FROM round_submissions WHERE game_id = $1 AND request_id = $2",
+        [gameId, requestId, payload]
+      );
+      if (receipt.rows.length) {
+        if (!receipt.rows[0].matches) {
+          await client.query("ROLLBACK");
+          res.status(409).json({ error: "Deze inzending heeft andere scores" });
+          return;
+        }
+        const state = await readFullGameState(client, gameId);
+        await client.query("COMMIT");
+        res.json(state);
+        return;
+      }
+    }
+    if (expectedRevision !== undefined && locked.rows[0]?.revision !== expectedRevision) {
+      await client.query("ROLLBACK");
+      res.status(409).json({ error: "Het spel is gewijzigd. Controleer de scores en probeer opnieuw." });
+      return;
+    }
 
-    // Verify game is active
-    const gameRes = await client.query("SELECT status FROM games WHERE id = $1", [gameId]);
+    // Verify game is active (already locked above).
+    const gameRes = locked;
     if (gameRes.rows.length === 0 || gameRes.rows[0].status !== "active") {
       res.status(400).json({ error: "Spel is niet actief" });
       await client.query("ROLLBACK");
@@ -111,6 +155,15 @@ router.post("/games/:gameId/finish-round", gameActionLimiter, async (req: Reques
         "DELETE FROM game_players WHERE game_id = $1 AND player_id = ANY($2)",
         [gameId, excludedPlayerIds]
       );
+    }
+
+    const participants = await client.query(
+      "SELECT player_id FROM game_players WHERE game_id = $1 AND is_active = true", [gameId]
+    );
+    if (penalties.some((p) => !participants.rows.some((row) => row.player_id === p.playerId))) {
+      await client.query("ROLLBACK");
+      res.status(400).json({ error: "Scores bevatten een inactieve speler" });
+      return;
     }
 
     // Create round
@@ -165,11 +218,22 @@ router.post("/games/:gameId/finish-round", gameActionLimiter, async (req: Reques
         [gameId]
       );
     }
-    // Note: do NOT auto-finish when 1 player remains — eliminated players may still buy in
-
+    // Writers opt in to finishing atomically, replacing their former second HTTP call.
+    if (autoFinish && activeRes.rows.length === 1) {
+      await client.query(
+        "UPDATE games SET status = 'finished', winner_player_id = $2 WHERE id = $1",
+        [gameId, activeRes.rows[0].player_id]
+      );
+    }
+    await client.query("UPDATE games SET revision = revision + 1 WHERE id = $1", [gameId]);
+    if (requestId) {
+      await client.query(
+        "INSERT INTO round_submissions (game_id, request_id, payload) VALUES ($1, $2, $3::jsonb)",
+        [gameId, requestId, payload]
+      );
+    }
+    const state = await readFullGameState(client, gameId);
     await client.query("COMMIT");
-
-    const state = await getFullGameState(getPool(), gameId);
 
     res.json(state);
   } catch (err) {
@@ -196,7 +260,7 @@ router.post("/games/:gameId/buy-in", gameActionLimiter, async (req: Request, res
     await client.query("BEGIN");
 
     // Verify game is active
-    const gameRes = await client.query("SELECT status FROM games WHERE id = $1", [gameId]);
+    const gameRes = await client.query("SELECT status, revision FROM games WHERE id = $1 FOR UPDATE", [gameId]);
     if (gameRes.rows.length === 0 || gameRes.rows[0].status !== "active") {
       res.status(400).json({ error: "Spel is niet actief" });
       await client.query("ROLLBACK");
@@ -277,9 +341,9 @@ router.post("/games/:gameId/buy-in", gameActionLimiter, async (req: Request, res
       );
     }
 
+    await client.query("UPDATE games SET revision = revision + 1 WHERE id = $1", [gameId]);
+    const state = await readFullGameState(client, gameId);
     await client.query("COMMIT");
-
-    const state = await getFullGameState(getPool(), gameId);
 
     res.json(state);
   } catch (err) {
@@ -295,39 +359,46 @@ router.post("/games/:gameId/buy-in", gameActionLimiter, async (req: Request, res
 router.post("/games/:gameId/finish", gameActionLimiter, async (req: Request, res: Response) => {
   const gameId = req.params.gameId as string;
   const { excludedPlayerIds } = req.body as { excludedPlayerIds?: string[] };
-  const pool = getPool();
+  const client = await getPool().connect();
 
   try {
+    await client.query("BEGIN");
+    await client.query("SELECT id FROM games WHERE id = $1 FOR UPDATE", [gameId]);
     // Remove excluded players from the game before finishing
     if (excludedPlayerIds && excludedPlayerIds.length > 0) {
-      await pool.query(
+      await client.query(
         "DELETE FROM game_players WHERE game_id = $1 AND player_id = ANY($2)",
         [gameId, excludedPlayerIds]
       );
     }
 
     // Find the sole active player
-    const activeRes = await pool.query(
+    const activeRes = await client.query(
       "SELECT player_id FROM game_players WHERE game_id = $1 AND is_active = true",
       [gameId]
     );
     if (activeRes.rows.length !== 1) {
+      await client.query("ROLLBACK");
       res.status(400).json({ error: "Spel kan alleen beëindigd worden als er één speler over is" });
       return;
     }
 
     const winnerId = activeRes.rows[0].player_id;
-    await pool.query(
-      "UPDATE games SET status = 'finished', winner_player_id = $1 WHERE id = $2 AND status = 'active'",
+    await client.query(
+      "UPDATE games SET status = 'finished', winner_player_id = $1, revision = revision + 1 WHERE id = $2 AND status = 'active'",
       [winnerId, gameId]
     );
 
-    const state = await getFullGameState(pool, gameId);
+    const state = await readFullGameState(client, gameId);
+    await client.query("COMMIT");
 
     res.json(state);
   } catch (err) {
+    await client.query("ROLLBACK");
     console.error("Failed to finish game:", err);
     res.status(500).json({ error: "Serverfout" });
+  } finally {
+    client.release();
   }
 });
 
@@ -405,7 +476,7 @@ router.post("/games/:gameId/undo-round", gameActionLimiter, async (req: Request,
     await client.query("BEGIN");
 
     // Verify game exists and is active or finished
-    const gameRes = await client.query("SELECT status FROM games WHERE id = $1", [gameId]);
+    const gameRes = await client.query("SELECT status, revision FROM games WHERE id = $1 FOR UPDATE", [gameId]);
     if (gameRes.rows.length === 0) {
       res.status(404).json({ error: "Spel niet gevonden" });
       await client.query("ROLLBACK");
@@ -476,9 +547,9 @@ router.post("/games/:gameId/undo-round", gameActionLimiter, async (req: Request,
       );
     }
 
+    await client.query("UPDATE games SET revision = revision + 1 WHERE id = $1", [gameId]);
+    const state = await readFullGameState(client, gameId);
     await client.query("COMMIT");
-
-    const state = await getFullGameState(getPool(), gameId);
 
     res.json(state);
   } catch (err) {

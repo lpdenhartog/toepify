@@ -71,3 +71,14 @@ CREATE TABLE IF NOT EXISTS user_tournaments (
   last_visited TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   PRIMARY KEY (username, tournament_id)
 );
+
+-- Monotonic revision includes undo and buy-ins, preventing stale writer submissions.
+ALTER TABLE games ADD COLUMN IF NOT EXISTS revision INT NOT NULL DEFAULT 0;
+
+-- Keep receipts independently of rounds so retrying an undone round never recreates it.
+CREATE TABLE IF NOT EXISTS round_submissions (
+  game_id UUID NOT NULL REFERENCES games(id) ON DELETE CASCADE,
+  request_id TEXT NOT NULL,
+  payload JSONB NOT NULL,
+  PRIMARY KEY (game_id, request_id)
+);

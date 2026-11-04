@@ -22,7 +22,7 @@ export interface Round {
 
 export interface GameState {
   tournament: { id: string; name: string; stake_per_game: number; created_by: string | null; status: string };
-  game: { id: string; status: string; winner_player_id: string | null };
+  game: { id: string; status: string; winner_player_id: string | null; revision: number };
   players: GamePlayer[];
   rounds: Round[];
   pot: number;
@@ -175,9 +175,27 @@ export async function getFullGameState(
   pool: pg.Pool,
   gameId: string
 ): Promise<GameState> {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY");
+    const state = await readFullGameState(client, gameId);
+    await client.query("COMMIT");
+    return state;
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+export async function readFullGameState(
+  pool: pg.PoolClient,
+  gameId: string
+): Promise<GameState> {
   // Get game + tournament info
   const gameRes = await pool.query(
-    `SELECT g.id, g.status, g.winner_player_id, g.tournament_id,
+    `SELECT g.id, g.status, g.winner_player_id, g.revision, g.tournament_id,
             t.name as tournament_name, t.stake_per_game, t.created_by, t.status as tournament_status
      FROM games g
      JOIN tournaments t ON t.id = g.tournament_id
@@ -255,6 +273,7 @@ export async function getFullGameState(
       id: game.id,
       status: game.status,
       winner_player_id: game.winner_player_id,
+      revision: game.revision,
     },
     players,
     rounds,
@@ -264,7 +283,7 @@ export async function getFullGameState(
 }
 
 export async function computeTournamentBalances(
-  pool: pg.Pool,
+  pool: pg.Pool | pg.PoolClient,
   tournamentId: string
 ): Promise<Array<{ player_id: string; player_name: string; balance: number }>> {
   // Get all players in tournament

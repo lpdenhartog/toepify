@@ -1528,3 +1528,20 @@ fieldset legend {
     padding: 0.45rem 0.5rem;
   }
 }
+
+/* Native fieldset semantics disable every game action while one round is unconfirmed. */
+.round-save-controls { display: contents; }
+.round-save-status {
+  position: fixed;
+  top: 4rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  max-width: calc(100vw - 2rem);
+  padding: .5rem .85rem;
+  border-radius: .6rem;
+  background: #173d32;
+  color: #fff;
+  font-size: .85rem;
+  box-shadow: 0 2px 12px #0004;
+}
