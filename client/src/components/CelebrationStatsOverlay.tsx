@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import type { GameState } from "../api/game";
 import GameDramaGrid from "./GameDramaGrid";
+import { formatEuro } from "./scoreboard/scoreboardHelpers";
 import {
   formatMostPenaltyStat,
   getMostPenaltyStat,
@@ -149,6 +150,20 @@ export default function CelebrationStatsOverlay({
               </div>
             ))}
           </dl>
+
+          <section className="tp-cele-balances" aria-label="Toernooibalans">
+            <h2 className="tp-section-label">Balans na dit spel</h2>
+            <dl>
+              {[...gameState.balances].sort((a, b) => b.balance - a.balance).map((balance) => (
+                <div className="tp-stat" key={balance.player_id}>
+                  <dt>{balance.player_name}</dt>
+                  <dd className={`tp-bal-val ${balance.balance > 0 ? "pos" : balance.balance < 0 ? "neg" : "zero"}`}>
+                    {formatEuro(balance.balance)}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </section>
         </div>
 
         <div className="tp-cele-cta">

@@ -363,7 +363,12 @@ router.post("/games/:gameId/finish", gameActionLimiter, async (req: Request, res
 
   try {
     await client.query("BEGIN");
-    await client.query("SELECT id FROM games WHERE id = $1 FOR UPDATE", [gameId]);
+    const game = await client.query("SELECT status FROM games WHERE id = $1 FOR UPDATE", [gameId]);
+    if (!game.rows.length || !["active", "finished"].includes(game.rows[0].status)) {
+      await client.query("ROLLBACK");
+      res.status(400).json({ error: "Spel is niet actief" });
+      return;
+    }
     // Remove excluded players from the game before finishing
     if (excludedPlayerIds && excludedPlayerIds.length > 0) {
       await client.query(
@@ -412,7 +417,7 @@ router.post("/tournaments/:tournamentId/games", gameActionLimiter, async (req: R
 
     // Verify tournament is not closed
     const tournamentRes = await client.query(
-      "SELECT status FROM tournaments WHERE id = $1",
+      "SELECT status FROM tournaments WHERE id = $1 FOR UPDATE",
       [tournamentId]
     );
     if (tournamentRes.rows.length > 0 && tournamentRes.rows[0].status === "closed") {

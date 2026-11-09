@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { resetDb, createTournament, getLatestGame, finishRound, finishGame } from "../helpers/api";
+import { resetDb, createTournament, getLatestGame, finishRound, finishGame, apiBuyIn } from "../helpers/api";
 
 for (const action of ["new-game", "close-tournament"] as const) {
   test(`${action} locks both celebration buttons and allows retry after failure`, async ({ page }) => {
@@ -57,3 +57,35 @@ for (const action of ["new-game", "close-tournament"] as const) {
     expect(requests).toBe(2);
   });
 }
+
+test("celebration shows cumulative euro balances including buy-ins", async ({ page }) => {
+  await resetDb();
+  const tournament = await createTournament("Balans na ieder spel", ["Alice", "Bob", "Charlie"]);
+  const state = await getLatestGame(tournament.id);
+  const alice = state.players.find((p: { player_name: string }) => p.player_name === "Alice");
+  const penalties = (alicePoints: number, bobPoints: number) => state.players.map((p: { player_id: string; player_name: string }) => ({
+    playerId: p.player_id,
+    points: p.player_name === "Alice" ? alicePoints : p.player_name === "Bob" ? bobPoints : 0,
+  }));
+  await finishRound(state.game.id, penalties(15, 0));
+  await apiBuyIn(state.game.id, alice.player_id);
+  await finishRound(state.game.id, penalties(15, 15));
+  await finishGame(state.game.id);
+  await page.goto(`/t/${tournament.id}`);
+  const balances = page.getByRole("region", { name: "Toernooibalans" });
+  await expect(balances.locator(".tp-stat").filter({ hasText: "Alice" })).toHaveText("Alice−€5,00");
+  await expect(balances.locator(".tp-stat").filter({ hasText: "Bob" })).toHaveText("Bob−€2,50");
+  await expect(balances.locator(".tp-stat").filter({ hasText: "Charlie" })).toHaveText("Charlie+€7,50");
+  await page.getByLabel("Schakel naar schrijver modus").click();
+  await page.getByRole("button", { name: "Nieuw spel", exact: true }).click();
+  await expect(page.locator(".celebration-overlay")).toHaveCount(0);
+  const next = await getLatestGame(tournament.id);
+  await finishRound(next.game.id, next.players.map((p: { player_id: string; player_name: string }) => ({
+    playerId: p.player_id, points: p.player_name === "Alice" ? 0 : 15,
+  })));
+  await finishGame(next.game.id);
+  await page.reload();
+  await expect(balances.locator(".tp-stat").filter({ hasText: "Alice" })).toHaveText("Alice+€0,00");
+  await expect(balances.locator(".tp-stat").filter({ hasText: "Bob" })).toHaveText("Bob−€5,00");
+  await expect(balances.locator(".tp-stat").filter({ hasText: "Charlie" })).toHaveText("Charlie+€5,00");
+});

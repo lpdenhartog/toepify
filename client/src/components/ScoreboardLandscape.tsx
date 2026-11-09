@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import {
   BuyInSection,
+  CloseTournamentButton,
   HeroNumber,
   ModeBadge,
   PlayerHead,
@@ -184,6 +185,9 @@ export default function ScoreboardLandscape({
                 undoing={undoingRound}
                 onUndo={view.onUndo}
               />
+            )}
+            {canWrite && view.isCreator && isActive && rounds.length === 0 && (
+              <CloseTournamentButton onClose={view.onCloseTournament} />
             )}
           </div>
         </div>

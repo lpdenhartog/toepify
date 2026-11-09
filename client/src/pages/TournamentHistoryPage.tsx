@@ -19,6 +19,7 @@ function formatNames(names: string[]): string {
 }
 
 function getWinnerSummary(game: GameState): string {
+  if (game.game.status === "cancelled") return "Niet gespeeld";
   const winner = game.players.find(
     (player) => player.player_id === game.game.winner_player_id,
   );

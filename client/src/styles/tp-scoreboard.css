@@ -858,10 +858,32 @@
   text-align: right;
 }
 
+.tp-cele-balances {
+  width: 100%;
+  margin-top: 20px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  text-align: left;
+}
+.tp-cele-balances h2 {
+  margin: 0 0 6px;
+}
+.tp-cele-balances dl {
+  margin: 0;
+}
+.tp-cele-balances dt {
+  overflow-wrap: anywhere;
+}
+.tp-cele-balances dd {
+  flex-shrink: 0;
+}
+
 .tp-cele-cta {
   width: 100%;
   max-width: 460px;
-  /* Flow directly under the stats (not pinned to the viewport bottom) so the
+  /* Flow directly under the balances (not pinned to the viewport bottom) so the
      secondary action stays visible under "Nieuw spel" without a large gap. */
   margin-top: 22px;
   margin-bottom: 24px;

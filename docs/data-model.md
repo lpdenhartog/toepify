@@ -18,7 +18,7 @@ Indexes:
 ### games
 - `id` (UUID)
 - `tournament_id` (TEXT / UUID) FK -> tournaments.id
-- `status` (TEXT) — `active` | `finished`
+- `status` (TEXT) — `active` | `finished` | `cancelled` (unplayed game cancelled when closing the tournament; excluded from balances)
 - `winner_player_id` (UUID, nullable) FK -> players.id — set when game finishes
 - `created_at` (TIMESTAMPTZ)
 
