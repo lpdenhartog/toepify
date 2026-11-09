@@ -3,18 +3,41 @@ import { fetchLatestGame, type GameState } from '../api/game';
 import { transition, type Action, type Command } from '../../../server/src/shared/gameplay';
 import { loadSession, saveSession, setOfflineTournament, offlineTournament, localUpdates, networkFetch, subscribeOffline, cacheOnlineState, type LocalSession } from './store';
 export const CONFLICT = 'De online versie is gewijzigd. Synchroniseren is gestopt. Vraag een beheerder om hulp.';
-class RequestError extends Error { status: number; constructor(message: string, status: number) { super(message); this.status = status; } }
+class RequestError extends Error {
+  status: number;
+  retryAfter: number;
+  constructor(message: string, status: number, retryAfter = 0) {
+    super(message); this.status = status; this.retryAfter = retryAfter;
+  }
+}
 async function send(session: LocalSession, sync: boolean) {
   const fetcher = sync ? networkFetch : window.fetch;
-  const response = await fetcher(`/api/tournaments/${session.id}/${sync ? 'sync' : 'commands'}`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ baseRevision: session.base.tournament.revision, commands: session.commands }),
-    signal: AbortSignal.timeout(10000),
-  });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new RequestError(data.error ?? 'Opslaan mislukt', response.status);
-  if (!data.state || !Array.isArray(data.acknowledged) || session.commands.some(c => !data.acknowledged.includes(c.requestId))) throw new Error('Synchronisatie niet bevestigd.');
-  return data.state as GameState;
+  // A manual sync may follow a reconnect before the network is fully usable.
+  // Reuse the exact journal so a committed request with a lost response is safe.
+  const body = JSON.stringify({ baseRevision: session.base.tournament.revision, commands: session.commands });
+  const attempts = sync ? 3 : 1;
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    try {
+      const response = await fetcher(`/api/tournaments/${session.id}/${sync ? 'sync' : 'commands'}`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body,
+        signal: AbortSignal.timeout(10000),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const header = response.headers.get('Retry-After');
+        const retryAfter = header ? (/^\d+$/.test(header) ? Number(header) * 1000 : Math.max(0, Date.parse(header) - Date.now())) : 0;
+        throw new RequestError(data.error ?? 'Opslaan mislukt', response.status, retryAfter);
+      }
+      if (!data.state || !Array.isArray(data.acknowledged) || session.commands.some(c => !data.acknowledged.includes(c.requestId))) throw new Error('Synchronisatie niet bevestigd.');
+      return data.state as GameState;
+    } catch (error) {
+      const transient = !(error instanceof RequestError) || error.status >= 500 || (error.status === 429 && error.retryAfter <= 2000);
+      if (!transient || attempt === attempts - 1) throw error;
+      const delay = error instanceof RequestError && error.retryAfter ? error.retryAfter : 400 * (attempt + 1);
+      await new Promise(resolve => window.setTimeout(resolve, delay));
+    }
+  }
+  throw new Error('Synchronisatie niet bevestigd.');
 }
 export function useTournamentSession(id: string | undefined, writer: boolean) {
   const offlineId = useSyncExternalStore(subscribeOffline, offlineTournament);
@@ -121,7 +144,14 @@ export function useTournamentSession(id: string | undefined, writer: boolean) {
           }
           setUncertain(false); setError(err.status === 409 ? 'Het spel is gewijzigd. Controleer de scores en probeer opnieuw.' : err.message);
         }
-      } else { setUncertain(!pending.offline); setError('Opslaan niet bevestigd. Probeer opnieuw of speel offline verder.'); }
+      } else {
+        setUncertain(!pending.offline);
+        setError(sync
+          ? (err instanceof RequestError && err.status === 429
+            ? 'Te veel verzoeken. Je scores zijn bewaard. Wacht even en synchroniseer opnieuw.'
+            : 'Synchroniseren niet bevestigd. Je scores zijn bewaard. Controleer de verbinding en probeer opnieuw.')
+          : 'Opslaan niet bevestigd. Probeer opnieuw of speel offline verder.');
+      }
     }
   }, [commit]);
   const execute = useCallback(async (action: Action) => {
@@ -139,16 +169,27 @@ export function useTournamentSession(id: string | undefined, writer: boolean) {
   }, [attempt, commit, offlineId, finishBusy]);
   const retry = useCallback(async () => {
     const pending = current.current;
-    if (!pending || busyRef.current || !lockRef.current) return;
-    busyRef.current = true; setBusy(true);
-    try {
-      if (pending.commands.length || pending.offline) await attempt(pending, pending.offline);
-      else {
-        const state = await fetchLatestGame(pending.id);
-        await commit({ ...pending, state, base: state }); setError(''); setUncertain(false);
-      }
-    } catch (err) { setError(err instanceof Error ? err.message : 'Synchroniseren mislukt'); }
-    finally { finishBusy(); }
+    if (!pending || busyRef.current) return;
+    const run = async () => {
+      busyRef.current = true; setBusy(true);
+      try {
+        // A temporary sync lock may have waited behind an existing writer.
+        const latest = await loadSession(pending.id) ?? pending;
+        if (latest.commands.length || latest.offline) await attempt(latest, latest.offline);
+        else {
+          const state = await fetchLatestGame(latest.id);
+          await commit({ ...latest, state, base: state }); setError(''); setUncertain(false);
+        }
+      } catch (err) { setError(err instanceof Error ? err.message : 'Synchroniseren mislukt'); }
+      finally { finishBusy(); }
+    };
+    if (lockRef.current) await run();
+    else if (pending.offline && navigator.locks) {
+      await navigator.locks.request(`toepify-writer:${pending.id}`, { ifAvailable: true }, async lock => {
+        if (!lock) { setError('Een ander tabblad schrijft in dit toernooi. Synchroniseer in dat tabblad.'); return; }
+        await run();
+      });
+    }
   }, [attempt, commit, finishBusy]);
   const goOffline = useCallback(async () => {
     const pending = current.current;

@@ -64,18 +64,24 @@ export default function TournamentPage({ mode, onEnableWriter }: { mode: Tournam
   const excluded = new Set(session.excluded);
   return <>
     {offline && <div className="offline-status" role="status">
-      <div><strong>Offline modus</strong><span>Scores blijven op dit apparaat. Andere apparaten zien de laatste online stand.</span></div>
-      {mode !== 'writer' && <button className="offline-secondary" onClick={onEnableWriter}>Schrijfmodus</button>}
-      <button className="btn-primary" disabled={busy || !hasLock || mode !== 'writer'} onClick={() => void local.retry()}>{busy ? 'Synchroniseren…' : 'Synchroniseren'}</button>
-      <button className="offline-secondary" onClick={download}>Herstelbestand downloaden</button>
+      <strong>Offline modus</strong>
+      <button className="offline-button" disabled={busy || (mode === 'writer' && !hasLock)} onClick={() => void local.retry()}>{busy ? 'Synchroniseren…' : 'Synchroniseren'}</button>
+      <details className="offline-options">
+        <summary className="offline-button" aria-label="Offline opties">···</summary>
+        <div className="offline-options-menu">
+          <p>Scores blijven op dit apparaat tot je synchroniseert.</p>
+          {mode !== 'writer' && <button className="offline-button" onClick={onEnableWriter}>Schrijfmodus</button>}
+          <button className="offline-button" onClick={download}>Herstelbestand downloaden</button>
+        </div>
+      </details>
     </div>}
     {mode === 'writer' && !hasLock && <p className="round-save-status" role="status">{navigator.locks ? 'Een ander tabblad schrijft in dit toernooi. Dit tabblad is alleen-lezen.' : 'Schrijven vereist een browser met ondersteuning voor veilige tabbladvergrendeling.'}</p>}
     {busy && !offline && <p className="round-save-status" role="status">Opslaan…</p>}
     {(local.error || closeError || session.conflict) && <div className="round-save-status offline-error" role="alert">
       {local.error || closeError || session.conflict}
       {uncertain && hasLock && <div className="offline-choices">
-        <button className="btn-primary" disabled={busy} onClick={() => void local.retry()}>Opnieuw proberen</button>
-        <button className="offline-secondary" disabled={busy} onClick={() => void local.goOffline()}>Offline verder spelen</button>
+        <button className="offline-button" disabled={busy} onClick={() => void local.retry()}>Opnieuw proberen</button>
+        <button className="offline-button" disabled={busy} onClick={() => void local.goOffline()}>Offline verder spelen</button>
       </div>}
     </div>}
     <fieldset disabled={blocked} className="round-save-controls" aria-busy={busy}>

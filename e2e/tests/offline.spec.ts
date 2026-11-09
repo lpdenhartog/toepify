@@ -18,6 +18,10 @@ async function goOffline(page: Page) {
   await page.route('**/commands', route => route.abort('failed'));
   await enterRound(page);
   await expect(page.getByRole('button', { name: 'Offline verder spelen' })).toBeVisible();
+  const retry = await page.getByRole('button', { name: 'Opnieuw proberen', exact: true }).boundingBox();
+  const offline = await page.getByRole('button', { name: 'Offline verder spelen', exact: true }).boundingBox();
+  expect(Math.abs(retry!.width - offline!.width)).toBeLessThanOrEqual(1);
+  expect(retry!.height).toBe(offline!.height);
   await page.getByRole('button', { name: 'Offline verder spelen' }).click();
   await expect(page.getByText('Offline modus', { exact: true })).toBeVisible();
 }
@@ -34,6 +38,7 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 844, height: 390 }
     await enterRound(page);
     await expect(scores(page).first()).toHaveText('2');
     await page.screenshot({ path: `/tmp/toepify-offline-${viewport.width}.png` });
+    expect((await page.locator('.offline-status').boundingBox())!.height).toBeLessThanOrEqual(60);
     await expect(page.getByLabel('Ronde afsluiten')).toBeInViewport();
     expect((await getLatestGame(tournament.id)).rounds).toHaveLength(0);
     const before = calls;
@@ -48,7 +53,6 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 844, height: 390 }
       await page.goto(`/t/${tournament.id}`);
     } else await page.reload();
     await expect(scores(page).first()).toHaveText('2');
-    await page.getByRole('button', { name: 'Schrijfmodus', exact: true }).click();
     await expect(page.getByRole('button', { name: 'Synchroniseren', exact: true })).toBeEnabled();
     await context.setOffline(false);
     await page.getByRole('button', { name: 'Synchroniseren', exact: true }).click();
@@ -98,6 +102,7 @@ test('conflicts retain offline progress and provide a recovery file', async ({ p
   await expect(scores(page).first()).toHaveText('1');
   await expect(page.locator('.penalty-btn').first()).toBeEnabled();
   const download = page.waitForEvent('download');
+  await page.getByLabel('Offline opties').click();
   await page.getByRole('button', { name: 'Herstelbestand downloaden' }).click();
   expect((await download).suggestedFilename()).toContain(tournament.id);
   expect((await getLatestGame(tournament.id)).rounds).toHaveLength(1);
@@ -172,11 +177,12 @@ test('a lost sync response can be extended with more offline play and synced aga
   let uploads = 0;
   await page.route('**/sync', async route => {
     uploads++;
-    if (uploads === 1) { await route.fetch(); await route.abort('failed'); }
+    if (uploads === 1) await route.fetch();
+    if (uploads <= 3) await route.abort('failed');
     else await route.continue();
   });
   await page.getByRole('button', { name: 'Synchroniseren', exact: true }).click();
-  await expect(page.getByRole('alert')).toContainText('Opslaan niet bevestigd');
+  await expect(page.getByRole('alert')).toContainText('Synchroniseren niet bevestigd');
   await expect(page.locator('.penalty-btn').first()).toBeEnabled();
   await enterRound(page);
   await page.getByRole('button', { name: 'Synchroniseren', exact: true }).click();
@@ -267,4 +273,25 @@ test('viewer polling refreshes the durable baseline before switching offline', a
   await page.getByRole('button', { name: 'Synchroniseren', exact: true }).click();
   await expect(page.getByText('Offline modus', { exact: true })).toHaveCount(0);
   expect((await getLatestGame(tournament.id)).rounds).toHaveLength(2);
+});
+
+
+test('manual sync recovers from transient reconnect failures without duplicating saved scores', async ({ page, context }) => {
+  const tournament = await openWriter(page);
+  await goOffline(page);
+  await context.setOffline(true);
+  await context.setOffline(false);
+  const bodies: string[] = [];
+  await page.route('**/sync', async route => {
+    bodies.push(route.request().postData()!);
+    if (bodies.length === 1) { await route.fetch(); await route.abort('failed'); }
+    else if (bodies.length === 2) await route.fulfill({ status: 503, json: { error: 'Server tijdelijk niet bereikbaar' } });
+    else await route.continue();
+  });
+  await page.getByRole('button', { name: 'Synchroniseren', exact: true }).click();
+  await expect(page.getByText('Offline modus', { exact: true })).toHaveCount(0);
+  await expect(page.getByRole('alert')).toHaveCount(0);
+  expect(bodies).toHaveLength(3);
+  expect(new Set(bodies).size).toBe(1);
+  expect((await getLatestGame(tournament.id)).rounds).toHaveLength(1);
 });

@@ -1546,21 +1546,39 @@ fieldset legend {
   box-shadow: 0 2px 12px #0004;
 }
 
-/* Offline controls remain reachable above the winner overlay. */
-.offline-status, .offline-error, .offline-choices {
-  display: flex; flex-wrap: wrap; align-items: center; gap: .65rem;
-}
+/* Compact offline controls stay above the scoreboard and winner overlay. */
 .offline-status {
-  position: sticky; top: 0; z-index: 1200; background: #ece5d6; color: #174b35;
-  border: 2px solid #206848; border-radius: 12px; padding: .7rem 1rem; margin: .5rem 0;
+  display: flex; align-items: center; gap: .5rem;
+  position: sticky; top: 0; z-index: 1200;
+  padding: .2rem .45rem; margin: .35rem 0;
+  background: var(--bg); color: var(--text);
+  border: 1px solid var(--accent); border-radius: .6rem;
+  font-size: .8rem;
 }
-.offline-status > div { flex: 1 1 220px; }
-.offline-status strong, .offline-status span { display: block; }
-.offline-status span { font-size: .85rem; margin-top: .2rem; }
-.offline-status button, .offline-choices button { min-height: 44px; padding: .55rem .8rem; }
-.offline-secondary { border: 1px solid currentColor; border-radius: 8px; background: #ece5d6; color: #174b35; cursor: pointer; font: inherit; }
-.offline-error { z-index: 1201; }
-.offline-choices { width: 100%; }
-.offline-error { position: fixed; top: 4rem; }
-.offline-status .btn-primary { width: auto; flex: 0 0 auto; }
-.offline-error { position: relative; top: auto; left: auto; transform: none; max-width: none; }
+.offline-status > strong { margin-right: auto; white-space: nowrap; font-weight: 600; }
+.offline-button {
+  display: inline-flex; justify-content: center; align-items: center;
+  min-height: 44px; padding: .4rem .65rem;
+  background: var(--surface); color: var(--text);
+  border: 1px solid var(--line-strong); border-radius: .5rem;
+  font: inherit; font-weight: 600; line-height: 1.2; cursor: pointer;
+  text-transform: none; letter-spacing: normal;
+}
+.offline-button:hover { background: var(--surface-hi); border-color: var(--accent); }
+.offline-button:disabled { opacity: .5; cursor: not-allowed; }
+.offline-options { position: relative; }
+.offline-options > summary { min-width: 44px; list-style: none; font-size: 1.1rem; }
+.offline-options > summary::-webkit-details-marker { display: none; }
+.offline-options-menu {
+  position: absolute; right: 0; top: calc(100% + .35rem);
+  display: grid; gap: .5rem; width: min(280px, calc(100vw - 3rem));
+  padding: .65rem; border: 1px solid var(--line-strong); border-radius: .6rem;
+  background: var(--bg); box-shadow: 0 3px 16px #0002;
+}
+.offline-options-menu p { margin: 0; font-weight: 400; line-height: 1.4; }
+.offline-error {
+  position: relative; top: auto; left: auto; transform: none; max-width: none;
+  z-index: 1201;
+}
+.offline-choices { display: flex; gap: .5rem; margin-top: .5rem; }
+.offline-choices .offline-button { flex: 1 1 0; min-width: 0; font-size: .85rem; }

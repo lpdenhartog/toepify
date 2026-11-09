@@ -37,8 +37,8 @@
 
 ## Offline gameplay
 - On an unconfirmed gameplay save, offer **Opnieuw proberen** and **Offline verder spelen**. Do not discard the action.
-- Keep **Offline modus**, a device-only explanation, **Synchroniseren**, and **Herstelbestand downloaden** visible above the scoreboard and winner screen in both orientations.
+- Keep a compact, single-row **Offline modus** bar with **Synchroniseren** and an **Offline opties** menu above the scoreboard and winner screen in both orientations. Put the device-only explanation and **Herstelbestand downloaden** in the menu. Use equal size and styling for alternative choice buttons.
 - Offline play supports scoring, buy-ins, undo, game completion, and new games in the existing tournament. Creation, closure, deletion, and administration require online mode.
-- Connectivity returning does not resume synchronization. Only a successful manual sync returns to online mode.
+- Connectivity returning does not resume synchronization. Only a successful manual sync returns to online mode. A manual sync retries transient network/server failures up to three times with the same command IDs; conflicts stop immediately. Sync is also available after reopening in viewer mode, with an exclusive lock during upload.
 - Conflicts preserve local scores and explain that a beheerder must help. Never offer force upload or replace local scores with the online version.
 - Other devices see only the online version. Another tab on the recording device follows local changes read-only while one tab owns the writer lock.
