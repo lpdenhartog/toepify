@@ -1545,3 +1545,22 @@ fieldset legend {
   font-size: .85rem;
   box-shadow: 0 2px 12px #0004;
 }
+
+/* Offline controls remain reachable above the winner overlay. */
+.offline-status, .offline-error, .offline-choices {
+  display: flex; flex-wrap: wrap; align-items: center; gap: .65rem;
+}
+.offline-status {
+  position: sticky; top: 0; z-index: 1200; background: #ece5d6; color: #174b35;
+  border: 2px solid #206848; border-radius: 12px; padding: .7rem 1rem; margin: .5rem 0;
+}
+.offline-status > div { flex: 1 1 220px; }
+.offline-status strong, .offline-status span { display: block; }
+.offline-status span { font-size: .85rem; margin-top: .2rem; }
+.offline-status button, .offline-choices button { min-height: 44px; padding: .55rem .8rem; }
+.offline-secondary { border: 1px solid currentColor; border-radius: 8px; background: #ece5d6; color: #174b35; cursor: pointer; font: inherit; }
+.offline-error { z-index: 1201; }
+.offline-choices { width: 100%; }
+.offline-error { position: fixed; top: 4rem; }
+.offline-status .btn-primary { width: auto; flex: 0 0 auto; }
+.offline-error { position: relative; top: auto; left: auto; transform: none; max-width: none; }

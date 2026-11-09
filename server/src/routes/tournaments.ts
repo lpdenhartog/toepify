@@ -167,6 +167,7 @@ router.delete("/:id", writeLimiter, requireAuth, async (req: AuthRequest, res: R
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
+      await client.query("SELECT id FROM tournaments WHERE id = $1 FOR UPDATE", [id]);
 
       await client.query("DELETE FROM user_tournaments WHERE tournament_id = $1", [id]);
       await client.query(

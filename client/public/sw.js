@@ -1,56 +1,24 @@
-const CACHE_NAME = "toepify-app-v1";
+// The production build injects a revision and all hashed application assets.
+const CACHE_NAME = "toepify-app-v2";
 const APP_SHELL = ["/", "/manifest.webmanifest", "/favicon.svg"];
-
-self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)),
-  );
-  self.skipWaiting();
+self.addEventListener("install", event => {
+  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)));
+  // Let an existing game finish using its current shell before activating updates.
 });
-
-self.addEventListener("activate", (event) => {
-  event.waitUntil(
-    caches
-      .keys()
-      .then((keys) =>
-        Promise.all(
-          keys
-            .filter((key) => key !== CACHE_NAME)
-            .map((key) => caches.delete(key)),
-        ),
-      ),
-  );
-  self.clients.claim();
-});
-
-self.addEventListener("fetch", (event) => {
+self.addEventListener("activate", event => { event.waitUntil(self.clients.claim()); });
+self.addEventListener("fetch", event => {
   const request = event.request;
   const url = new URL(request.url);
-
-  if (url.origin !== self.location.origin || url.pathname.startsWith("/api")) {
-    return;
-  }
-
+  if (request.method !== "GET" || url.origin !== self.location.origin || url.pathname.startsWith("/api") || url.pathname.startsWith("/socket.io")) return;
   if (request.mode === "navigate") {
-    event.respondWith(fetch(request).catch(() => caches.match("/")));
+    event.respondWith(fetch(request).catch(() => caches.open(CACHE_NAME).then(cache => cache.match("/"))));
     return;
   }
-
-  if (request.method !== "GET") return;
-
-  event.respondWith(
-    caches.match(request).then((cached) => {
-      if (cached) return cached;
-
-      return fetch(request).then((response) => {
-        const copy = response.clone();
-        if (response.ok) {
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(request, copy);
-          });
-        }
-        return response;
-      });
-    }),
-  );
+  event.respondWith(caches.open(CACHE_NAME).then(async cache => {
+    const cached = await cache.match(request);
+    if (cached) return cached;
+    const response = await fetch(request);
+    if (response.ok) await cache.put(request, response.clone());
+    return response;
+  }));
 });

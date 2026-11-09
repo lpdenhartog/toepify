@@ -100,6 +100,7 @@ router.post("/games/:gameId/finish-round", gameActionLimiter, async (req: Reques
   const client = await getPool().connect();
   try {
     await client.query("BEGIN");
+    await client.query("SELECT id FROM tournaments WHERE id = (SELECT tournament_id FROM games WHERE id = $1) FOR UPDATE", [gameId]);
     // Serialize all game actions on the same game row.
     const locked = await client.query("SELECT status, revision FROM games WHERE id = $1 FOR UPDATE", [gameId]);
     if (requestId) {
@@ -258,6 +259,7 @@ router.post("/games/:gameId/buy-in", gameActionLimiter, async (req: Request, res
   const client = await getPool().connect();
   try {
     await client.query("BEGIN");
+    await client.query("SELECT id FROM tournaments WHERE id = (SELECT tournament_id FROM games WHERE id = $1) FOR UPDATE", [gameId]);
 
     // Verify game is active
     const gameRes = await client.query("SELECT status, revision FROM games WHERE id = $1 FOR UPDATE", [gameId]);
@@ -363,6 +365,7 @@ router.post("/games/:gameId/finish", gameActionLimiter, async (req: Request, res
 
   try {
     await client.query("BEGIN");
+    await client.query("SELECT id FROM tournaments WHERE id = (SELECT tournament_id FROM games WHERE id = $1) FOR UPDATE", [gameId]);
     const game = await client.query("SELECT status FROM games WHERE id = $1 FOR UPDATE", [gameId]);
     if (!game.rows.length || !["active", "finished"].includes(game.rows[0].status)) {
       await client.query("ROLLBACK");
@@ -479,6 +482,7 @@ router.post("/games/:gameId/undo-round", gameActionLimiter, async (req: Request,
 
   try {
     await client.query("BEGIN");
+    await client.query("SELECT id FROM tournaments WHERE id = (SELECT tournament_id FROM games WHERE id = $1) FOR UPDATE", [gameId]);
 
     // Verify game exists and is active or finished
     const gameRes = await client.query("SELECT status, revision FROM games WHERE id = $1 FOR UPDATE", [gameId]);

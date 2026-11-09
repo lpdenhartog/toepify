@@ -76,6 +76,7 @@ router.delete("/tournaments", requireAdmin, async (req: AuthRequest, res: Respon
   const client = await getPool().connect();
   try {
     await client.query("BEGIN");
+    await client.query("SELECT id FROM tournaments WHERE id = ANY($1) ORDER BY id FOR UPDATE", [tournamentIds]);
 
     // Delete in FK order: user_tournaments → round_scores → rounds → game_players → games → players → tournaments
     await client.query(

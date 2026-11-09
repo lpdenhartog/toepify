@@ -86,3 +86,8 @@ Composite PK: (username, tournament_id)
 - Buy-in resets a player's `is_active` to true and sets their `total_score` to the **highest active player's score** (so they rejoin at the worst surviving position). A `buy_in` round is inserted to record this score adjustment.
 - Users and tournament players are separate concepts. Users are registered accounts; players are display names within a tournament.
 - The `tournaments.created_by` column links a tournament to the user who created it.
+
+### Offline synchronization
+- `tournaments.revision` is a monotonic BIGINT incremented by game mutation and tournament status triggers. It detects changes across the tournament, including undo.
+- `gameplay_receipts` has composite key `(tournament_id, request_id)`, the exact JSON command payload, and `before_revision`/`after_revision`. Receipts survive round undo and cascade on tournament deletion.
+- IndexedDB stores one versioned local session per tournament: confirmed baseline, current state and roster, ordered unacknowledged commands, input drafts, explicit offline mode, and conflict information. Tokens are not included in these sessions or recovery downloads.

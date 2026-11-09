@@ -1265,3 +1265,10 @@
     opacity: 1 !important;
   }
 }
+
+/* Reserve room for durable offline controls on short landscape screens. */
+@media (orientation: landscape) and (max-height: 540px) {
+  .app-container.is-offline { display: flex; flex-direction: column; }
+  .app-container.is-offline .offline-status { flex-shrink: 0; margin: 3px; padding: 5px 10px; }
+  .app-container.is-offline .scoreboard.tp-land-wrap { height: auto; flex: 1; min-height: 0; }
+}

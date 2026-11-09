@@ -65,7 +65,7 @@ test.describe("New Game", () => {
     await modeToggle.click();
 
     // Click "Nieuw spel"
-    await authPage.click("text=Nieuw spel");
+    await authPage.getByRole("button", { name: "Nieuw spel", exact: true }).click();
 
     // Celebration should disappear
     await expect(authPage.locator(".celebration-overlay")).not.toBeVisible();

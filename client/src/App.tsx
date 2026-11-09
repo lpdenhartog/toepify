@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import {
   BrowserRouter,
   Routes,
@@ -24,6 +24,8 @@ import {
   canUseScoreSpeech,
   speakScoreText,
 } from "./components/scoreboard/scoreSpeech";
+
+import { offlineTournament, subscribeOffline, cachedScore } from "./offline/store";
 
 export type TournamentMode = "viewer" | "writer";
 
@@ -91,7 +93,8 @@ function ScoreReadButton({ tournamentId }: { tournamentId: string }) {
 
     setIsReading(true);
     try {
-      const state = await fetchLatestGame(tournamentId);
+      const state = offlineTournament() ? await cachedScore(tournamentId) : await fetchLatestGame(tournamentId);
+      if (!state) return;
       const currentScores = Object.fromEntries(
         state.players.map((player) => [player.player_id, player.total_score]),
       );
@@ -254,14 +257,13 @@ function HeaderActions({
 
 function AppContent() {
   const location = useLocation();
+  const offlineId = useSyncExternalStore(subscribeOffline, offlineTournament);
   const tournamentMatch = matchPath("/t/:tournamentId", location.pathname);
   const tournamentId = tournamentMatch?.params.tournamentId;
-  const [mode, setMode] = useState<TournamentMode>("viewer");
+  const [modeSelection, setModeSelection] = useState<{ id?: string; mode: TournamentMode }>({ mode: "viewer" });
+  const mode = modeSelection.id === tournamentId ? modeSelection.mode : "viewer";
   const [isStaging, setIsStaging] = useState(false);
 
-  useEffect(() => {
-    setMode("viewer");
-  }, [tournamentId]);
 
   useEffect(() => {
     let isMounted = true;
@@ -290,7 +292,7 @@ function AppContent() {
   }, []);
 
   return (
-    <div className="app-container">
+    <div className={`app-container${offlineId ? " is-offline" : ""}`}>
       <header className="app-header">
         <Link to="/" className="header-link">
           <LogoMark size={36} decorative className="header-icon" />
@@ -303,7 +305,7 @@ function AppContent() {
           <HeaderActions
             mode={mode}
             onToggleMode={() =>
-              setMode((current) => (current === "viewer" ? "writer" : "viewer"))
+              setModeSelection({ id: tournamentId, mode: mode === "viewer" ? "writer" : "viewer" })
             }
             tournamentId={tournamentId}
             showModeToggle={!!tournamentId}
@@ -311,18 +313,19 @@ function AppContent() {
           />
         </div>
       </header>
+      {offlineId && !tournamentId && <div className="offline-status" role="status"><strong>Offline modus</strong><Link to={`/t/${offlineId}`}>Terug naar het offline toernooi</Link></div>}
       <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/admin" element={<AdminPage />} />
+        <Route path="/" element={offlineId ? <p className="loading-text">Synchroniseer het offline toernooi om andere functies te gebruiken.</p> : <LandingPage />} />
+        <Route path="/admin" element={offlineId ? <p className="error-msg">Beheer is niet beschikbaar in offline modus.</p> : <AdminPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/activate/:token" element={<ActivatePage />} />
         <Route
           path="/t/:tournamentId/history"
-          element={<TournamentHistoryPage />}
+          element={offlineId ? <p className="loading-text">De online geschiedenis is beschikbaar na synchronisatie.</p> : <TournamentHistoryPage />}
         />
         <Route
           path="/t/:tournamentId"
-          element={<TournamentPage mode={mode} />}
+          element={offlineId && offlineId !== tournamentId ? <p className="error-msg">Synchroniseer eerst het offline toernooi.</p> : <TournamentPage key={tournamentId} mode={mode} onEnableWriter={() => setModeSelection({ id: tournamentId, mode: "writer" })} />}
         />
         <Route path="*" element={<p>Not found</p>} />
       </Routes>

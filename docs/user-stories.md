@@ -175,3 +175,7 @@ Acceptance criteria:
 
 ### L4 — Multiple games within a tournament UI
 - List past games and statistics
+
+## Durable offline play
+
+As a scorekeeper with an unreliable internet connection, I can retry an unconfirmed action or explicitly continue offline. Offline I can score rounds, buy in, undo, and start further games within the current tournament. Refreshing or reopening the previously loaded app preserves progress. I cannot create/close/delete tournaments or use administration while offline. A visible manual sync control returns me online only after all changes are acknowledged. External online changes stop synchronization without losing local progress; I can download a recovery file for an administrator. My own unconfirmed saves are recognized without duplication. Other devices retain the last online version until sync.

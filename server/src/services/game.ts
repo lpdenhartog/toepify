@@ -21,9 +21,10 @@ export interface Round {
 }
 
 export interface GameState {
-  tournament: { id: string; name: string; stake_per_game: number; created_by: string | null; status: string };
+  tournament: { id: string; name: string; stake_per_game: number; created_by: string | null; status: string; revision?: number };
   game: { id: string; status: string; winner_player_id: string | null; revision: number };
   players: GamePlayer[];
+  roster?: Array<{ player_id: string; player_name: string }>;
   rounds: Round[];
   pot: number;
   balances: Array<{ player_id: string; player_name: string; balance: number }>;
@@ -196,7 +197,7 @@ export async function readFullGameState(
   // Get game + tournament info
   const gameRes = await pool.query(
     `SELECT g.id, g.status, g.winner_player_id, g.revision, g.tournament_id,
-            t.name as tournament_name, t.stake_per_game, t.created_by, t.status as tournament_status
+            t.revision as tournament_revision, t.name as tournament_name, t.stake_per_game, t.created_by, t.status as tournament_status
      FROM games g
      JOIN tournaments t ON t.id = g.tournament_id
      WHERE g.id = $1`,
@@ -268,6 +269,7 @@ export async function readFullGameState(
       stake_per_game: Number(game.stake_per_game),
       created_by: game.created_by,
       status: game.tournament_status,
+      revision: Number(game.tournament_revision),
     },
     game: {
       id: game.id,
@@ -276,6 +278,7 @@ export async function readFullGameState(
       revision: game.revision,
     },
     players,
+    roster: balances.map(b => ({ player_id: b.player_id, player_name: b.player_name })),
     rounds,
     pot,
     balances,

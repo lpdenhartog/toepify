@@ -61,10 +61,13 @@ export async function activateAccount(token: string, password: string): Promise<
   return res.json();
 }
 
+export class AuthExpiredError extends Error {}
+
 export async function fetchMe(token: string): Promise<AuthUser> {
   const res = await fetch(`${BASE}/me`, {
     headers: { Authorization: `Bearer ${token}` },
   });
-  if (!res.ok) throw new Error("Niet ingelogd");
+  if (res.status === 401 || res.status === 403) throw new AuthExpiredError("Niet ingelogd");
+  if (!res.ok) throw new Error("Account ophalen mislukt");
   return res.json();
 }

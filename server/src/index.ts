@@ -12,6 +12,7 @@ import cors from "cors";
 import adminRoutes from "./routes/admin.js";
 import authRoutes from "./routes/auth.js";
 import tournamentRoutes from "./routes/tournaments.js";
+import offlineRoutes from "./routes/offline.js";
 import gameRoutes from "./routes/games.js";
 import getPool from "./db/connection.js";
 import { generalLimiter } from "./middleware/rateLimiter.js";
@@ -20,7 +21,7 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "5mb" }));
 
 // Global rate limit for all API endpoints
 app.use("/api", generalLimiter);
@@ -29,6 +30,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/tournaments", tournamentRoutes);
 app.use("/api", gameRoutes);
+app.use("/api", offlineRoutes);
 
 app.get("/api/config", (_req, res) => {
   res.json({ environment: process.env.ENV ?? null });

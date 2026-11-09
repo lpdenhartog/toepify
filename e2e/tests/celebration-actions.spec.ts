@@ -17,7 +17,7 @@ for (const action of ["new-game", "close-tournament"] as const) {
     const newGame = page.getByRole("button", { name: "Nieuw spel", exact: true });
     const closeTournament = page.getByRole("button", { name: "Toernooi afsluiten", exact: true });
     const selected = action === "new-game" ? newGame : closeTournament;
-    const endpoint = action === "new-game" ? "games" : "close";
+    const endpoint = action === "new-game" ? "commands" : "close";
     let release!: () => void;
     const held = new Promise<void>((resolve) => { release = resolve; });
     let requests = 0;
@@ -42,11 +42,17 @@ for (const action of ["new-game", "close-tournament"] as const) {
       release();
     }
 
-    await expect(page.getByRole("alert")).toContainText("Tijdelijk niet beschikbaar");
+    await expect(page.getByRole("alert")).toContainText(action === "new-game" ? "Opslaan niet bevestigd" : "Tijdelijk niet beschikbaar");
     await expect(page.locator(".celebration-overlay")).toBeVisible();
-    await expect(newGame).toBeEnabled();
-    await expect(closeTournament).toBeEnabled();
-    await selected.click();
+    if (action === "new-game") {
+      await expect(newGame).toBeDisabled();
+      await expect(closeTournament).toBeDisabled();
+      await page.getByRole("button", { name: "Opnieuw proberen", exact: true }).click();
+    } else {
+      await expect(newGame).toBeEnabled();
+      await expect(closeTournament).toBeEnabled();
+      await selected.click();
+    }
     await expect(page.getByRole("alert")).toHaveCount(0);
     await expect(page.locator(".celebration-overlay")).toHaveCount(0);
     if (action === "new-game") {

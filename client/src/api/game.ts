@@ -27,16 +27,17 @@ export interface PlayerBalance {
 }
 
 export interface GameState {
-  tournament: { id: string; name: string; stake_per_game: number; created_by: string | null; status: string };
+  tournament: { id: string; name: string; stake_per_game: number; created_by: string | null; status: string; revision?: number };
   game: { id: string; status: string; winner_player_id: string | null; revision: number };
   players: GamePlayer[];
+  roster?: Array<{ player_id: string; player_name: string }>;
   rounds: Round[];
   pot: number;
   balances: PlayerBalance[];
 }
 
 export async function fetchLatestGame(tournamentId: string): Promise<GameState> {
-  const res = await fetch(`/api/tournaments/${tournamentId}/latest`);
+  const res = await fetch(`/api/tournaments/${tournamentId}/latest`, { signal: AbortSignal.timeout(10_000) });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.error || "Fout bij laden");

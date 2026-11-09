@@ -34,3 +34,11 @@
 - Support landscape and portrait, but scoreboard is intented in landscape
 - Avoid tiny text and dense layouts
 - toepify should always be stylised in lowercase: toepify
+
+## Offline gameplay
+- On an unconfirmed gameplay save, offer **Opnieuw proberen** and **Offline verder spelen**. Do not discard the action.
+- Keep **Offline modus**, a device-only explanation, **Synchroniseren**, and **Herstelbestand downloaden** visible above the scoreboard and winner screen in both orientations.
+- Offline play supports scoring, buy-ins, undo, game completion, and new games in the existing tournament. Creation, closure, deletion, and administration require online mode.
+- Connectivity returning does not resume synchronization. Only a successful manual sync returns to online mode.
+- Conflicts preserve local scores and explain that a beheerder must help. Never offer force upload or replace local scores with the online version.
+- Other devices see only the online version. Another tab on the recording device follows local changes read-only while one tab owns the writer lock.

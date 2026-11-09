@@ -41,3 +41,7 @@
 ## Reconnect behavior
 - A browser reload or reconnect performs a fresh HTTP load of the latest game.
 - Viewer polling also detects newly started games and closed tournaments within the polling interval.
+
+## Explicit offline sessions
+
+The current viewer implementation polls every 10 seconds; writer gameplay uses HTTP commands. Explicit offline mode stops API activity and persists commands locally in IndexedDB. BroadcastChannel shares local snapshots across tabs, with a Web Lock for the writer. Other devices receive offline results only after manual sync succeeds. Tournament revisions and transactional command receipts enforce all-or-nothing synchronization; see [ADR 006](adr/006-durable-offline-gameplay.md).

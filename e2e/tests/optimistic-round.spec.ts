@@ -21,7 +21,7 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 844, height: 390 }
     await page.setViewportSize(viewport);
     let release!: () => void;
     const held = new Promise<void>((resolve) => { release = resolve; });
-    await page.route("**/finish-round", async (route) => { await held; await route.continue(); });
+    await page.route("**/commands", async (route) => { await held; await route.continue(); });
     await enterRound(page);
     await page.getByLabel("Ronde afsluiten").click();
     await expect(scores(page).nth(0)).toHaveText("1");
@@ -39,7 +39,7 @@ for (const viewport of [{ width: 390, height: 844 }, { width: 844, height: 390 }
 
 test("rejected saves restore the scores and submitted inputs", async ({ page }) => {
   await openWriter(page);
-  await page.route("**/finish-round", (route) => route.fulfill({ status: 400, json: { error: "Ongeldige ronde" } }));
+  await page.route("**/commands", (route) => route.fulfill({ status: 400, json: { error: "Ongeldige ronde" } }));
   await enterRound(page);
   await page.getByLabel("Ronde afsluiten").click();
   await expect(page.getByRole("alert")).toContainText("Ongeldige ronde");
@@ -51,8 +51,8 @@ test("rejected saves restore the scores and submitted inputs", async ({ page }) 
 test("a lost response retries the same submission without duplicating a round", async ({ page }) => {
   const tournament = await openWriter(page);
   const ids: string[] = [];
-  await page.route("**/finish-round", async (route) => {
-    ids.push(route.request().postDataJSON().requestId);
+  await page.route("**/commands", async (route) => {
+    ids.push(route.request().postDataJSON().commands[0].requestId);
     if (ids.length === 1) {
       await route.fetch(); // Commit, then lose the response.
       await route.abort("failed");
@@ -60,6 +60,8 @@ test("a lost response retries the same submission without duplicating a round", 
   });
   await enterRound(page);
   await page.getByLabel("Ronde afsluiten").click();
+  await expect(page.getByRole("alert")).toContainText("Opslaan niet bevestigd");
+  await page.getByRole("button", { name: "Opnieuw proberen" }).click();
   await expect(page.getByRole("status")).toHaveCount(0);
   await expect(page.locator(".penalty-btn").first()).toBeEnabled();
   expect(ids).toHaveLength(2);
@@ -70,8 +72,8 @@ test("a lost response retries the same submission without duplicating a round", 
 test("uncertain saves stay locked and recover after a reload", async ({ page }) => {
   const tournament = await openWriter(page);
   const ids: string[] = [];
-  await page.route("**/finish-round", async (route) => {
-    ids.push(route.request().postDataJSON().requestId);
+  await page.route("**/commands", async (route) => {
+    ids.push(route.request().postDataJSON().commands[0].requestId);
     if (ids.length === 1) await route.fetch();
     await route.abort("failed");
   });
@@ -79,15 +81,17 @@ test("uncertain saves stay locked and recover after a reload", async ({ page }) 
   await page.getByLabel("Ronde afsluiten").click();
   await expect(page.getByRole("alert")).toContainText("Opslaan niet bevestigd");
   await expect(page.locator(".penalty-btn").first()).toBeDisabled();
-  await page.unroute("**/finish-round");
-  await page.route("**/finish-round", async (route) => {
-    ids.push(route.request().postDataJSON().requestId);
+  await page.unroute("**/commands");
+  await page.route("**/commands", async (route) => {
+    ids.push(route.request().postDataJSON().commands[0].requestId);
     await route.continue();
   });
   await page.reload();
+  await page.getByLabel("Schakel naar schrijver modus").click();
+  await page.getByRole("button", { name: "Opnieuw proberen" }).click();
   await expect(page.getByRole("status")).toHaveCount(0);
   await expect(scores(page).nth(0)).toHaveText("1");
-  await expect.poll(() => ids.length).toBe(3);
+  await expect.poll(() => ids.length).toBe(2);
   expect(new Set(ids).size).toBe(1);
   expect((await getLatestGame(tournament.id)).rounds).toHaveLength(1);
 });
@@ -95,8 +99,8 @@ test("uncertain saves stay locked and recover after a reload", async ({ page }) 
 test("manual retry after rate limiting keeps the original receipt", async ({ page }) => {
   const tournament = await openWriter(page);
   const ids: string[] = [];
-  await page.route("**/finish-round", async (route) => {
-    ids.push(route.request().postDataJSON().requestId);
+  await page.route("**/commands", async (route) => {
+    ids.push(route.request().postDataJSON().commands[0].requestId);
     if (ids.length === 1) {
       await route.fetch();
       await route.abort("failed");
@@ -109,8 +113,9 @@ test("manual retry after rate limiting keeps the original receipt", async ({ pag
   await expect(page.getByRole("alert")).toContainText("Opslaan niet bevestigd");
   await expect(page.locator(".penalty-btn").first()).toBeDisabled();
   await page.getByRole("button", { name: "Opnieuw proberen" }).click();
+  await expect(page.getByRole("alert")).toContainText("Opslaan niet bevestigd");
+  await page.getByRole("button", { name: "Opnieuw proberen" }).click();
   await expect(page.getByRole("alert")).toHaveCount(0);
-  await expect(page.locator(".penalty-btn").first()).toBeEnabled();
   expect(ids).toHaveLength(3);
   expect(new Set(ids).size).toBe(1);
   expect((await getLatestGame(tournament.id)).rounds).toHaveLength(1);
@@ -131,7 +136,7 @@ test("a winning round displays immediately and saves the winner atomically", asy
   const tournament = await openWriter(page, ["Alice", "Bob"]);
   let release!: () => void;
   const held = new Promise<void>((resolve) => { release = resolve; });
-  await page.route("**/finish-round", async (route) => { await held; await route.continue(); });
+  await page.route("**/commands", async (route) => { await held; await route.continue(); });
   for (let i = 0; i < 15; i++) await page.locator(".penalty-btn").first().click();
   await page.getByLabel("Ronde afsluiten").click();
   await expect(page.locator(".celebration-overlay")).toBeVisible();

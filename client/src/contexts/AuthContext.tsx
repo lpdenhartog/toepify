@@ -1,33 +1,37 @@
-import { useState, useEffect, useCallback, type ReactNode } from "react";
+import { useState, useEffect, useCallback, useSyncExternalStore, type ReactNode } from "react";
 import {
   loginWithCredentials,
   loginWithPin as apiLoginWithPin,
   fetchMe,
+  AuthExpiredError,
   type AuthUser,
 } from "../api/auth";
+import { offlineTournament, subscribeOffline } from "../offline/store";
 import { AuthContext } from "./authContextValue";
 
 const TOKEN_KEY = "toepify_auth_token";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const offlineId = useSyncExternalStore(subscribeOffline, offlineTournament);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_KEY));
-  const [loading, setLoading] = useState(!!localStorage.getItem(TOKEN_KEY));
+  const [loading, setLoading] = useState(!!localStorage.getItem(TOKEN_KEY) && !offlineTournament());
 
   useEffect(() => {
     if (!token) return;
+    if (offlineId) return;
 
     fetchMe(token)
       .then((u) => {
         setUser(u);
       })
-      .catch(() => {
-        localStorage.removeItem(TOKEN_KEY);
-        setToken(null);
+      .catch((error) => {
+        // A network failure must not erase credentials during offline recovery.
+        if (error instanceof AuthExpiredError) { localStorage.removeItem(TOKEN_KEY); setToken(null); }
         setUser(null);
       })
       .finally(() => setLoading(false));
-  }, [token]);
+  }, [token, offlineId]);
 
   const login = useCallback(async (username: string, password: string) => {
     const result = await loginWithCredentials(username, password);

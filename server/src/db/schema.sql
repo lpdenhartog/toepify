@@ -82,3 +82,32 @@ CREATE TABLE IF NOT EXISTS round_submissions (
   payload JSONB NOT NULL,
   PRIMARY KEY (game_id, request_id)
 );
+
+-- A tournament revision detects changes across all games, including legacy writers.
+ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS revision BIGINT NOT NULL DEFAULT 0;
+CREATE TABLE IF NOT EXISTS gameplay_receipts (
+  tournament_id TEXT NOT NULL REFERENCES tournaments(id) ON DELETE CASCADE,
+  request_id TEXT NOT NULL,
+  payload JSONB NOT NULL,
+  before_revision BIGINT NOT NULL,
+  after_revision BIGINT NOT NULL,
+  PRIMARY KEY (tournament_id, request_id)
+);
+CREATE OR REPLACE FUNCTION bump_tournament_game_revision() RETURNS trigger AS $$
+BEGIN
+  UPDATE tournaments SET revision = revision + 1 WHERE id = NEW.tournament_id;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+DROP TRIGGER IF EXISTS game_tournament_revision ON games;
+CREATE TRIGGER game_tournament_revision AFTER INSERT OR UPDATE ON games
+FOR EACH ROW EXECUTE FUNCTION bump_tournament_game_revision();
+CREATE OR REPLACE FUNCTION bump_tournament_status_revision() RETURNS trigger AS $$
+BEGIN
+  IF NEW.status IS DISTINCT FROM OLD.status THEN NEW.revision = OLD.revision + 1; END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+DROP TRIGGER IF EXISTS tournament_status_revision ON tournaments;
+CREATE TRIGGER tournament_status_revision BEFORE UPDATE ON tournaments
+FOR EACH ROW EXECUTE FUNCTION bump_tournament_status_revision();
