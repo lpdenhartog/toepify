@@ -205,43 +205,63 @@ router.delete("/:id", writeLimiter, requireAuth, async (req: AuthRequest, res: R
 router.post("/:id/close", writeLimiter, requireAuth, async (req: AuthRequest, res: Response) => {
   const id = req.params.id as string;
 
+  const client = await getPool().connect();
   try {
-    const pool = getPool();
-    const tournament = await pool.query("SELECT created_by, status FROM tournaments WHERE id = $1", [id]);
+    await client.query("BEGIN");
+    // Serialize closing with starting another game.
+    const tournament = await client.query(
+      "SELECT created_by, status FROM tournaments WHERE id = $1 FOR UPDATE", [id]
+    );
     if (tournament.rows.length === 0) {
+      await client.query("ROLLBACK");
       res.status(404).json({ error: "Toernooi niet gevonden" });
       return;
     }
 
     if (tournament.rows[0].created_by !== req.user!.username) {
+      await client.query("ROLLBACK");
       res.status(403).json({ error: "Alleen de eigenaar kan het toernooi afsluiten" });
       return;
     }
 
     if (tournament.rows[0].status === "closed") {
+      await client.query("ROLLBACK");
       res.status(400).json({ error: "Toernooi is al afgesloten" });
       return;
     }
 
-    // Verify no active game exists
-    const activeGame = await pool.query(
-      "SELECT id FROM games WHERE tournament_id = $1 AND status = 'active' LIMIT 1",
+    // Lock games before inspecting rounds, so a concurrent round cannot slip in.
+    const activeGames = await client.query(
+      "SELECT id FROM games WHERE tournament_id = $1 AND status = 'active' ORDER BY id FOR UPDATE",
       [id]
     );
-    if (activeGame.rows.length > 0) {
-      res.status(400).json({ error: "Er is nog een actief spel" });
-      return;
+    for (const game of activeGames.rows) {
+      const rounds = await client.query("SELECT 1 FROM rounds WHERE game_id = $1 LIMIT 1", [game.id]);
+      if (rounds.rows.length > 0) {
+        await client.query("ROLLBACK");
+        res.status(400).json({ error: "Er is nog een actief spel" });
+        return;
+      }
     }
 
-    await pool.query("UPDATE tournaments SET status = 'closed' WHERE id = $1", [id]);
+    // Unplayed games must neither accept rounds nor affect the settlement.
+    await client.query(
+      "UPDATE games SET status = 'cancelled', revision = revision + 1 WHERE tournament_id = $1 AND status = 'active'",
+      [id]
+    );
+    await client.query("UPDATE tournaments SET status = 'closed' WHERE id = $1", [id]);
 
-    const balances = await computeTournamentBalances(pool, id);
+    const balances = await computeTournamentBalances(client, id);
     const settlements = computeSettlements(balances);
+    await client.query("COMMIT");
 
     res.json({ balances, settlements });
   } catch (err) {
+    await client.query("ROLLBACK");
     console.error("Failed to close tournament:", err);
     res.status(500).json({ error: "Toernooi afsluiten mislukt" });
+  } finally {
+    client.release();
   }
 });
 

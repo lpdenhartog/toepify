@@ -254,3 +254,18 @@ export function RoundActions({
     </div>
   );
 }
+
+export function CloseTournamentButton({ onClose }: { onClose: () => void }) {
+  return (
+    <button
+      className="tp-share tp-close-tournament"
+      onClick={() => {
+        if (window.confirm("Weet je zeker dat je het toernooi wilt afsluiten? Er kunnen dan geen nieuwe spellen meer worden gestart.")) {
+          onClose();
+        }
+      }}
+    >
+      Toernooi afsluiten
+    </button>
+  );
+}

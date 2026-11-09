@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import {
   BuyInSection,
+  CloseTournamentButton,
   HeroNumber,
   IconShare,
   ModeBadge,
@@ -241,20 +242,7 @@ export default function ScoreboardPortrait({ view }: { view: ScoreboardView }) {
 
       {/* close tournament (creator, active game, no rounds played) */}
       {canWrite && isCreator && isActive && rounds.length === 0 && (
-        <button
-          className="tp-share tp-close-tournament"
-          onClick={() => {
-            if (
-              window.confirm(
-                "Weet je zeker dat je het toernooi wilt afsluiten? Er kunnen dan geen nieuwe spellen meer worden gestart.",
-              )
-            ) {
-              view.onCloseTournament();
-            }
-          }}
-        >
-          Toernooi afsluiten
-        </button>
+        <CloseTournamentButton onClose={view.onCloseTournament} />
       )}
 
       {qrOverlay}
